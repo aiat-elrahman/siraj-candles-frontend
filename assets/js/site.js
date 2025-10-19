@@ -203,7 +203,52 @@ async function fetchBestsellers() {
         container.innerHTML = '<p>Could not load bestsellers. Please check the API connection.</p>';
     }
 }
+// ====================================
+// NEW: CATEGORIES LOGIC
+// ====================================
 
+async function fetchAndrenderCategories() {
+    const container = document.getElementById('categories-container');
+    if (!container) return;
+    
+    // Set a temporary loading message for the categories section
+    container.innerHTML = '<p>Loading categories...</p>'; 
+
+    try {
+        // Use the API_BASE_URL + /api + /categories
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Assuming your /api/categories endpoint returns a simple array of category objects/names
+        const categories = await response.json(); 
+
+        if (categories.length === 0) {
+            container.innerHTML = '<p>No categories available.</p>';
+            return;
+        }
+
+        // Render the categories
+        // NOTE: This rendering logic assumes a specific HTML structure for categories. 
+        // Adjust the map function below if your design is different.
+        container.innerHTML = categories.map(category => {
+            // Check if the item is a string (category name) or an object
+            const name = typeof category === 'string' ? category : (category.name || 'Unknown Category');
+            // Assuming you link to the products page filtered by category
+            return `
+                <a href="products.html?category=${encodeURIComponent(name)}" class="category-card">
+                    <p class="category-name">${name}</p>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        container.innerHTML = '<p>Could not load categories.</p>';
+    }
+}
 // ====================================
 // 4. SEARCH LOGIC
 // ====================================
