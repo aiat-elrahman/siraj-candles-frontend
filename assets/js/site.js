@@ -199,6 +199,7 @@ function debounce(func, delay) {
 // ====================================
 
 // FIX: Combined and Corrected CATEGORIES LOGIC (Replaces the repeated blocks)
+// site.js (Replace the existing fetchAndrenderCategories function entirely)
 async function fetchAndrenderCategories() {
     const container = document.getElementById('categories-container');
     if (!container) return;
@@ -206,25 +207,34 @@ async function fetchAndrenderCategories() {
     container.innerHTML = '<p>Loading categories...</p>'; 
 
     try {
-        // Correct endpoint path
-        const response = await fetch(`${API_BASE_URL}/api/categories`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json(); 
-        
-        // Assuming categories are returned as a flat array or under a 'categories' key
-        const categories = data.categories || data.results || data;
+        // --- FIX: Fetch the list of ALL products, not a nonexistent /categories endpoint ---
+        // We use a high limit to get all products on one page, assuming categories are spread across them.
+        const { items } = await fetchGridData('/products', 1, 1000); 
 
-        if (!Array.isArray(categories) || categories.length === 0) {
-            container.innerHTML = '<p>No categories available.</p>';
+        if (items.length === 0) {
+            container.innerHTML = '<p>No products available to determine categories.</p>';
             return;
         }
 
-        container.innerHTML = categories.map(category => {
-            // Use 'name' key or the category string itself (assuming 'Name (English)' isn't used here)
-            const name = typeof category === 'string' ? category : (category.name || category['Name (English)'] || 'Category'); 
+        // Use a Set to collect unique categories (case-sensitive)
+        const uniqueCategories = new Set();
+        items.forEach(item => {
+            // Use the key 'Category' from your JSON, with a fallback
+            const categoryName = item.Category || item.category;
+            if (categoryName) {
+                uniqueCategories.add(categoryName);
+            }
+        });
+
+        const categoriesArray = Array.from(uniqueCategories);
+
+        if (categoriesArray.length === 0) {
+            container.innerHTML = '<p>Could not extract categories from product data.</p>';
+            return;
+        }
+
+        // Render the unique categories
+        container.innerHTML = categoriesArray.map(name => {
             return `
                 <a href="products.html?category=${encodeURIComponent(name)}" class="category-card">
                     <p class="category-name">${name}</p>
@@ -234,8 +244,9 @@ async function fetchAndrenderCategories() {
         }).join('');
 
     } catch (error) {
+        // This catch block will now catch network errors AND the CORS error
         console.error("Error fetching categories:", error);
-        container.innerHTML = '<p>Could not load categories. Please check the API connection.</p>';
+        container.innerHTML = '<p>Could not load categories. Please check the API connection or CORS policy.</p>';
     }
 }
 // END OF CATEGORIES LOGIC
