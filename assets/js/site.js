@@ -1,10 +1,5 @@
-//
-// site.js
-// Siraj Candles Consolidated Core JavaScript (ES Module)
-// Handles all pages, API calls, cart logic, bundle customization, search, and checkout.
-//
 
-const API_BASE_URL = 'https://siraj-backend.onrender.com/api'; 
+const API_BASE_URL = 'https://siraj-backend.onrender.com'; 
 const ITEMS_PER_PAGE = 12;
 
 // **IMPORTANT: Replace this with an actual API call to fetch your live scent options**
@@ -35,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     switch (pageName) {
         case 'home':
+            fetchAndrenderCategories(); 
             fetchBestsellers();
             break;
         case 'products':
