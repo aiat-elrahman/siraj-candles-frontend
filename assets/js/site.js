@@ -95,7 +95,7 @@ function setupEventListeners() {
 
 async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query = '') {
     try {
-        // FIX: Corrected API path
+        // FIX: Corrected API path
         const fullUrl = `${API_BASE_URL}/api${endpoint}?page=${page}&limit=${limit}${query}`;
         const response = await fetch(fullUrl);
         if (!response.ok) {
@@ -104,8 +104,8 @@ async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query =
         const result = await response.json(); 
         
         // FIX: CRITICAL DATA NORMALIZATION - Use 'results' key from JSON response
-        const items = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
-        
+        const items = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
+        
         return {
             items: items,
             // FIX: Calculate totalPages using total and limit keys
@@ -129,12 +129,12 @@ function renderProductGrid(containerId, items, endpointType) {
 
     container.innerHTML = items.map(item => {
         const typeParam = endpointType === 'bundles' ? '&type=bundle' : '';
-        
-        // FIX: Use correct Casing and Key names from JSON
-        const itemName = item['Name (English)'] || item.name || 'Unknown Product';
-        const itemPrice = item['Price (EGP)'] || item.price || 0;
-        const itemImage = item['Image path'] || item.imageUrl || 'images/placeholder.jpg';
-        
+        
+        // FIX: Use correct Casing and Key names from JSON
+        const itemName = item['Name (English)'] || item.name || 'Unknown Product';
+        const itemPrice = item['Price (EGP)'] || item.price || 0;
+        const itemImage = item['Image path'] || item.imageUrl || 'images/placeholder.jpg';
+        
         return `
             <div class="product-card">
                 <img src="${itemImage}" alt="${itemName}">
@@ -198,8 +198,7 @@ function debounce(func, delay) {
 // 3. HOMEPAGE LOGIC
 // ====================================
 
-// FIX: Combined and Corrected CATEGORIES LOGIC (Replaces the repeated blocks)
-// site.js (Replace the existing fetchAndrenderCategories function entirely)
+// FIX: Dynamic CATEGORIES LOGIC (Fetches all products and extracts categories)
 async function fetchAndrenderCategories() {
     const container = document.getElementById('categories-container');
     if (!container) return;
@@ -207,8 +206,7 @@ async function fetchAndrenderCategories() {
     container.innerHTML = '<p>Loading categories...</p>'; 
 
     try {
-        // --- FIX: Fetch the list of ALL products, not a nonexistent /categories endpoint ---
-        // We use a high limit to get all products on one page, assuming categories are spread across them.
+        // Fetch all products (limit 1000 to be safe, as there is no separate /categories endpoint)
         const { items } = await fetchGridData('/products', 1, 1000); 
 
         if (items.length === 0) {
@@ -216,7 +214,7 @@ async function fetchAndrenderCategories() {
             return;
         }
 
-        // Use a Set to collect unique categories (case-sensitive)
+        // Use a Set to collect unique categories (case-sensitive based on your JSON)
         const uniqueCategories = new Set();
         items.forEach(item => {
             // Use the key 'Category' from your JSON, with a fallback
@@ -244,7 +242,7 @@ async function fetchAndrenderCategories() {
         }).join('');
 
     } catch (error) {
-        // This catch block will now catch network errors AND the CORS error
+        // This catch block will continue to show the error until CORS is fixed on the backend
         console.error("Error fetching categories:", error);
         container.innerHTML = '<p>Could not load categories. Please check the API connection or CORS policy.</p>';
     }
@@ -288,7 +286,7 @@ async function handleSearch() {
         } else {
             searchResults.innerHTML = items.map(product => `
                 <a href="product.html?id=${product._id}" class="search-result-item">
-                                        <p class="search-item-title">${product['Name (English)'] || product.name}</p>
+                                        <p class="search-item-title">${product['Name (English)'] || product.name}</p>
                     <p class="search-item-price">${(product['Price (EGP)'] || product.price || 0).toFixed(2)} EGP</p>
                 </a>
             `).join('');
@@ -387,12 +385,12 @@ async function loadProductDetails() {
 
 function renderProduct(product) {
     const container = document.getElementById('product-detail-container');
-    
-    // FIX: Use correct Casing and Key names from JSON
-    const itemName = product['Name (English)'] || product.name || 'Unknown Product';
-    const itemPrice = product['Price (EGP)'] || product.price || 0;
-    const itemImage = product['Image path'] || product.imageUrl || 'images/placeholder.jpg';
-    
+    
+    // FIX: Use correct Casing and Key names from JSON
+    const itemName = product['Name (English)'] || product.name || 'Unknown Product';
+    const itemPrice = product['Price (EGP)'] || product.price || 0;
+    const itemImage = product['Image path'] || product.imageUrl || 'images/placeholder.jpg';
+    
     const isOutOfStock = product.stockCount <= 0;
     
     document.title = `${itemName} | Siraj Candles`;
@@ -487,8 +485,8 @@ function renderProduct(product) {
                 customization = collectBundleScents(parseInt(btn.getAttribute('data-bundle-items')));
                 if (!customization) return; // Stops if not all scents are selected
             }
-            
-            // FIX: Use correct Casing and Key names from JSON
+            
+            // FIX: Use correct Casing and Key names from JSON
             const item = {
                 _id: product._id,
                 name: itemName,
