@@ -95,18 +95,22 @@ function setupEventListeners() {
 
 async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query = '') {
     try {
-        // --- FIX APPLIED HERE: Added '/api' prefix to the URL ---
+        // FIX: Corrected API path
         const fullUrl = `${API_BASE_URL}/api${endpoint}?page=${page}&limit=${limit}${query}`;
         const response = await fetch(fullUrl);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const result = await response.json(); 
-        // Normalize response keys for flexibility
+        
+        // FIX: CRITICAL DATA NORMALIZATION - Use 'results' key from JSON response
+        const items = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
+        
         return {
-            items: result.products || result.bundles || result.data || result,
-            totalPages: result.totalPages || 1, 
-            currentPage: result.currentPage || page
+            items: items,
+            // FIX: Calculate totalPages using total and limit keys
+            totalPages: Math.ceil((result.total || limit) / limit), 
+            currentPage: result.page || page
         };
     } catch (error) {
         console.error(`Error fetching data from ${endpoint}:`, error);
@@ -125,14 +129,20 @@ function renderProductGrid(containerId, items, endpointType) {
 
     container.innerHTML = items.map(item => {
         const typeParam = endpointType === 'bundles' ? '&type=bundle' : '';
+        
+        // FIX: Use correct Casing and Key names from JSON
+        const itemName = item['Name (English)'] || item.name || 'Unknown Product';
+        const itemPrice = item['Price (EGP)'] || item.price || 0;
+        const itemImage = item['Image path'] || item.imageUrl || 'images/placeholder.jpg';
+        
         return `
             <div class="product-card">
-                <img src="${item.imageUrl || 'images/placeholder.jpg'}" alt="${item.name}">
+                <img src="${itemImage}" alt="${itemName}">
                 <div class="product-info">
-                    <p class="product-title">${item.name}</p>
-                    <p class="product-price">${(item.price || 0).toFixed(2)} EGP</p>
+                    <p class="product-title">${itemName}</p>
+                    <p class="product-price">${(itemPrice).toFixed(2)} EGP</p>
                     <button onclick="window.location.href='product.html?id=${item._id}${typeParam}'" class="view-product-btn">View Details</button>
-                </div>
+            </div>
             </div>
         `;
     }).join('');
@@ -188,27 +198,7 @@ function debounce(func, delay) {
 // 3. HOMEPAGE LOGIC
 // ====================================
 
-async function fetchBestsellers() {
-    const container = document.getElementById('bestsellers-container');
-    if (!container) return;
-    
-    container.innerHTML = '<p>Loading bestsellers...</p>';
-
-    try {
-        // Endpoint is '/products' but fetchGridData now adds '/api'
-        const { items } = await fetchGridData('/products', 1, 4, '&isBestSeller=true');
-        renderProductGrid('bestsellers-container', items, 'products');
-
-    } catch (error) {
-        container.innerHTML = '<p>Could not load bestsellers. Please check the API connection.</p>';
-    }
-}
-// Add this to your site.js after the HOMEPAGE LOGIC heading (or around line 185)
-
-// ====================================
-// NEW: CATEGORIES LOGIC
-// ====================================
-
+// NEW: CATEGORIES LOGIC (To fix the "Loading categories..." message)
 async function fetchAndrenderCategories() {
     const container = document.getElementById('categories-container');
     if (!container) return;
@@ -222,19 +212,19 @@ async function fetchAndrenderCategories() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        // Assuming /api/categories returns an array of category names or objects
-        const categories = await response.json(); 
+        const data = await response.json(); 
+        
+        // Assuming categories are returned as a flat array or under a 'categories' key
+        const categories = data.categories || data;
 
-        // If categories is a wrapper object, adjust the assignment here
-        const items = categories.data || categories.categories || categories;
-
-        if (!Array.isArray(items) || items.length === 0) {
+        if (!Array.isArray(categories) || categories.length === 0) {
             container.innerHTML = '<p>No categories available.</p>';
             return;
         }
 
-        container.innerHTML = items.map(category => {
-            const name = typeof category === 'string' ? category : (category.name || 'Category');
+        container.innerHTML = categories.map(category => {
+            // Use 'name' key or the category string itself
+            const name = typeof category === 'string' ? category : (category.name || 'Category'); 
             return `
                 <a href="products.html?category=${encodeURIComponent(name)}" class="category-card">
                     <p class="category-name">${name}</p>
@@ -248,52 +238,23 @@ async function fetchAndrenderCategories() {
         container.innerHTML = '<p>Could not load categories. Please check the API connection.</p>';
     }
 }
-// ====================================
-// NEW: CATEGORIES LOGIC
-// ====================================
+// END OF NEW CATEGORIES LOGIC
 
-async function fetchAndrenderCategories() {
-    const container = document.getElementById('categories-container');
-    if (!container) return;
-    
-    // Set a temporary loading message for the categories section
-    container.innerHTML = '<p>Loading categories...</p>'; 
+async function fetchBestsellers() {
+    const container = document.getElementById('bestsellers-container');
+    if (!container) return;
+    
+    container.innerHTML = '<p>Loading bestsellers...</p>';
 
-    try {
-        // Use the API_BASE_URL + /api + /categories
-        const response = await fetch(`${API_BASE_URL}/api/categories`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        // Assuming your /api/categories endpoint returns a simple array of category objects/names
-        const categories = await response.json(); 
+    try {
+        const { items } = await fetchGridData('/products', 1, 4, '&isBestSeller=true');
+        renderProductGrid('bestsellers-container', items, 'products');
 
-        if (categories.length === 0) {
-            container.innerHTML = '<p>No categories available.</p>';
-            return;
-        }
-
-        // Render the categories
-        // NOTE: This rendering logic assumes a specific HTML structure for categories. 
-        // Adjust the map function below if your design is different.
-        container.innerHTML = categories.map(category => {
-            // Check if the item is a string (category name) or an object
-            const name = typeof category === 'string' ? category : (category.name || 'Unknown Category');
-            // Assuming you link to the products page filtered by category
-            return `
-                <a href="products.html?category=${encodeURIComponent(name)}" class="category-card">
-                    <p class="category-name">${name}</p>
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            `;
-        }).join('');
-
-    } catch (error) {
-        console.error("Error fetching categories:", error);
-        container.innerHTML = '<p>Could not load categories.</p>';
-    }
+    } catch (error) {
+        container.innerHTML = '<p>Could not load bestsellers. Please check the API connection.</p>';
+    }
 }
+
 // ====================================
 // 4. SEARCH LOGIC
 // ====================================
@@ -308,7 +269,6 @@ async function handleSearch() {
     searchResults.innerHTML = '<p>Searching...</p>';
     
     try {
-        // Endpoint is '/products' but fetchGridData now adds '/api'
         const { items } = await fetchGridData('/products', 1, 5, `&search=${encodeURIComponent(query)}`);
 
         if (items.length === 0) {
@@ -316,8 +276,8 @@ async function handleSearch() {
         } else {
             searchResults.innerHTML = items.map(product => `
                 <a href="product.html?id=${product._id}" class="search-result-item">
-                    <p class="search-item-title">${product.name}</p>
-                    <p class="search-item-price">${product.price.toFixed(2)} EGP</p>
+                                        <p class="search-item-title">${product['Name (English)']}</p>
+                    <p class="search-item-price">${product['Price (EGP)'].toFixed(2)} EGP</p>
                 </a>
             `).join('');
         }
@@ -343,7 +303,6 @@ async function loadProducts(page) {
     container.innerHTML = '<p class="loading-message">Fetching all products...</p>';
     paginationControls.innerHTML = '';
     
-    // Endpoint is '/products' but fetchGridData now adds '/api'
     const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE);
 
     renderProductGrid('products-container', items, 'products');
@@ -367,8 +326,9 @@ async function loadBundles(page) {
     container.innerHTML = '<p class="loading-message">Fetching curated bundles...</p>';
     paginationControls.innerHTML = '';
     
-    // Endpoint is '/bundles' but fetchGridData now adds '/api'
     const BUNDLE_ITEMS_PER_PAGE = 9; 
+    // Note: Your API uses 'results' for products. If bundles uses a different key, 
+    // fetchGridData will try 'bundles', then 'results' for fallback.
     const { items, totalPages, currentPage } = await fetchGridData('/bundles', page, BUNDLE_ITEMS_PER_PAGE);
 
     renderProductGrid('bundles-container', items, 'bundles');
@@ -391,7 +351,7 @@ async function loadProductDetails() {
         return;
     }
 
-    // --- FIX APPLIED HERE: Added '/api' prefix for direct fetch endpoints ---
+    // FIX: Corrected API path
     const endpoint = type === 'bundle' ? `/api/bundles/${id}` : `/api/products/${id}`;
     
     try {
@@ -415,9 +375,15 @@ async function loadProductDetails() {
 
 function renderProduct(product) {
     const container = document.getElementById('product-detail-container');
+    
+    // FIX: Use correct Casing and Key names from JSON
+    const itemName = product['Name (English)'] || product.name || 'Unknown Product';
+    const itemPrice = product['Price (EGP)'] || product.price || 0;
+    const itemImage = product['Image path'] || product.imageUrl || 'images/placeholder.jpg';
+    
     const isOutOfStock = product.stockCount <= 0;
     
-    document.title = `${product.name} | Siraj Candles`;
+    document.title = `${itemName} | Siraj Candles`;
     document.querySelector('meta[name="description"]').setAttribute('content', (product.description || '').substring(0, 150) + '...');
     
     // --- Bundle Customization Logic ---
@@ -435,11 +401,11 @@ function renderProduct(product) {
 
         for (let i = 1; i <= numItemsInBundle; i++) {
             // Use item name if provided by API, otherwise default
-            const itemName = product.bundleItems?.[i-1]?.name || `Item ${i} - Product`;
+            const bundleItemName = product.bundleItems?.[i-1]?.name || `Item ${i} - Product`;
             
             bundleSelectors += `
                 <div class="bundle-selector-group">
-                    <label for="scent-${i}">${itemName}:</label>
+                    <label for="scent-${i}">${bundleItemName}:</label>
                     <select id="scent-${i}" class="scent-selector" required>
                         <option value="">-- Select a scent --</option>
                         ${scentOptions}
@@ -455,20 +421,20 @@ function renderProduct(product) {
     container.innerHTML = `
         <div class="product-detail-grid">
             <div class="product-image-area">
-                <img src="${product.imageUrl || 'images/placeholder.jpg'}" alt="${product.name}" class="main-product-image">
+                <img src="${itemImage}" alt="${itemName}" class="main-product-image">
             </div>
             
             <div class="product-info-area">
-                <h1 class="product-title">${product.name}</h1>
-                <p class="product-category">${product.category || ''}</p>
-                <p class="product-price">${product.price.toFixed(2)} EGP</p>
+                <h1 class="product-title">${itemName}</h1>
+                <p class="product-category">${product.Category || product.category || ''}</p>
+                <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
                 
                 <p class="stock-status ${isOutOfStock ? 'out-of-stock' : 'in-stock'}">
                     ${isOutOfStock ? 'Out of Stock' : 'In Stock'}
                 </p>
 
                 <p class="product-description">
-                    ${product.description || 'No description provided.'}
+                    ${product['Description (English)'] || product.description || 'No description provided.'}
                 </p>
                 
                 ${customizationHTML}
@@ -512,8 +478,9 @@ function renderProduct(product) {
 
             const item = {
                 _id: product._id,
-                name: product.name,
-                price: product.price,
+                // FIX: Use correct Casing and Key names from JSON
+                name: itemName,
+                price: itemPrice,
                 quantity: quantity,
                 customization: customization
             };
@@ -547,7 +514,6 @@ async function fetchRelatedProducts(category, excludeId) {
     container.innerHTML = '<p>Loading related products...</p>';
     try {
         const query = `&category=${category}&limit=4&exclude_id=${excludeId}`;
-        // Endpoint is '/products' but fetchGridData now adds '/api'
         const { items } = await fetchGridData('/products', 1, 4, query);
         renderProductGrid('related-products-container', items, 'products');
     } catch (error) {
@@ -806,7 +772,7 @@ async function processCheckout(e) {
     submitBtn.textContent = 'Processing...';
 
     try {
-        // --- FIX APPLIED HERE: Added '/api' prefix to the order submission endpoint ---
+        // FIX: Corrected API path
         const response = await fetch(`${API_BASE_URL}/api/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
