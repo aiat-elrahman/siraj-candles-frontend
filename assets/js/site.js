@@ -139,7 +139,7 @@ function renderProductGrid(containerId, items, endpointType) {
             <div class="product-card">
                 <img src="${itemImage}" alt="${itemName}">
                 <div class="product-info">
-                    <p class="product-title">${itemName}</p>
+                    <p class="product-title product-name-bold">${itemName}</p>
                     <p class="product-price">${(itemPrice).toFixed(2)} EGP</p>
                     <button onclick="window.location.href='product.html?id=${item._id}${typeParam}'" class="view-product-btn">View Details</button>
                 </div>
@@ -156,7 +156,8 @@ function renderPagination(controlsId, totalPages, currentPage, pageFile, loadFun
     const createButton = (text, page) => {
         const button = document.createElement('button');
         button.textContent = text;
-        button.classList.add('pagination-button');
+        // Class for pagination styling
+        button.classList.add('pagination-button', 'pagination-bold'); 
         if (page === currentPage) {
             button.classList.add('active');
         }
@@ -214,10 +215,8 @@ async function fetchAndrenderCategories() {
             return;
         }
 
-        // Use a Set to collect unique categories (case-sensitive based on your JSON)
         const uniqueCategories = new Set();
         items.forEach(item => {
-            // Use the key 'Category' from your JSON, with a fallback
             const categoryName = item.Category || item.category;
             if (categoryName) {
                 uniqueCategories.add(categoryName);
@@ -231,18 +230,25 @@ async function fetchAndrenderCategories() {
             return;
         }
 
-        // Render the unique categories
+        // FIX: Render the unique categories as cards (Assuming placeholder images)
         container.innerHTML = categoriesArray.map(name => {
+            // Simple placeholder image logic (replace with real images later)
+            const imageSrc = name.toLowerCase().includes('candle') ? 'images/placeholder-candle.jpg' : 'images/placeholder-freshener.jpg';
+            
             return `
-                <a href="products.html?category=${encodeURIComponent(name)}" class="category-card">
-                    <p class="category-name">${name}</p>
-                    <i class="fas fa-arrow-right"></i>
+                <a href="products.html?category=${encodeURIComponent(name)}" class="category-card-item">
+                    <div class="category-image-wrapper">
+                        <img src="${imageSrc}" alt="${name}">
+                    </div>
+                    <div class="category-info">
+                        <p class="category-name">${name}</p>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
                 </a>
             `;
         }).join('');
 
     } catch (error) {
-        // This catch block will continue to show the error until CORS is fixed on the backend
         console.error("Error fetching categories:", error);
         container.innerHTML = '<p>Could not load categories. Please check the API connection or CORS policy.</p>';
     }
@@ -256,8 +262,8 @@ async function fetchBestsellers() {
     container.innerHTML = '<p>Loading bestsellers...</p>';
 
     try {
-        // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
-        const { items } = await fetchGridData('/products', 1, 4, '&isBestSeller=true');
+        // FIX: Requested 6 best-sellers
+        const { items } = await fetchGridData('/products', 1, 6, '&isBestSeller=true'); 
         renderProductGrid('bestsellers-container', items, 'products');
 
     } catch (error) {
@@ -301,22 +307,81 @@ async function handleSearch() {
 // ====================================
 
 function initProductsPage() {
+    // Setup Filter and Sort Dropdowns/Listeners here
+    const filterSortBar = document.getElementById('filter-sort-bar');
+    if (filterSortBar) {
+        filterSortBar.innerHTML = renderFilterSortBar();
+        // Add listeners for filter and sort changes to trigger loadProducts
+        document.getElementById('sort-by-select').addEventListener('change', () => loadProducts(1));
+        document.getElementById('filter-category-select').addEventListener('change', () => loadProducts(1));
+    }
+    
     const urlParams = new URLSearchParams(window.location.search);
     const initialPage = parseInt(urlParams.get('page')) || 1;
     loadProducts(initialPage);
 }
 
+// NEW FUNCTION: Renders the Filter/Sort HTML
+function renderFilterSortBar() {
+    // Note: Fetching dynamic categories for the filter dropdown is complex
+    // and would require an additional fetch call or passing data from the server.
+    // For now, we use placeholders as requested, and will build the filtering logic.
+    
+    // Get current filter/sort settings from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSort = urlParams.get('sort') || 'name_asc';
+    const currentCategory = urlParams.get('category') || '';
+    
+    return `
+        <div class="filter-controls-group">
+            <div class="filter-item">
+                <label for="filter-category-select">Category:</label>
+                <select id="filter-category-select" class="filter-select" value="${currentCategory}">
+                    <option value="">All Categories</option>
+                    <option value="Candles">Candles</option>
+                    <option value="Freshener">Freshener</option>
+                    </select>
+            </div>
+            
+            <div class="filter-item">
+                <label for="sort-by-select">Sort By:</label>
+                <select id="sort-by-select" class="filter-select" value="${currentSort}">
+                    <option value="name_asc" ${currentSort === 'name_asc' ? 'selected' : ''}>Name (A-Z)</option>
+                    <option value="price_asc" ${currentSort === 'price_asc' ? 'selected' : ''}>Price (Low to High)</option>
+                    <option value="price_desc" ${currentSort === 'price_desc' ? 'selected' : ''}>Price (High to Low)</option>
+                    <option value="newest" ${currentSort === 'newest' ? 'selected' : ''}>Newest</option>
+                </select>
+            </div>
+        </div>
+    `;
+}
+
+// MODIFIED TO HANDLE FILTERS/SORTING
 async function loadProducts(page) {
     const container = document.getElementById('products-container');
     const paginationControls = document.getElementById('pagination-controls');
-    
+
+    const sortBy = document.getElementById('sort-by-select')?.value || '';
+    const filterCategory = new URLSearchParams(window.location.search).get('category') || document.getElementById('filter-category-select')?.value || '';
+    
+    // Build query string based on filters
+    let query = '';
+    if (filterCategory) {
+        query += `&category=${encodeURIComponent(filterCategory)}`;
+    }
+    if (sortBy) {
+        const [sortField, sortOrder] = sortBy.split('_');
+        query += `&sort=${sortField}&order=${sortOrder}`;
+    }
+    
     container.innerHTML = '<p class="loading-message">Fetching all products...</p>';
     paginationControls.innerHTML = '';
     
     // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
-    const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE);
+    const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE, query);
 
     renderProductGrid('products-container', items, 'products');
+    // Ensure pagination is called correctly
     renderPagination('pagination-controls', totalPages, currentPage, 'products.html', loadProducts);
 }
 
@@ -375,6 +440,7 @@ async function loadProductDetails() {
         product.isBundle = (type === 'bundle' || product.bundleItems); 
 
         renderProduct(product);
+        // Use the category key from your JSON for related products
         fetchRelatedProducts(product.Category || 'general', product._id); 
         
     } catch (error) {
@@ -390,11 +456,16 @@ function renderProduct(product) {
     const itemName = product['Name (English)'] || product.name || 'Unknown Product';
     const itemPrice = product['Price (EGP)'] || product.price || 0;
     const itemImage = product['Image path'] || product.imageUrl || 'images/placeholder.jpg';
+    const itemCategory = product.Category || product.category || 'N/A';
+    const itemScents = product.scents || 'N/A';
+    const itemSize = product.Size || 'N/A';
+    // FIX: Handle newline characters in description (converts \n and \r\n to <br>)
+    const itemDescription = (product['Description (English)'] || product.description || 'No description provided.').replace(/\r?\n/g, '<br>');
     
     const isOutOfStock = product.stockCount <= 0;
     
     document.title = `${itemName} | Siraj Candles`;
-    document.querySelector('meta[name="description"]').setAttribute('content', (product['Description (English)'] || product.description || '').substring(0, 150) + '...');
+    document.querySelector('meta[name="description"]').setAttribute('content', (itemDescription).substring(0, 150).replace(/<br>/g, ' ') + '...');
     
     // --- Bundle Customization Logic ---
     let customizationHTML = '';
@@ -436,7 +507,10 @@ function renderProduct(product) {
             
             <div class="product-info-area">
                 <h1 class="product-title">${itemName}</h1>
-                <p class="product-category">${product.Category || product.category || ''}</p>
+                <p class="product-spec">Category: <span>${itemCategory}</span></p>
+                <p class="product-spec">Scents: <span>${itemScents}</span></p>
+                <p class="product-spec">Size: <span>${itemSize}</span></p>
+
                 <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
                 
                 <p class="stock-status ${isOutOfStock ? 'out-of-stock' : 'in-stock'}">
@@ -444,21 +518,31 @@ function renderProduct(product) {
                 </p>
 
                 <p class="product-description">
-                    ${product['Description (English)'] || product.description || 'No description provided.'}
+                    ${itemDescription}
                 </p>
                 
                 ${customizationHTML}
 
                 ${!isOutOfStock ? `
-                    <div class="quantity-selector" style="${isBundle ? 'margin-top: 1rem;' : ''}">
-                        <label for="quantity">Quantity:</label>
-                        <input type="number" id="quantity" value="1" min="1" max="${product.stockCount || 10}">
+                    <div class="quantity-add-group">
+                        <div class="quantity-selector">
+                            <button class="quantity-minus">-</button>
+                            <input type="number" id="quantity" value="1" min="1" max="${product.stockCount || 10}" readonly>
+                            <button class="quantity-plus">+</button>
+                        </div>
+                        <button id="add-to-cart-btn" class="add-to-cart-btn add-to-cart-footer-color" 
+                                data-is-bundle="${isBundle}" data-bundle-items="${numItemsInBundle}">
+                            Add to Cart
+                        </button>
+                        <button class="buy-it-now-btn">Buy it Now</button>
                     </div>
-                    <button id="add-to-cart-btn" class="add-to-cart-btn" 
-                            data-is-bundle="${isBundle}" data-bundle-items="${numItemsInBundle}">
-                        Add to Cart
-                    </button>
                 ` : '<button class="add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>'}
+
+                <div class="related-products-section">
+                    <h3>Products You Might Like (4 in a row)</h3>
+                    <div id="related-products-container" class="product-grid related-grid">
+                        </div>
+                </div>
 
                 <div class="shipping-returns">
                     <h3>Shipping & Returns</h3>
@@ -471,12 +555,24 @@ function renderProduct(product) {
             </div>
         </div>
     `;
+    
+    // Add quantity button listeners
+    const quantityInput = document.getElementById('quantity');
+    document.querySelector('.quantity-minus')?.addEventListener('click', () => {
+        if (parseInt(quantityInput.value) > 1) {
+            quantityInput.value = parseInt(quantityInput.value) - 1;
+        }
+    });
+    document.querySelector('.quantity-plus')?.addEventListener('click', () => {
+        if (parseInt(quantityInput.value) < (product.stockCount || 10)) {
+            quantityInput.value = parseInt(quantityInput.value) + 1;
+        }
+    });
 
     if (!isOutOfStock) {
         document.getElementById('add-to-cart-btn').addEventListener('click', (e) => {
             const btn = e.currentTarget;
             const isBundleBtn = btn.getAttribute('data-is-bundle') === 'true';
-            const quantityInput = document.getElementById('quantity');
             const quantity = parseInt(quantityInput ? quantityInput.value : 1);
             
             let customization = null;
@@ -523,6 +619,7 @@ async function fetchRelatedProducts(category, excludeId) {
     const container = document.getElementById('related-products-container');
     container.innerHTML = '<p>Loading related products...</p>';
     try {
+        // FIX: Requested limit 4 for related products
         const query = `&category=${category}&limit=4&exclude_id=${excludeId}`;
         // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
         const { items } = await fetchGridData('/products', 1, 4, query);
