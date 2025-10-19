@@ -77,32 +77,39 @@ a:hover {
 /* Logo Styling (REVISED to match logolgog.PNG) */
 .logo {
     font-family: var(--font-logo);
+    /* Remove letter spacing and font size from the main container */
     letter-spacing: normal; 
     text-transform: uppercase;
-    display: flex; 
-    align-items: flex-end; 
-    gap: 0.2rem; /* Reduced gap to match the tight spacing in the image */
-    color: var(--text-dark); 
-    line-height: 1; /* Ensure perfect alignment */
+    display: flex; /* Allows 'SIRAJ' and 'CANDLES' to sit side-by-side */
+    align-items: flex-end; /* Aligns CANDLES to the bottom of SIRAJ */
+    gap: 0.5rem; /* Small space between the two words */
+    color: var(--text-dark); /* Default black/dark text */
 }
 
 .logo-siraj {
-    font-size: 2.5rem; /* Slightly larger and cleaner */
-    font-weight: 400; /* Medium weight, matches the image */
+    font-size: 2.5rem; /* Increased size for dominance */
+    font-weight: 700;
     color: #000000; /* Black */
-    letter-spacing: 0.2em;
-    margin-right: 0.1rem; /* Final spacing tweak */
+    letter-spacing: 0.3em;
 }
 
 .logo-candles {
-    font-size: 0.8rem; /* Much smaller than siraj */
-    font-weight: 400; 
-    color: var(--accent-color); /* Deep Brown/Rose color */
-    letter-spacing: 0.3em; /* Wide spacing */
+    font-size: 1.2rem; /* Smaller size */
+    font-weight: 400; /* Lighter font weight */
+    color: #C6A29C; /* A specific muted pink/rose color for CANDLES */
+    letter-spacing: 0.2em; /* Adjusted spacing */
+    /* Ensure CANDLES stays on one line */
     white-space: nowrap; 
-    padding-bottom: 0.4rem; /* Adjusted baseline for perfect alignment */
+    padding-bottom: 0.3rem; /* Adjusted offset for better visual alignment */
 }
 
+@media (min-width: 768px) {
+    .logo-siraj {
+        font-size: 3.2rem; /* Even bigger on desktop */
+    }
+    .logo-candles {
+        font-size: 1.5rem; /* Slightly larger on desktop */
+    }}
 .nav-links {
     display: none; 
     list-style: none;
