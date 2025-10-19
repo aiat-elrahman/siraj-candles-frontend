@@ -1,86 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siraj Candles | Illuminate Your Space</title>
-    <meta name="description" content="Handcrafted candles, fresheners, and self-care luxuries made with love by Siraj Candles.">
-    <meta name="keywords" content="candles, oil perfumes, aromatic oases, concrete decor, siraj candles, handcrafted, self-care">
-    <meta property="og:title" content="Siraj Candles | Illuminate Your Space">
-    <link rel="stylesheet" href="assets/css/theme.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siraj Candles | Illuminate Your Space</title>
+    <meta name="description" content="Handcrafted candles, fresheners, and self-care luxuries made with love by Siraj Candles.">
+    <meta name="keywords" content="candles, oil perfumes, aromatic oases, concrete decor, siraj candles, handcrafted, self-care">
+    <meta property="og:title" content="Siraj Candles | Illuminate Your Space">
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body data-page="home">
-    <div class="announcement-ribbon" id="announcement-ribbon">
-        <p>🎉 Free delivery on orders over 2000 EGP. Handmade elegance for your home! 💖</p>
-    </div>
+    <div class="announcement-ribbon" id="announcement-ribbon">
+        <p>🎉 Free delivery on orders over 2000 EGP. Handmade elegance for your home! 💖</p>
+    </div>
 
-    <nav class="navbar">
-        <div class="container">
-            <a href="index.html" class="logo">S I R A J &nbsp; C A N D L E S</a>
-            <ul class="nav-links">
-                <li><a href="index.html" class="active"><i class="fas fa-home"></i> Home</a></li>
-                <li><a href="products.html"><i class="fas fa-box-open"></i> Products</a></li>
-                <li><a href="bundles.html"><i class="fas fa-gift"></i> Bundles</a></li>
-            </ul>
-            <div class="nav-icons">
-                <button id="search-toggle" aria-label="Search"><i class="fas fa-search"></i></button>
-                <button id="cart-toggle" aria-label="Shopping Cart"><i class="fas fa-shopping-cart"></i> <span class="cart-count">0</span></button>
-            </div>
-        </div>
-    </nav>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+    <span class="logo-siraj">SIRAJ</span>
+    <span class="logo-candles">CANDLES</span>
+</a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active"><i class="fas fa-home"></i> Home</a></li>
+                 <li><a href="products.html"><i class="fas fa-box-open"></i> Products</a></li>
+                <li><a href="bundles.html"><i class="fas fa-gift"></i> Bundles</a></li>
+            </ul>
+            <div class="nav-icons">
+                <button id="search-toggle" aria-label="Search"><i class="fas fa-search"></i></button>
+                <button id="cart-toggle" aria-label="Shopping Cart"><i class="fas fa-shopping-cart"></i> <span class="cart-count">0</span></button>
+            </div>
+        </div>
+    </nav>
 
-    <div id="cart-dropdown" class="cart-dropdown">
-        <h3 class="dropdown-header">Your Cart</h3>
-        <div class="cart-items-list"><p class="empty-cart-message">Your cart is empty.</p></div>
-        <div class="cart-summary"><p>Total: <span id="cart-total">0.00 EGP</span></p></div>
-        <a href="checkout.html" class="checkout-btn">Go to Checkout</a>
-    </div>
+    <div id="cart-dropdown" class="cart-dropdown">
+        <h3 class="dropdown-header">Your Cart</h3>
+        <div class="cart-items-list"><p class="empty-cart-message">Your cart is empty.</p></div>
+        <div class="cart-summary"><p>Total: <span id="cart-total">0.00 EGP</span></p></div>
+        <a href="checkout.html" class="checkout-btn">Go to Checkout</a>
+    </div>
 
-    <div id="search-modal" class="search-modal"><div class="search-content">
-        <button class="close-search">&times;</button>
-        <input type="text" id="search-input" placeholder="Search for product name or category...">
-        <div id="search-results" class="search-results"></div>
-    </div></div>
-    
-    <main>
-        <section class="hero-section">
-            <div class="hero-content">
-                <h1>Illuminate Your Space with Siraj</h1>
-                <p>Handcrafted candles, fresheners, and self-care luxuries made with love.</p>
-                <a href="products.html" class="shop-now-btn">Shop Now</a>
-            </div>
-        </section>
+    <div id="search-modal" class="search-modal"><div class="search-content">
+        <button class="close-search">&times;</button>
+        <input type="text" id="search-input" placeholder="Search for product name or category...">
+        <div id="search-results" class="search-results"></div>
+    </div></div>
+    
+    <main class="home-page-main container">
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Illuminate Your Space with Siraj</h1>
+                <p>Handcrafted candles, fresheners, and self-care luxuries made with love.</p>
+                <a href="products.html" class="shop-now-btn">Shop Now</a>
+            </div>
+        </section>
 
-        <section class="shop-by-category">
-    <h2>Shop by Category</h2>
-    <div class="categories-list" id="categories-container">
-        </div>
-</section>
+        <!-- SHOP BY CATEGORY SECTION (New required structure) -->
+        <section class="category-grid-section">
+            <h2 class="section-title">Shop by Category</h2>
+            <div class="category-grid" id="categories-container">
+                <!-- Categories will be rendered here by site.js -->
+            </div>
+        </section>
 
-        <section class="bestsellers-section">
-            <h2>Best Sellers</h2>
-            <div class="product-grid" id="bestsellers-container">
-                <p>Loading bestsellers...</p>
-            </div>
-        </section>
+        <!-- BEST SELLERS SECTION (New required structure) -->
+        <section class="bestsellers-section">
+            <h2 class="section-title">Best Sellers</h2>
+            <div class="product-grid bestsellers-grid" id="bestsellers-container">
+                <p>Loading bestsellers...</p>
+            </div>
+        </section>
+    </main>
 
-        <section class="email-section">
-            <p>Email us for bulk orders and customized gifts !</p>
-            <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a>
-        </section>
-    </main>
+    <footer class="footer">
+        <!-- Footer email text is clean and correctly linked -->
+        <p>Email us for bulk orders and customized gifts: <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a></p>
+        
+        <p>&copy; 2025 Siraj Candles. All rights reserved.</p>
+        <div class="social-links">
+            <a href="https://www.instagram.com/siraj_candles_eg" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.facebook.com/people/sirajcandles/61576576972784/" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://www.tiktok.com/@sirajcandles" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+        </div>
+        <p>From our Home to Yours ❤️</p>
+    </footer>
 
-    <footer class="footer">
-        <p>&copy; 2025 Siraj Candles. All rights reserved.</p>
-        <div class="social-links">
-            <a href="https://www.instagram.com/siraj_candles_eg" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="https://www.facebook.com/people/sirajcandles/61576576972784/" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="https://www.tiktok.com/@sirajcandles" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
-        </div>
-        <p>From our Home to Yours ❤️</p>
-    </footer>
-
-    <script type="module" src="assets/js/site.js"></script>
+    <script type="module" src="assets/js/site.js"></script>
 </body>
 </html>
