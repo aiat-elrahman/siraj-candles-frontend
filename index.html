@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siraj Candles | Illuminate Your Space</title>
+    <meta name="description" content="Handcrafted candles, fresheners, and self-care luxuries made with love by Siraj Candles.">
+    <meta name="keywords" content="candles, oil perfumes, aromatic oases, concrete decor, siraj candles, handcrafted, self-care">
+    <meta property="og:title" content="Siraj Candles | Illuminate Your Space">
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body data-page="home">
+    <div class="announcement-ribbon" id="announcement-ribbon">
+        <p>🎉 Free delivery on orders over 2000 EGP. Handmade elegance for your home! 💖</p>
+    </div>
+
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">S I R A J &nbsp; C A N D L E S</a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="products.html"><i class="fas fa-box-open"></i> Products</a></li>
+                <li><a href="bundles.html"><i class="fas fa-gift"></i> Bundles</a></li>
+            </ul>
+            <div class="nav-icons">
+                <button id="search-toggle" aria-label="Search"><i class="fas fa-search"></i></button>
+                <button id="cart-toggle" aria-label="Shopping Cart"><i class="fas fa-shopping-cart"></i> <span class="cart-count">0</span></button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="cart-dropdown" class="cart-dropdown">
+        <h3 class="dropdown-header">Your Cart</h3>
+        <div class="cart-items-list"><p class="empty-cart-message">Your cart is empty.</p></div>
+        <div class="cart-summary"><p>Total: <span id="cart-total">0.00 EGP</span></p></div>
+        <a href="checkout.html" class="checkout-btn">Go to Checkout</a>
+    </div>
+
+    <div id="search-modal" class="search-modal"><div class="search-content">
+        <button class="close-search">&times;</button>
+        <input type="text" id="search-input" placeholder="Search for product name or category...">
+        <div id="search-results" class="search-results"></div>
+    </div></div>
+    
+    <main>
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Illuminate Your Space with Siraj</h1>
+                <p>Handcrafted candles, fresheners, and self-care luxuries made with love.</p>
+                <a href="products.html" class="shop-now-btn">Shop Now</a>
+            </div>
+        </section>
+
+        <section class="category-section">
+            <h2>Shop by Category</h2>
+            <div class="category-grid">
+                <a href="products.html?category=candles" class="category-card" style="background-image: url('images/candles.jpg');"><span class="category-title">Candles</span></a>
+                <a href="products.html?category=concrete" class="category-card" style="background-image: url('images/concrete.jpg');"><span class="category-title">Concrete</span></a>
+                <a href="products.html?category=oil-perfumes" class="category-card" style="background-image: url('images/oil-perfumes.jpg');"><span class="category-title">Oil Perfumes</span></a>
+                <a href="products.html?category=aromatic-oases" class="category-card" style="background-image: url('images/aromatic-oases.jpg');"><span class="category-title">Aromatic oases</span></a>
+                <a href="products.html?category=perfume-divisions" class="category-card" style="background-image: url('images/perfume-divisions.jpg');"><span class="category-title">Perfume Divisions</span></a>
+                <a href="products.html?category=distributions" class="category-card" style="background-image: url('images/distributions.jpg');"><span class="category-title">Distributions</span></a>
+            </div>
+        </section>
+
+        <section class="bestsellers-section">
+            <h2>Best Sellers</h2>
+            <div class="product-grid" id="bestsellers-container">
+                <p>Loading bestsellers...</p>
+            </div>
+        </section>
+
+        <section class="email-section">
+            <p>Email us for **bulk orders** and **customized gifts**!</p>
+            <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 Siraj Candles. All rights reserved.</p>
+        <div class="social-links">
+            <a href="https://instagram.com/sirajcandles" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://facebook.com/sirajcandles" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://tiktok.com/@sirajcandles" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+        </div>
+        <p>From our Home to Yours ❤️</p>
+    </footer>
+
+    <script type="module" src="assets/js/site.js"></script>
+</body>
+</html>
