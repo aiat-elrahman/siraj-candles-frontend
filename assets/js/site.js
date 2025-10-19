@@ -203,6 +203,51 @@ async function fetchBestsellers() {
         container.innerHTML = '<p>Could not load bestsellers. Please check the API connection.</p>';
     }
 }
+// Add this to your site.js after the HOMEPAGE LOGIC heading (or around line 185)
+
+// ====================================
+// NEW: CATEGORIES LOGIC
+// ====================================
+
+async function fetchAndrenderCategories() {
+    const container = document.getElementById('categories-container');
+    if (!container) return;
+    
+    container.innerHTML = '<p>Loading categories...</p>'; 
+
+    try {
+        // Assuming your backend has an /api/categories endpoint
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Assuming /api/categories returns an array of category names or objects
+        const categories = await response.json(); 
+
+        // If categories is a wrapper object, adjust the assignment here
+        const items = categories.data || categories.categories || categories;
+
+        if (!Array.isArray(items) || items.length === 0) {
+            container.innerHTML = '<p>No categories available.</p>';
+            return;
+        }
+
+        container.innerHTML = items.map(category => {
+            const name = typeof category === 'string' ? category : (category.name || 'Category');
+            return `
+                <a href="products.html?category=${encodeURIComponent(name)}" class="category-card">
+                    <p class="category-name">${name}</p>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        container.innerHTML = '<p>Could not load categories. Please check the API connection.</p>';
+    }
+}
 // ====================================
 // NEW: CATEGORIES LOGIC
 // ====================================
