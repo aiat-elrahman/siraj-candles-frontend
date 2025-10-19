@@ -109,7 +109,7 @@ a:hover {
     }
     .logo-candles {
         font-size: 1.5rem; /* Slightly larger on desktop */
-    }}
+    }
 .nav-links {
     display: none; 
     list-style: none;
@@ -140,7 +140,7 @@ a:hover {
     top: 5px;
     right: 5px;
 }
-
+}
 /* ------------------ Dropdown Cart & Search Modal ------------------ */
 
 .cart-dropdown {
