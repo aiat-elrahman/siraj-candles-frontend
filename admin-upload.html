@@ -4,42 +4,16 @@
     <title>Siraj Admin Panel - Product Uploader</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* ... (style is fine) ... */
+        /* ... (Keep your custom styles here) ... */
     </style>
 </head>
 <body>
     <div id="root" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-4xl">
-            </div>
+             </div>
     </div>
 
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <script type="text/babel" src="admin/AdminProductUploader.jsx"></script>
-
-    <script type="text/babel">
-        // Ensure the component is available on the global window object (since you exported it by default)
-        // Note: When using <script type="text/babel"> without a build system, 
-        // you often need to manually ensure the component is globally accessible, 
-        // OR simply remove the 'export default' and let it be globally scoped.
-        
-        // For simplicity with your current setup, let's assume it's available.
-        // We can rename the default export variable if necessary, but typically for 
-        // this setup, we grab the component and render it.
-        
-        // You MUST remove 'export default AdminProductUploader;' from your .jsx file 
-        // and add this line at the very end of your .jsx file instead:
-        // window.AdminProductUploader = AdminProductUploader;
-
-        const rootElement = document.getElementById('root');
-        const root = ReactDOM.createRoot(rootElement);
-        
-        // This is the line that renders your component!
-        root.render(<AdminProductUploader />); 
-    </script>
+    <script type="module" src="assets/admin-bundle.js"></script>
     
 </body>
 </html>
