@@ -3,50 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siraj Admin Panel - Product Upload</title>
-    <!-- Load Tailwind CSS for styling the React component -->
+    <title>Siraj Admin Panel - Product Uploader</title>
+    <!-- Tailwind CSS for modern styling (CDN for simplicity) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Optional: Add custom styles here if needed, but Tailwind classes should cover most styling */
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        /* Optional: Ensures the page uses a clean font and fills the viewport */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+            min-height: 100vh;
+        }
     </style>
 </head>
 <body>
-    <!-- The root element where the React component will be mounted -->
-    <div id="react-root">
-        <div style="text-align: center; padding-top: 50px;">
-            <p style="font-size: 1.5rem; font-weight: bold; color: #4f46e5;">Loading Admin Panel...</p>
+    <div id="root" class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-4xl">
+            <!-- The React component will render here -->
         </div>
     </div>
 
     <!-- Load React and ReactDOM Libraries -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+    <!-- Load Babel for JSX compilation (required for in-browser use) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <!-- DEFINE SECRET API KEY HERE for the React component to use -->
     <script>
-        // !! IMPORTANT: Change this value to a long, complex secret string !!
-        const ADMIN_SECRET_KEY = "YourSecureAdminKey12345"; 
+        window.ADMIN_SECRET_KEY = "YOUR_SUPER_SECRET_KEY_12345"; // !!! CHANGE THIS KEY !!!
     </script>
 
-    <!-- Load the AdminProductUploader.jsx component -->
-    <!-- FIX: Using the ABSOLUTE path from the root of the site, which is often the most reliable for Netlify deployments. -->
-    <script type="text/babel" src="siraj-frontend/admin/AdminProductUploader.jsk"></script>
-
+    <!-- Load the Admin Product Uploader Component -->
+    <!-- This path is CRITICAL: it points to your deployed file. -->
+    <script type="text/babel" src="/admin/AdminProductUploader.jsx"></script>
+    
+    <!-- Render the component -->
     <script type="text/babel">
-        // Get the root element
-        const container = document.getElementById('react-root');
-
-        // Check for the global variable defined above
-        const apiKey = typeof ADMIN_SECRET_KEY !== 'undefined' ? ADMIN_SECRET_KEY : null;
-        
-        // Ensure the AdminProductUploader component is loaded (it should be exported as default)
-        if (typeof AdminProductUploader !== 'undefined') {
-            // Render the component and PASS the secret key as a prop
-            ReactDOM.createRoot(container).render(<AdminProductUploader adminKey={apiKey} />);
+        // This script finds the component and renders it into the 'root' div.
+        const rootElement = document.getElementById('root').querySelector('.max-w-4xl');
+        if (typeof AdminProductUploader !== 'undefined' && rootElement) {
+            ReactDOM.createRoot(rootElement).render(
+                <AdminProductUploader adminKey={window.ADMIN_SECRET_KEY} />
+            );
         } else {
-            container.innerHTML = '<p style="color: red; text-align: center; padding-top: 50px;">Error: AdminProductUploader component not found. Check the file path in the script tag!</p>';
+            document.getElementById('root').innerHTML = `
+                <div class="text-center p-8 bg-white rounded-lg shadow-lg">
+                    <p class="text-red-600 font-bold text-xl">Error: AdminProductUploader component not found.</p>
+                    <p class="text-gray-600 mt-2">Check the file path in the script tag in admin-upload.html is correct: <code>/admin/AdminProductUploader.jsx</code></p>
+                    <p class="text-sm text-gray-500 mt-4">Also ensure the component is exported as <code>const AdminProductUploader = () => {...}</code></p>
+                </div>
+            `;
+            console.error("Error: AdminProductUploader component not found. Check the file path in the script tag!");
         }
     </script>
 </body>
