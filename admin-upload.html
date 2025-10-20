@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siraj Admin Panel - Product Upload</title>
+    <!-- Load Tailwind CSS for styling the React component -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Optional: Add custom styles here if needed, but Tailwind classes should cover most styling */
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    </style>
+</head>
+<body>
+    <!-- The root element where the React component will be mounted -->
+    <div id="react-root">
+        <div style="text-align: center; padding-top: 50px;">
+            <p style="font-size: 1.5rem; font-weight: bold; color: #4f46e5;">Loading Admin Panel...</p>
+        </div>
+    </div>
+
+    <!-- Load React and ReactDOM Libraries -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Load the AdminProductUploader.jsx component -->
+    <!-- CRITICAL FIX: Path updated to match your directory structure (./admin/...) -->
+    <script type="text/babel" src="./admin/AdminProductUploader.jsx"></script>
+
+    <script type="text/babel">
+        // Get the root element
+        const container = document.getElementById('react-root');
+        
+        // Ensure the AdminProductUploader component is loaded (it should be exported as default)
+        if (typeof AdminProductUploader !== 'undefined') {
+            // Render the component into the root element
+            ReactDOM.createRoot(container).render(<AdminProductUploader />);
+        } else {
+            container.innerHTML = '<p style="color: red; text-align: center; padding-top: 50px;">Error: AdminProductUploader component not found. Check the file path in the script tag!</p>';
+        }
+    </script>
+</body>
+</html>
