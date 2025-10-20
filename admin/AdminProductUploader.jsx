@@ -590,4 +590,4 @@ const AdminProductUploader = () => {
     );
 };
 
-export default AdminProductUploader;
+window.AdminProductUploader = AdminProductUploader;
