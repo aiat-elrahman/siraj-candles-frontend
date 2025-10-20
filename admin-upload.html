@@ -23,19 +23,28 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- DEFINE SECRET API KEY HERE for the React component to use -->
+    <script>
+        // !! IMPORTANT: Change this value to a long, complex secret string !!
+        const ADMIN_SECRET_KEY = "YourSecureAdminKey12345"; 
+    </script>
 
     <!-- Load the AdminProductUploader.jsx component -->
     <!-- CRITICAL FIX: Path updated to match your directory structure (./admin/...) -->
-    <script type="text/babel" src="/admin/AdminProductUploader.jsx"></script>
+    <script type="text/babel" src="./admin/AdminProductUploader.jsx"></script>
 
     <script type="text/babel">
         // Get the root element
         const container = document.getElementById('react-root');
+
+        // Check for the global variable defined above
+        const apiKey = typeof ADMIN_SECRET_KEY !== 'undefined' ? ADMIN_SECRET_KEY : null;
         
         // Ensure the AdminProductUploader component is loaded (it should be exported as default)
         if (typeof AdminProductUploader !== 'undefined') {
-            // Render the component into the root element
-            ReactDOM.createRoot(container).render(<AdminProductUploader />);
+            // Render the component and PASS the secret key as a prop
+            ReactDOM.createRoot(container).render(<AdminProductUploader adminKey={apiKey} />);
         } else {
             container.innerHTML = '<p style="color: red; text-align: center; padding-top: 50px;">Error: AdminProductUploader component not found. Check the file path in the script tag!</p>';
         }
