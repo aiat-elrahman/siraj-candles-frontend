@@ -1,60 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Siraj Admin Panel - Product Uploader</title>
-    <!-- Tailwind CSS for modern styling (CDN for simplicity) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Optional: Ensures the page uses a clean font and fills the viewport */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f7f7f7;
-            min-height: 100vh;
-        }
+        /* ... (style is fine) ... */
     </style>
 </head>
 <body>
     <div id="root" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-4xl">
-            <!-- The React component will render here -->
-        </div>
+            </div>
     </div>
 
-    <!-- Load React and ReactDOM Libraries -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <!-- Load Babel for JSX compilation (required for in-browser use) -->
+    
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- DEFINE SECRET API KEY HERE for the React component to use -->
-    <script>
-        window.ADMIN_SECRET_KEY = "YOUR_SUPER_SECRET_KEY_12345"; // !!! CHANGE THIS KEY !!!
-    </script>
+    <script type="text/babel" src="admin/AdminProductUploader.jsx"></script>
 
-    <!-- Load the Admin Product Uploader Component -->
-    <!-- This path is CRITICAL: it points to your deployed file. -->
-    <script type="text/babel" src="/admin/AdminProductUploader.jsx"></script>
-    
-    <!-- Render the component -->
     <script type="text/babel">
-        // This script finds the component and renders it into the 'root' div.
-        const rootElement = document.getElementById('root').querySelector('.max-w-4xl');
-        if (typeof AdminProductUploader !== 'undefined' && rootElement) {
-            ReactDOM.createRoot(rootElement).render(
-                <AdminProductUploader adminKey={window.ADMIN_SECRET_KEY} />
-            );
-        } else {
-            document.getElementById('root').innerHTML = `
-                <div class="text-center p-8 bg-white rounded-lg shadow-lg">
-                    <p class="text-red-600 font-bold text-xl">Error: AdminProductUploader component not found.</p>
-                    <p class="text-gray-600 mt-2">Check the file path in the script tag in admin-upload.html is correct: <code>/admin/AdminProductUploader.jsx</code></p>
-                    <p class="text-sm text-gray-500 mt-4">Also ensure the component is exported as <code>const AdminProductUploader = () => {...}</code></p>
-                </div>
-            `;
-            console.error("Error: AdminProductUploader component not found. Check the file path in the script tag!");
-        }
+        // Ensure the component is available on the global window object (since you exported it by default)
+        // Note: When using <script type="text/babel"> without a build system, 
+        // you often need to manually ensure the component is globally accessible, 
+        // OR simply remove the 'export default' and let it be globally scoped.
+        
+        // For simplicity with your current setup, let's assume it's available.
+        // We can rename the default export variable if necessary, but typically for 
+        // this setup, we grab the component and render it.
+        
+        // You MUST remove 'export default AdminProductUploader;' from your .jsx file 
+        // and add this line at the very end of your .jsx file instead:
+        // window.AdminProductUploader = AdminProductUploader;
+
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        
+        // This is the line that renders your component!
+        root.render(<AdminProductUploader />); 
     </script>
+    
 </body>
 </html>
