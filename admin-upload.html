@@ -31,8 +31,8 @@
     </script>
 
     <!-- Load the AdminProductUploader.jsx component -->
-    <!-- FIX: Reverting to RELATIVE path (./admin/...) which often works better on Netlify when the HTML is in the root. -->
-    <script type="text/babel" src="./admin/AdminProductUploader.jsx"></script>
+    <!-- FIX: Using the ABSOLUTE path from the root of the site, which is often the most reliable for Netlify deployments. -->
+    <script type="text/babel" src="/admin/AdminProductUploader.jsx"></script>
 
     <script type="text/babel">
         // Get the root element
