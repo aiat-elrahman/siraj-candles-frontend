@@ -1,5 +1,12 @@
 /* ------------------ Base & Typography ------------------ */
-
+@font-face {
+    font-family: 'Hello Paris';
+    src: url('../fonts/helloparisserif-bold-webfont.woff2') format('woff2'), 
+         url('../fonts/helloparisserif-bold-webfont.woff') format('woff'); 
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;600&display=swap');
 
 :root {
@@ -10,8 +17,9 @@
     --footer-bg: #7A968E;         /* Dusty Slate/Green (Footer BG) */
     --text-dark: #333333;
     --text-light: #FFFFFF;
-
-    --font-logo: 'Playfair Display', serif;
+--font-logo-display: 'Playfair Display', serif; 
+    --font-logo-main: 'Hello Paris', var(--font-logo-display);
+    --font-logo: var(--font-logo-display);
     --font-body: 'Montserrat', sans-serif;
 }
 
@@ -81,23 +89,25 @@ a:hover {
     letter-spacing: normal; 
     text-transform: uppercase;
     display: flex; /* Allows 'SIRAJ' and 'CANDLES' to sit side-by-side */
-    align-items: flex-end; /* Aligns CANDLES to the bottom of SIRAJ */
+    align-items: baseline; /* Aligns CANDLES to the bottom of SIRAJ */
     gap: 0.5rem; /* Small space between the two words */
     color: var(--text-dark); /* Default black/dark text */
 }
 
 .logo-siraj {
+    font-family: var(--font-logo-main);
     font-size: 2.5rem; /* Increased size for dominance */
     font-weight: 700;
     color: #000000; /* Black */
-    letter-spacing: 0.3em;
+    letter-spacing: 0.05em;;
 }
 
 .logo-candles {
-    font-size: 1.2rem; /* Smaller size */
-    font-weight: 400; /* Lighter font weight */
+    font-family: var(--font-logo-main);
+    font-size: 1.5rem; /* Smaller size */
+    font-weight: bold; /* Lighter font weight */
     color: #C6A29C; /* A specific muted pink/rose color for CANDLES */
-    letter-spacing: 0.2em; /* Adjusted spacing */
+    letter-spacing: 0.15em; /* Adjusted spacing */
     /* Ensure CANDLES stays on one line */
     white-space: nowrap; 
     padding-bottom: 0.3rem; /* Adjusted offset for better visual alignment */
@@ -240,14 +250,14 @@ a:hover {
 
 .category-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); 
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
     gap: 1rem;
     margin-top: 1.5rem;
 }
 
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 1.5rem;
     margin-top: 1.5rem;
 }
@@ -264,6 +274,11 @@ a:hover {
     height: auto;
     aspect-ratio: 1 / 1;
     object-fit: cover;
+    margin-bottom: 0.5rem;
+}
+.product-name-bold {
+    font-size: 1.15rem;
+    font-weight: 700;
     margin-bottom: 0.5rem;
 }
 
@@ -424,27 +439,63 @@ a:hover {
     color: var(--accent-color);
 }
 
+.pagination-controls {
+    width: 100%;
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 50px;
+}
+.pagination-button {
+background: none;
+border: none;
+padding: 10px 15px;
+cursor: pointer;
+font-size: 1.25rem;
+font-weight: bold;
+color: var(--text-dark);
+transition: color 0.2s;
+}
+.pagination-button:hover:not(.active) {
+color: var(--accent-color); 
+}
+.pagination-button.active {
+color: var(--footer-bg);
+ pointer-events: none; 
+}
+
 /* ------------------ Desktop/Tablet Styles (Overrides) ------------------ */
 @media (min-width: 768px) {
-    .logo { font-size: 1.5rem; }
-    .nav-links { display: flex; gap: 2rem; }
-    .category-grid { grid-template-columns: repeat(3, 1fr); }
-    .product-grid { grid-template-columns: repeat(4, 1fr); }
+    .logo-siraj {
+        font-size: 3.2rem; 
+    }
+    .logo-candles {
+        font-size: 1.5rem; 
+    }
+    .nav-links {
+        display: flex; 
+        gap: 2rem;
+        align-items: center; 
+    }
+    .category-grid { grid-template-columns: repeat(4, 1fr); } 
+    .product-grid { grid-template-columns: repeat(4, 1fr); } 
+.product-grid.bestsellers-grid {
+        grid-template-columns: repeat(6, 1fr);}
     .product-detail-grid { flex-direction: row; gap: 4rem; }
-    .product-image-area, .product-info-area { flex: 1; }
-    .add-to-cart-btn { width: auto; }
+    .product-image-area, .product-info-area { flex: 1; }
+    .add-to-cart-btn { width: auto; }
 
     /* Cart Page Desktop Adjustments */
     .cart-table thead { display: table-header-group; }
-    .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: table; width: 100%; }
-    .cart-table tr { margin-bottom: 0; border: none; }
-    .cart-table td { text-align: left; position: static; padding-left: 1rem; }
-    .cart-table td::before { content: none; }
-    .cart-product-col { justify-content: flex-start; }
-    .cart-content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: flex-start; }
-    .cart-summary-box { margin-left: 0; }
-    .checkout-link-bottom { display: none !important; }
+    .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: table; width: 100%; }
+    .cart-table tr { margin-bottom: 0; border: none; }
+    .cart-table td { text-align: left; position: static; padding-left: 1rem; }
+    .cart-table td::before { content: none; }
+    .cart-product-col { justify-content: flex-start; }
+    .cart-content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: flex-start; }
+    .cart-summary-box { margin-left: 0; }
+    .checkout-link-bottom { display: none !important; }
 
     /* Checkout Page Desktop Adjustments */
-    .checkout-grid { grid-template-columns: 3fr 2fr; }
+   .checkout-grid { display: grid; grid-template-columns: 3fr 2fr; }
 }
+       
