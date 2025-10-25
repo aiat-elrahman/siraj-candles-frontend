@@ -26,6 +26,17 @@
     </div>
 
     <script src="./assets/admin-bundle.js"></script>
-    
+
+<script>
+  // 1. Get your AdminProductUploader component from the bundle
+  const App = window.AdminProductUploader.AdminProductUploader;
+
+  // 2. Find the <div id="root">
+  const rootElement = document.getElementById('root');
+
+  // 3. Tell React to render your component inside that div
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(React.createElement(App));
+</script>
 </body>
 </html>
