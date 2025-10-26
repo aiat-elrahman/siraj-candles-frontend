@@ -6,7 +6,6 @@ const AVAILABLE_SCENTS = []; // Remove hardcoded list
 
 // ====================================
 // 1. DOM & INITIALIZATION
-// (No changes needed here)
 // ====================================
 
 const searchToggle = document.getElementById('search-toggle');
@@ -90,7 +89,6 @@ function setupEventListeners() {
 
 // ====================================
 // 2. UNIVERSAL FETCHING & UTILS
-// (No changes needed here)
 // ====================================
 
 async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query = '') {
@@ -139,14 +137,14 @@ function renderProductGrid(containerId, items, endpointType) {
         const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
         
         return `
-            <div class="product-card">
-                <img src="${itemImage}" alt="${itemName}">
-                <div class="product-info">
-                    <p class="product-title product-name-bold">${itemName}</p>
-                    <p class="product-price">${(itemPrice).toFixed(2)} EGP</p>
-                    <button onclick="window.location.href='product.html?id=${item._id}${typeParam}'" class="view-product-btn">View Details</button>
-                </div>
-            </div>
+            <a href="product.html?id=${item._id}" class="product-card">
+                <img src="${itemImage}" alt="${itemName}" loading="lazy"> {/* Added lazy loading */}
+                <div class="product-info-minimal">
+                    <p class="product-title">${itemName}</p>
+                    <p class="product-price">${(itemPrice).toFixed(2)} EGP</p>
+                    {/* Add stars/reviews here later if needed */}
+                </div>
+            </a>
         `;
     }).join('');
 }
@@ -197,119 +195,129 @@ function debounce(func, delay) {
     };
 }
 
-
 // ====================================
-// 3. HOMEPAGE LOGIC
-// (No changes needed here)
+// 3. HOMEPAGE LOGIC (UPDATED)
 // ====================================
 
-// FIX: Dynamic CATEGORIES LOGIC (Fetches all products and extracts categories)
+// FIX: Dynamic CATEGORIES LOGIC (Fetches fewer products, simplified HTML)
 async function fetchAndrenderCategories() {
-    const container = document.getElementById('categories-container');
-    if (!container) return;
-    
-    container.innerHTML = '<p>Loading categories...</p>'; 
+    const container = document.getElementById('categories-container');
+    if (!container) return;
 
-    try {
-        // Fetch all products (limit 1000 to be safe, as there is no separate /categories endpoint)
-        const { items } = await fetchGridData('/products', 1, 1000); 
+    container.innerHTML = '<p class="loading-message">Loading categories...</p>';
 
-        if (items.length === 0) {
-            container.innerHTML = '<p>No products available to determine categories.</p>';
-            return;
-        }
+    try {
+        // Fetch fewer products (e.g., 100) just to extract category names
+        const { items } = await fetchGridData('/products', 1, 100); // Reduced limit
 
-        const uniqueCategories = new Set();
-        items.forEach(item => {
-            const categoryName = item.category || item.bundleCategory || item.Category;
-            if (categoryName) {
-                uniqueCategories.add(categoryName);
-            }
-        });
+        if (!items || items.length === 0) { // Added !items check
+            container.innerHTML = '<p class="no-products-message">No products available to determine categories.</p>';
+            return;
+        }
 
-        const categoriesArray = Array.from(uniqueCategories);
+        const uniqueCategories = new Set();
+        items.forEach(item => {
+            // Use category field primarily
+            const categoryName = item.category;
+            if (categoryName) {
+                uniqueCategories.add(categoryName);
+            }
+        });
 
-        if (categoriesArray.length === 0) {
-            container.innerHTML = '<p>Could not extract categories from product data.</p>';
-            return;
-        }
+        const categoriesArray = Array.from(uniqueCategories);
 
-        // FIX: Render the unique categories as cards (Assuming placeholder images)
-        container.innerHTML = categoriesArray.map(name => {
-            // Simple placeholder image logic (replace with real images later)
-            const imageSrc = name.toLowerCase().includes('candle') ? 'images/placeholder-candle.jpg' : 'images/placeholder-freshener.jpg';
-            
-            return `
-                <a href="products.html?category=${encodeURIComponent(name)}" class="category-card-item">
-                    <div class="category-image-wrapper">
-                        <img src="${imageSrc}" alt="${name}">
-                    </div>
-                    <div class="category-info">
-                        <p class="category-name">${name}</p>
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </a>
-            `;
-        }).join('');
+        if (categoriesArray.length === 0) {
+            container.innerHTML = '<p class="no-products-message">Could not extract categories from product data.</p>';
+            return;
+        }
 
-    } catch (error) {
-        console.error("Error fetching categories:", error);
-        container.innerHTML = '<p>Could not load categories. Please check the API connection or CORS policy.</p>';
-    }
+        // Render categories with simplified structure (ready for images later)
+        container.innerHTML = categoriesArray.map(name => {
+            // Placeholder for potential future image logic
+            // const imageSrc = 'path/to/category/image/' + name.toLowerCase() + '.jpg';
+
+            return `
+                <a href="products.html?category=${encodeURIComponent(name)}" class="category-card-item">
+                    {/* Placeholder for image - uncomment and adjust when you have images
+                    <div class="category-image-wrapper">
+                        <img src="${imageSrc}" alt="${name}" class="category-image" loading="lazy">
+                    </div>
+                    */}
+                    <div class="category-info">
+                        <p class="category-name">${name}</p>
+                        {/* Arrow icon removed, add back if desired */}
+                    </div>
+                </a>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        container.innerHTML = '<p class="error-message">Could not load categories. Please try again later.</p>';
+    }
 }
 // END OF CATEGORIES LOGIC
 
 async function fetchBestsellers() {
-    const container = document.getElementById('bestsellers-container');
-    if (!container) return;
-    
-    container.innerHTML = '<p>Loading bestsellers...</p>';
+    const container = document.getElementById('bestsellers-container');
+    if (!container) return;
 
-    try {
-        // FIX: Requested 6 best-sellers
-        const { items } = await fetchGridData('/products', 1, 6, '&isBestSeller=true'); 
-        renderProductGrid('bestsellers-container', items, 'products');
+    container.innerHTML = '<p class="loading-message">Loading bestsellers...</p>';
 
-    } catch (error) {
-        container.innerHTML = '<p>Could not load bestsellers. Please check the API connection.</p>';
-    }
+    try {
+        // FIX: Fetch using 'featured=true' query parameter
+        const { items } = await fetchGridData('/products', 1, 6, '&featured=true');
+        // Render using the updated minimalist product card function
+        renderProductGrid('bestsellers-container', items, 'bestsellers');
+
+    } catch (error) {
+        console.error("Error fetching bestsellers:", error); // Log error
+        container.innerHTML = '<p class="error-message">Could not load bestsellers. Please try again later.</p>';
+    }
 }
+
 // ====================================
-// 4. SEARCH LOGIC
-// (No changes needed here)
+// 4. SEARCH LOGIC (No changes needed, but included for completeness)
 // ====================================
 
 async function handleSearch() {
-    const query = searchInput.value.trim();
-    if (query.length < 2) {
-        searchResults.innerHTML = '<p>Enter at least 2 characters to search.</p>';
-        return;
-    }
-    
-    searchResults.innerHTML = '<p>Searching...</p>';
-    
-    try {
-        // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
-        const { items } = await fetchGridData('/products', 1, 5, `&search=${encodeURIComponent(query)}`);
+    const query = searchInput.value.trim();
+    if (query.length < 2) {
+        searchResults.innerHTML = '<p>Enter at least 2 characters to search.</p>';
+        // Optionally hide results after a delay if input is cleared
+        return;
+    }
 
-        if (items.length === 0) {
-            searchResults.innerHTML = `<p>No results found for "${query}".</p>`;
-        } else {
-            searchResults.innerHTML = items.map(product => `
-                <a href="product.html?id=${product._id}" class="search-result-item">
-                                        <p class="search-item-title">${product.name_en || product['Name (English)'] || product.name}</p>
-                    <p class="search-item-price">${(product.price_egp || product['Price (EGP)'] || product.price || 0).toFixed(2)} EGP</p>
-                </a>
-            `).join('');
-        }
-    } catch (error) {
-        searchResults.innerHTML = '<p>Search error. Please try again.</p>';
-    }
+    searchResults.innerHTML = '<p>Searching...</p>';
+    searchResults.style.display = 'block'; // Ensure results are visible
+
+    try {
+        // Fetch products matching the search query
+        const { items } = await fetchGridData('/products', 1, 5, `&search=${encodeURIComponent(query)}`);
+
+        if (!items || items.length === 0) { // Check for items array
+            searchResults.innerHTML = `<p>No results found for "${query}".</p>`;
+        } else {
+            // Render search results as links
+            searchResults.innerHTML = items.map(product => {
+                // Use appropriate name field
+                const productName = product.name_en || product.bundleName || product.name || 'Product';
+                const productPrice = product.price_egp || product.price || 0;
+                 return `
+                    <a href="product.html?id=${product._id}" class="search-result-item">
+                        <span class="search-item-title">${productName}</span>
+                        <span class="search-item-price">${productPrice.toFixed(2)} EGP</span>
+                    </a>
+                 `;
+            }).join('');
+        }
+    } catch (error) {
+        console.error("Search error:", error); // Log error
+        searchResults.innerHTML = '<p class="error-message">Search error. Please try again.</p>';
+    }
 }
-
 // ====================================
 // 5. PRODUCTS GRID PAGE LOGIC
-// (No changes needed here)
 // ====================================
 
 function initProductsPage() {
@@ -393,7 +401,7 @@ async function loadProducts(page) {
 
 // ====================================
 // 6. BUNDLES GRID PAGE LOGIC
-// (No changes needed here)
+
 // ====================================
 
 function initBundlesPage() {
@@ -419,267 +427,318 @@ async function loadBundles(page) {
 
 
 // ====================================
-// 7. SINGLE PRODUCT/BUNDLE LOGIC (with customization)
+// ====================================
+// 7. SINGLE PRODUCT/BUNDLE LOGIC (MAJOR OVERHAUL)
 // ====================================
 
 async function loadProductDetails() {
-    const container = document.getElementById('product-detail-container');
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-    const type = urlParams.get('type') || 'product';
-    
-    if (!id) {
-        container.innerHTML = '<p>No product ID found in URL.</p>';
-        return;
-    }
+    const container = document.getElementById('product-detail-container');
+    if (!container) { console.error("Product detail container not found"); return; }
+    container.innerHTML = '<p class="loading-message">Loading product details...</p>'; // Loading state
 
-    // FIX: Using the unified /api/products/:id endpoint, regardless of type
-    const endpoint = `/api/products/${id}`;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const product = await response.json();
-        
-        // Determine if it's a bundle based on the Mongoose schema field
-        product.isBundle = product.productType === 'Bundle'; 
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    if (!id) { container.innerHTML = '<p class="error-message">No product ID found in URL.</p>'; return; }
 
-        renderProduct(product);
-        // Use the category key from your new schema/JSON for related products
-        fetchRelatedProducts(product.category || product.bundleCategory || 'general', product._id); 
-        
-    } catch (error) {
-        console.error(`Error fetching ${type} details:`, error);
-        container.innerHTML = `<p>Could not load ${type} details. Please ensure the ID is correct.</p>`;
-    }
+    const endpoint = `/api/products/${id}`;
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`);
+        if (!response.ok) {
+             const errorData = await response.json(); // Try to get error message from backend
+            throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Not Found'}`);
+        }
+        const product = await response.json();
+        product.isBundle = product.productType === 'Bundle'; // Add helper flag
+
+        renderProduct(product); // Call the updated render function
+
+        // Fetch related products (only if needed by the new layout)
+        const relatedContainer = document.getElementById('related-products-container');
+        if (relatedContainer) {
+            // Use product.category and product._id
+            fetchRelatedProducts(product.category || 'general', product._id);
+        } else {
+             console.warn("Related products container (related-products-container) not found on this page.");
+        }
+
+    } catch (error) {
+        console.error(`Error fetching product details for ID ${id}:`, error);
+        container.innerHTML = `<p class="error-message">Could not load product details. ${error.message}. Please try again later.</p>`;
+    }
 }
 
+// --- UPDATED: Poshmark-inspired Product Detail Rendering ---
 function renderProduct(product) {
-    const container = document.getElementById('product-detail-container');
-    
-    // FIX: Use consistent key names from the Mongoose schema (name_en, price_egp, imagePaths)
-    const isBundle = product.isBundle;
-    const itemName = isBundle ? (product.bundleName || 'Custom Bundle') : (product.name_en || 'Unknown Product');
-    const itemPrice = product.price_egp || 0;
-    // Use the first image from the imagePaths array, or fallback
-    const itemImage = product.imagePaths?.[0] || 'images/placeholder.jpg';
-    const itemCategory = product.category || product.bundleCategory || 'N/A';
-    
-    // Scents and Size now come directly from single product fields OR N/A for bundle header
-    const itemScents = isBundle ? 'Custom Selection Below' : (product.scents || 'N/A');
-    const itemSize = isBundle ? 'Multiple Sizes' : (product.size || 'N/A');
-    
-    // Description: Check for bundle description first, then single product description
-    const itemDescription = (product.bundleDescription || product.description_en || 'No description provided.').replace(/\r?\n/g, '<br>');
-    
-    // New Admin Fields
-    const itemBurnTime = product.burnTime || 'N/A';
-    const itemWickType = product.wickType || 'N/A';
-    const itemCoverageSpace = product.coverageSpace || 'N/A';
-    
-    const isOutOfStock = product.stock <= 0;
-    
-    document.title = `${itemName} | Siraj Candles`;
-    document.querySelector('meta[name="description"]').setAttribute('content', (itemDescription).substring(0, 150).replace(/<br>/g, ' ') + '...');
-    
-    // --- Bundle Customization Logic FIX ---
-    let customizationHTML = '';
-    const bundleItems = product.bundleItems || [];
-    const numItemsInBundle = bundleItems.length;
+    const container = document.getElementById('product-detail-container');
+    if (!container) return;
 
-    if (isBundle && numItemsInBundle > 0) {
-        let bundleSelectors = `<div class="bundle-customization-section">
-            <p class="customization-prompt product-name-bold">Choose your scents for each item:</p>`;
+    // --- Extract Data ---
+    const isBundle = product.isBundle;
+    // Use the specific names from the product data
+    const itemName = isBundle ? product.bundleName : product.name_en;
+    const itemPrice = product.price_egp || product.price || 0;
+    const itemCategory = product.category || 'N/A';
+    const itemStock = product.stock || 0;
+    const isOutOfStock = itemStock <= 0;
 
-        bundleItems.forEach((item, i) => {
-            // Split the comma-separated string into options
-            const scentOptionsArray = item.allowedScents.split(',').map(s => s.trim()).filter(s => s.length > 0);
-            
-            const scentOptions = scentOptionsArray.map(scent => 
-                `<option value="${scent}">${scent}</option>`
-            ).join('');
+    // Attributes (Prepare data for icon display)
+    const attributes = [];
+    if (!isBundle) {
+        // Use ?? 'N/A' to provide fallbacks directly
+        if (product.scents) attributes.push({ label: 'Scent', value: product.scents ?? 'N/A', icon: '🌸' });
+        if (product.size) attributes.push({ label: 'Size', value: product.size ?? 'N/A', icon: '📏' });
+        if (product.burnTime) attributes.push({ label: 'Burn Time', value: product.burnTime ?? 'N/A', icon: '🔥' });
+        if (product.wickType) attributes.push({ label: 'Wick', value: product.wickType ?? 'N/A', icon: '🧵' });
+        if (product.coverageSpace) attributes.push({ label: 'Coverage', value: product.coverageSpace ?? 'N/A', icon: '🏠' });
+        // Add more attributes if they exist in your product data
+    }
 
-            // Use the subProductName and size from the bundle item
-            const bundleItemName = `${item.subProductName} (${item.size})`;
-            
-            bundleSelectors += `
-                <div class="bundle-selector-group">
-                    <label for="scent-${i}">${bundleItemName}:</label>
-                    <select id="scent-${i}" class="scent-selector" required>
-                        <option value="">-- Select a scent --</option>
-                        ${scentOptions}
-                    </select>
-                </div>
-            `;
-        });
-        bundleSelectors += `</div>`;
-        customizationHTML = bundleSelectors;
-    }
-    // ------------------------------------
-    
-    // Image Gallery Area (Handles multiple images)
-    const imageGalleryHTML = (product.imagePaths || []).map((path, index) => `
-        <img src="${path}" alt="${itemName} image ${index + 1}" class="${index === 0 ? 'main-product-image' : 'thumbnail-image'}">
-    `).join('');
-
-    // Formatted Description Area (Handles admin's styling request)
-    const formattedDescHTML = product.formattedDescription 
+    // Descriptions
+    const shortDescription = isBundle ? product.bundleDescription : product.description_en;
+    const formattedDescriptionHTML = product.formattedDescription
         ? `<div class="formatted-description-box">${product.formattedDescription.replace(/\r?\n/g, '<br>')}</div>`
         : '';
 
-    container.innerHTML = `
-        <div class="product-detail-grid">
-            <div class="product-image-area">
-                <div class="image-gallery">
-                    ${imageGalleryHTML}
+    // Image Gallery
+    const imagePaths = product.imagePaths || product.images || []; // Use imagePaths first
+    const imageGalleryHTML = imagePaths
+        .map((path, index) => `<img src="${path}" alt="${itemName || 'Product'} image ${index + 1}" class="${index === 0 ? 'main-product-image' : 'thumbnail-image'}" loading="lazy">`)
+        .join('');
+
+    // Bundle Customization (Keep existing logic, ensure it targets correct IDs if needed)
+    let customizationHTML = '';
+    const bundleItems = product.bundleItems || []; // Ensure bundleItems is an array
+    const numItemsInBundle = bundleItems.length; // Get length safely
+    if (isBundle && numItemsInBundle > 0) {
+        let bundleSelectors = `<p class="customization-prompt product-name-bold">Choose your scents for each item:</p>`; // Moved prompt inside
+        bundleItems.forEach((item, i) => {
+            const scentOptionsArray = (item.allowedScents || '').split(',').map(s => s.trim()).filter(Boolean);
+            const scentOptions = scentOptionsArray.map(scent => `<option value="${scent}">${scent}</option>`).join('');
+            const bundleItemName = `${item.subProductName || 'Item'} (${item.size || 'Size N/A'})`; // Add fallbacks
+            bundleSelectors += `
+                <div class="bundle-selector-group">
+                    <label for="scent-${i}">${bundleItemName}:</label>
+                    <select id="scent-${i}" class="scent-selector" required>
+                        <option value="">-- Select a scent --</option>
+                        ${scentOptions}
+                    </select>
                 </div>
-            </div>
-            
-            <div class="product-info-area">
-                <h1 class="product-title">${itemName}</h1>
-                <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
-                
-                <!-- Core Specs -->
-                <div class="product-specs-group">
-                    <p class="product-spec">Category: <span>${itemCategory}</span></p>
-                    <p class="product-spec">Scents: <span>${itemScents}</span></p>
-                    <p class="product-spec">Size: <span>${itemSize}</span></p>
-                    
-                    ${!isBundle ? `
-                        <p class="product-spec">Burn Time: <span>${itemBurnTime}</span></p>
-                        <p class="product-spec">Wick Type: <span>${itemWickType}</span></p>
-                        <p class="product-spec">Coverage: <span>${itemCoverageSpace}</span></p>
-                    ` : ''}
-                </div>
+            `;
+        });
+        customizationHTML = `<div class="bundle-customization-section">${bundleSelectors}</div>`; // Wrap generated selectors
+    }
 
-                <p class="stock-status ${isOutOfStock ? 'out-of-stock' : 'in-stock'}">
-                    ${isOutOfStock ? 'Out of Stock' : 'In Stock'}
-                </p>
+    // Update Meta Description & Title
+     document.title = `${itemName || 'Product'} | Siraj Candles`;
+     const metaDesc = (shortDescription || '').substring(0, 150).replace(/<br>/g, ' ');
+     document.querySelector('meta[name="description"]')?.setAttribute('content', metaDesc + (metaDesc.length === 150 ? '...' : ''));
 
-                <p class="product-description basic-description">
-                    ${itemDescription}
-                </p>
-                
-                ${formattedDescHTML}
-                
-                ${customizationHTML}
 
-                ${!isOutOfStock ? `
-                    <div class="product-actions-grid">
-                        
-                                                <div class="quantity-selector-box">
-                            <button class="quantity-minus action-btn">-</button>
-                            <input type="number" id="quantity" value="1" min="1" max="${product.stock || 10}" readonly class="quantity-input-box">
-                            <button class="quantity-plus action-btn">+</button>
-                        </div>
+    // --- Build HTML ---
+    container.innerHTML = `
+        <div class="product-detail-grid-new"> {/* Use new class for layout */}
 
-                                                <button id="add-to-cart-btn" class="action-add-to-cart-btn" 
-                                data-is-bundle="${isBundle}" data-bundle-items="${numItemsInBundle}">
-                            <span class="cart-icon">🛒</span> Add to Cart
-                        </button>
+            {/* Column 1: Image Gallery */}
+            <div class="product-image-area-new">
+                <div class="image-gallery">
+                    ${imageGalleryHTML || '<img src="images/placeholder.jpg" alt="Placeholder" class="main-product-image">'}
+                </div>
+                {/* Add thumbnail container here if needed */}
+            </div>
 
-                                                <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
-                    </div>
-                ` : '<button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>'}
-                <div class="related-products-section">
-                    <h3>Products You Might Like (4 in a row)</h3>
-                    <div id="related-products-container" class="product-grid related-grid">
-                        </div>
-                </div>
+            {/* Column 2: Product Info & Actions */}
+            <div class="product-info-area-new">
 
-                <div class="shipping-returns">
-                    <h3>Shipping & Returns</h3>
-                    <ul>
-                        <li>Orders processed within 1–2 business days.</li>
-                        <li>Delivery across Egypt within 2–5 days.</li>
-                        <li>Returns accepted within 7 days for unused items.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Add quantity button listeners
-    const quantityInput = document.getElementById('quantity');
-    document.querySelector('.quantity-minus')?.addEventListener('click', () => {
-        if (parseInt(quantityInput.value) > 1) {
-            quantityInput.value = parseInt(quantityInput.value) - 1;
-        }
-    });
-    document.querySelector('.quantity-plus')?.addEventListener('click', () => {
-        if (parseInt(quantityInput.value) < (product.stock || 10)) {
-            quantityInput.value = parseInt(quantityInput.value) + 1;
-        }
-    });
+                {/* Info Block 1: Title, Category, Price */}
+                <h1 class="product-title-main">${itemName || 'Product Name'}</h1>
+                <p class="product-category-subtle">${itemCategory}</p> {/* Category below title */}
+                <p class="product-price-main">${itemPrice.toFixed(2)} EGP</p>
 
-    if (!isOutOfStock) {
-        document.getElementById('add-to-cart-btn').addEventListener('click', (e) => {
-            const btn = e.currentTarget;
-            const isBundleBtn = btn.getAttribute('data-is-bundle') === 'true';
-            const quantity = parseInt(quantityInput ? quantityInput.value : 1);
-            
-            let customization = null;
-            
-            if (isBundleBtn) {
-                // Pass the number of items in the bundle for validation
-                customization = collectBundleScents(numItemsInBundle); 
-                if (!customization) return; // Stops if not all scents are selected
-            }
-            
-            // FIX: Use consistent key names
-            const item = {
-                _id: product._id,
-                name: itemName,
-                price: itemPrice,
-                quantity: quantity,
-                customization: customization,
-                // Add the image path for the cart display
-                imageUrl: product.imagePaths?.[0] || 'images/placeholder.jpg'
-            };
-            // NOTE: Replaced window.alert with console.log/message box for compatibility
-            addToCart(item);
-        });
-    }
+                {/* Info Block 2: Action Buttons */}
+                ${!isOutOfStock ? `
+                    <div class="product-actions-grid">
+                        <div class="quantity-selector-box">
+                            <button class="quantity-minus action-btn" data-action="minus" aria-label="Decrease quantity">-</button>
+                            <input type="number" id="quantity" value="1" min="1" max="${itemStock || 10}" readonly class="quantity-input-box" aria-label="Quantity">
+                            <button class="quantity-plus action-btn" data-action="plus" aria-label="Increase quantity">+</button>
+                        </div>
+                        <button id="add-to-cart-btn" class="action-add-to-cart-btn"
+                                data-is-bundle="${isBundle}" data-bundle-items="${numItemsInBundle}">
+                            <span class="cart-icon" aria-hidden="true">🛒</span> Add to Cart
+                        </button>
+                        <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
+                    </div>
+                ` : `
+                    <p class="stock-status out-of-stock">Out of Stock</p>
+                    <button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>
+                `}
+
+                {/* Bundle Customization (If applicable) */}
+                ${customizationHTML}
+
+                {/* Info Block 3: Description */}
+                <div class="product-description-section">
+                     <h3 class="section-subtitle">Description</h3> {/* Added subtitle */}
+                     ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
+                     ${formattedDescriptionHTML} {/* Display only if single product and has content */}
+                </div>
+
+                {/* Info Block 4: Attributes (Icon/Tag style) */}
+                ${attributes.length > 0 ? `
+                    <div class="product-attributes-section"> {/* Added section wrapper */}
+                        <h3 class="section-subtitle">Details</h3> {/* Added subtitle */}
+                        <div class="product-attributes-grid">
+                            ${attributes.map(attr => `
+                                <div class="attribute-chip">
+                                    <span class="attribute-icon" aria-hidden="true">${attr.icon || '🔹'}</span>
+                                    <span class="attribute-label">${attr.label}:</span>
+                                    <span class="attribute-value">${attr.value}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                {/* Info Block 5: Stock Status (If not already shown & In Stock) */}
+                ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
+
+                 {/* Shipping Info - Moved to bottom */}
+                 <div class="shipping-returns-new">
+                     <h3>Shipping & Returns</h3>
+                     <ul>
+                         <li>Orders processed within 1–2 business days.</li>
+                         <li>Delivery across Egypt within 2–5 days.</li>
+                         <li>Returns accepted within 7 days for unused items.</li>
+                     </ul>
+                 </div>
+
+            </div> {/* End product-info-area-new */}
+        </div> {/* End product-detail-grid-new */}
+
+        {/* Related Products Section (Keep only the one at the bottom) */}
+        {/* Ensure the container exists in your product.html */}
+        <div class="related-products-section" id="related-products-main">
+             <h3>Other Products You Might Like</h3>
+             <div id="related-products-container" class="product-grid related-grid">
+                 {/* Products will be loaded here by fetchRelatedProducts */}
+                 <p>Loading related products...</p> {/* Initial loading text */}
+             </div>
+        </div>
+    `;
+
+    // --- Add Event Listeners AFTER setting innerHTML ---
+    attachQuantityButtonListeners(itemStock); // Pass actual stock
+    attachAddToCartListener(product);
+    // Attach Buy Now listener if needed
+    // document.querySelector('.buy-it-now-btn')?.addEventListener('click', () => { /* Add Buy Now logic */ });
 }
 
+// --- Helper: Attach Quantity Button Listeners ---
+// (Keep the function definition from the previous step)
+function attachQuantityButtonListeners(maxStock) {
+    const quantityInput = document.getElementById('quantity');
+    if (!quantityInput) return;
+
+    document.querySelector('.quantity-minus')?.addEventListener('click', () => {
+        let currentVal = parseInt(quantityInput.value);
+        if (currentVal > 1) {
+            quantityInput.value = currentVal - 1;
+        }
+    });
+
+    document.querySelector('.quantity-plus')?.addEventListener('click', () => {
+        let currentVal = parseInt(quantityInput.value);
+        if (currentVal < (maxStock || 10)) { // Use actual max stock
+            quantityInput.value = currentVal + 1;
+        }
+    });
+}
+
+
+// --- Helper: Attach Add to Cart Listener ---
+// (Keep the function definition from the previous step)
+function attachAddToCartListener(product) {
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const quantityInput = document.getElementById('quantity');
+
+    if (!addToCartBtn || !quantityInput) {
+        // Don't add listener if elements aren't found (e.g., out of stock)
+        return;
+    }
+
+    addToCartBtn.addEventListener('click', (e) => {
+        const isBundleBtn = e.currentTarget.getAttribute('data-is-bundle') === 'true';
+        const numItemsInBundle = parseInt(e.currentTarget.getAttribute('data-bundle-items') || '0');
+        const quantity = parseInt(quantityInput.value);
+
+        let customization = null;
+        if (isBundleBtn && numItemsInBundle > 0) {
+            customization = collectBundleScents(numItemsInBundle);
+            if (!customization) return; // Stop if scents not selected
+        }
+
+        const itemName = isBundleBtn ? product.bundleName : product.name_en;
+        const itemPrice = product.price_egp || product.price || 0;
+
+        const item = {
+            _id: product._id,
+            name: itemName || product.name || 'Product', // Add fallback
+            price: itemPrice,
+            quantity: quantity,
+            customization: customization,
+            // Use imagePaths first
+            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
+        };
+        addToCart(item); // Call global addToCart function
+    });
+}
+
+
+// --- Helper: Collect Bundle Scents ---
+// (Keep the function definition from the previous step)
 function collectBundleScents(numItems) {
-    const scents = [];
-    let allSelected = true;
-    for (let i = 0; i < numItems; i++) { // FIX: Start loop from 0 to match element IDs (scent-0, scent-1)
-        const selector = document.getElementById(`scent-${i}`); // FIX: Index starting at 0
-        if (!selector || selector.value === "") {
-            // FIX: Using console.error instead of alert()
-            console.error(`Please choose a scent for Item ${i + 1}.`); 
-            selector.focus();
-            allSelected = false;
-            break;
-        }
-        scents.push(selector.value);
-    }
-    
-    if (allSelected) {
-        return scents;
-    }
-    return null;
+    const scents = [];
+    let allSelected = true;
+    for (let i = 0; i < numItems; i++) {
+        const selector = document.getElementById(`scent-${i}`);
+        if (!selector || !selector.value) { // Check for empty value
+            console.error(`Please choose a scent for Item ${i + 1}.`);
+             // Optionally add visual feedback (e.g., border color)
+             selector?.focus();
+            allSelected = false;
+            break;
+        }
+        scents.push(selector.value);
+    }
+    return allSelected ? scents : null;
 }
 
+// --- Fetch Related Products ---
+// (Keep the function definition from the previous step, ensure query includes status=Active)
 async function fetchRelatedProducts(category, excludeId) {
-    const container = document.getElementById('related-products-container');
-    container.innerHTML = '<p>Loading related products...</p>';
-    try {
-        // FIX: Requested limit 4 for related products
-        const query = `&category=${category}&limit=4&exclude_id=${excludeId}`;
-        // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
-        const { items } = await fetchGridData('/products', 1, 4, query);
-        renderProductGrid('related-products-container', items, 'products');
-    } catch (error) {
-        container.innerHTML = '<p>Could not load related products.</p>';
-    }
+    const container = document.getElementById('related-products-container');
+    // Check if container exists before proceeding
+    if (!container) {
+        console.warn("Related products container not found, skipping fetch.");
+        return;
+    }
+    container.innerHTML = '<p>Loading related products...</p>'; // Keep loading text
+    try {
+        const query = `&category=${encodeURIComponent(category)}&limit=4&exclude_id=${excludeId}&status=Active`; // Fetch active products
+        const { items } = await fetchGridData('/products', 1, 4, query);
+
+        // Check again if container still exists before rendering
+        if (document.getElementById('related-products-container')) {
+             renderProductGrid('related-products-container', items, 'related products');
+        }
+
+    } catch (error) {
+        console.error("Error fetching related products:", error);
+         if (document.getElementById('related-products-container')) {
+            container.innerHTML = '<p class="error-message">Could not load related products.</p>';
+         }
+    }
 }
-
-
 // ====================================
 // 8. CART MANAGEMENT
 // ====================================
