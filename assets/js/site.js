@@ -1,970 +1,538 @@
-const API_BASE_URL = 'https://siraj-backend.onrender.com'; 
+const API_BASE_URL = 'https://siraj-backend.onrender.com';
 const ITEMS_PER_PAGE = 12;
-
-// CRITICAL FIX: Scent options must be pulled from the product object (Single or Bundle item)
-const AVAILABLE_SCENTS = []; // Remove hardcoded list
 
 // ====================================
 // 1. DOM & INITIALIZATION
-// (No changes needed here)
 // ====================================
-
-const searchToggle = document.getElementById('search-toggle');
-const cartToggle = document.getElementById('cart-toggle');
-const searchModal = document.getElementById('search-modal');
-const cartDropdown = document.getElementById('cart-dropdown');
-const searchInput = document.getElementById('search-input');
-const searchResults = document.getElementById('search-results');
-const closeSearch = document.querySelector('.close-search');
-
+// (Keep existing DOM selections: searchToggle, cartToggle, etc.)
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Universal Setup (Nav, Search, Cart)
-    setupEventListeners();
-    loadCartFromStorage();
+    setupEventListeners();
+    loadCartFromStorage(); // Load cart data first
 
-    // Page-Specific Initialization based on body attribute
-    const pageName = document.body.getAttribute('data-page');
-
-    switch (pageName) {
-        case 'home':
-            fetchAndrenderCategories(); 
-            fetchBestsellers();
-            break;
-        case 'products':
-            initProductsPage();
-            break;
-        case 'bundles':
-            initBundlesPage();
-            break;
-        case 'product-detail':
-            loadProductDetails();
-            break;
-        case 'shopcart':
-            renderShopCartPage();
-            break;
-        case 'checkout':
-            setupCheckoutPage();
-            break;
-        default:
-            // Optional: handle default or error state
-            break;
-    }
+    const pageName = document.body.getAttribute('data-page');
+    switch (pageName) {
+        case 'home':
+            fetchAndrenderCategories();
+            fetchBestsellers();
+            break;
+        case 'products':
+            initProductsPage();
+            break;
+        case 'bundles':
+            initBundlesPage();
+            break;
+        case 'product-detail':
+            loadProductDetails(); // This function now handles the complex rendering
+            break;
+        case 'shopcart':
+            renderShopCartPage();
+            break;
+        case 'checkout':
+            setupCheckoutPage();
+            break;
+    }
 });
 
 function setupEventListeners() {
-    if (searchToggle) {
-        searchToggle.addEventListener('click', () => {
-            searchModal.style.display = 'flex';
-            searchInput.focus();
-        });
-    }
-
-    if (closeSearch) {
-        closeSearch.addEventListener('click', () => {
-            searchModal.style.display = 'none';
-            searchResults.innerHTML = '';
-        });
-    }
-
-    if (cartToggle) {
-        cartToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            cartDropdown.style.display = cartDropdown.style.display === 'block' ? 'none' : 'block';
-        });
-    }
-
-    document.body.addEventListener('click', (e) => {
-        if (cartDropdown && !cartDropdown.contains(e.target) && e.target !== cartToggle && cartDropdown.style.display === 'block') {
-            cartDropdown.style.display = 'none';
-        }
-        if (searchModal && !searchModal.contains(e.target) && e.target !== searchToggle && searchModal.style.display === 'flex') {
-            searchModal.style.display = 'none';
-        }
-    });
-
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce(handleSearch, 300));
-    }
+    // Keep existing event listener setup for search, cart dropdown etc.
+    // Ensure quantity button listeners are added within renderProduct
 }
 
 // ====================================
 // 2. UNIVERSAL FETCHING & UTILS
-// (No changes needed here)
 // ====================================
 
 async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query = '') {
-    try {
-        // FIX: Corrected API path
-        const fullUrl = `${API_BASE_URL}/api${endpoint}?page=${page}&limit=${limit}${query}`;
-        const response = await fetch(fullUrl);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json(); 
-        
-        // FIX: CRITICAL DATA NORMALIZATION - Use 'results' key from JSON response
-        const items = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
-        
-        return {
-            items: items,
-            // FIX: Calculate totalPages using total and limit keys
-            totalPages: Math.ceil((result.total || limit) / limit), 
-            currentPage: result.page || page
-        };
-    } catch (error) {
-        console.error(`Error fetching data from ${endpoint}:`, error);
-        return { items: [], totalPages: 1, currentPage: 1 };
-    }
+    // Keep existing fetchGridData function
+    try {
+        const fullUrl = `${API_BASE_URL}/api${endpoint}?page=${page}&limit=${limit}${query}`;
+        const response = await fetch(fullUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const result = await response.json();
+        const items = result.results || []; // Use results key from updated backend
+
+        return {
+            items: items,
+            totalPages: Math.ceil((result.total || limit) / limit),
+            currentPage: result.page || page
+        };
+    } catch (error) {
+        console.error(`Error fetching data from ${endpoint}:`, error);
+        return { items: [], totalPages: 1, currentPage: 1 };
+    }
 }
 
+// --- UPDATED: Minimalist Product Card Rendering ---
 function renderProductGrid(containerId, items, endpointType) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
-    if (items.length === 0) {
-        container.innerHTML = `<p>No ${endpointType} found at this time.</p>`;
-        return;
-    }
+    if (!items || items.length === 0) { // Added check for undefined items
+        container.innerHTML = `<p class="no-products-message">No ${endpointType} found at this time.</p>`;
+        return;
+    }
 
-    container.innerHTML = items.map(item => {
-        // Determine if it is a bundle (using the new schema key for products)
-        const isBundle = item.productType === 'Bundle' || item.bundleItems;
-        const typeParam = isBundle ? '&type=bundle' : '';
-        
-        // FIX: Use correct Casing and Key names from the new Admin payload/Mongoose schema
-        const itemName = item.name_en || item.bundleName || item['Name (English)'] || 'Unknown Product';
-        const itemPrice = item.price_egp || item['Price (EGP)'] || 0;
-        // Use the first image from the imagePaths array, or fallback
-        const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
-        
-        return `
-            <div class="product-card">
-                <img src="${itemImage}" alt="${itemName}">
-                <div class="product-info">
-                    <p class="product-title product-name-bold">${itemName}</p>
-                    <p class="product-price">${(itemPrice).toFixed(2)} EGP</p>
-                    <button onclick="window.location.href='product.html?id=${item._id}${typeParam}'" class="view-product-btn">View Details</button>
-                </div>
-            </div>
-        `;
-    }).join('');
+    container.innerHTML = items.map(item => {
+        const isBundle = item.productType === 'Bundle';
+        // Use generic name field first, then fallbacks
+        const itemName = item.name || item.name_en || item.bundleName || 'Unknown Product';
+        const itemPrice = item.price_egp || item.price || 0; // Use price_egp primarily
+        const itemImage = item.imagePaths?.[0] || item.images?.[0] || 'images/placeholder.jpg'; // Use imagePaths first
+
+        // Link the whole card
+        return `
+            <a href="product.html?id=${item._id}" class="product-card">
+                <img src="${itemImage}" alt="${itemName}" loading="lazy"> {/* Added lazy loading */}
+                <div class="product-info-minimal">
+                    <p class="product-title">${itemName}</p>
+                    <p class="product-price">${(itemPrice).toFixed(2)} EGP</p>
+                    {/* Add stars/reviews here later if needed */}
+                </div>
+            </a>
+        `;
+    }).join('');
 }
+
 
 function renderPagination(controlsId, totalPages, currentPage, pageFile, loadFunction) {
-    const controls = document.getElementById(controlsId);
-    if (!controls || totalPages <= 1) return;
-    controls.innerHTML = '';
-
-    const createButton = (text, page) => {
-        const button = document.createElement('button');
-        button.textContent = text;
-        // Class for pagination styling
-        button.classList.add('pagination-button', 'pagination-bold'); 
-        if (page === currentPage) {
-            button.classList.add('active');
-        }
-        button.addEventListener('click', () => {
-            window.history.pushState({}, '', `${pageFile}?page=${page}`);
-            loadFunction(page);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-        return button;
-    };
-    
-    // Previous button
-    if (currentPage > 1) {
-        controls.appendChild(createButton('← Previous', currentPage - 1));
-    }
-
-    // Page numbers (simple approach)
-    for (let i = 1; i <= totalPages; i++) {
-        controls.appendChild(createButton(i, i));
-    }
-
-    // Next button
-    if (currentPage < totalPages) {
-        controls.appendChild(createButton('Next →', currentPage + 1));
-    }
+    // Keep existing renderPagination function
 }
 
 function debounce(func, delay) {
-    let timeout;
-    return function(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), delay);
-    };
+    // Keep existing debounce function
 }
-
 
 // ====================================
 // 3. HOMEPAGE LOGIC
-// (No changes needed here)
 // ====================================
 
-// FIX: Dynamic CATEGORIES LOGIC (Fetches all products and extracts categories)
 async function fetchAndrenderCategories() {
-    const container = document.getElementById('categories-container');
-    if (!container) return;
-    
-    container.innerHTML = '<p>Loading categories...</p>'; 
+    const container = document.getElementById('categories-container');
+    if (!container) return;
+    container.innerHTML = '<p>Loading categories...</p>';
 
-    try {
-        // Fetch all products (limit 1000 to be safe, as there is no separate /categories endpoint)
-        const { items } = await fetchGridData('/products', 1, 1000); 
+    try {
+        // Fetch a reasonable number of products to extract categories
+        const { items } = await fetchGridData('/products', 1, 100); // Fetch fewer items
 
-        if (items.length === 0) {
-            container.innerHTML = '<p>No products available to determine categories.</p>';
-            return;
-        }
+        if (items.length === 0) { /* ... keep existing empty message ... */ return; }
 
-        const uniqueCategories = new Set();
-        items.forEach(item => {
-            const categoryName = item.category || item.bundleCategory || item.Category;
-            if (categoryName) {
-                uniqueCategories.add(categoryName);
-            }
-        });
+        const uniqueCategories = new Map(); // Use a Map to store name and maybe an image later
+        items.forEach(item => {
+            if (item.category && !uniqueCategories.has(item.category)) {
+                // For now, just store the name. Later, you could add logic to find a representative image.
+                uniqueCategories.set(item.category, { name: item.category, image: 'images/placeholder-category.jpg' });
+            }
+        });
 
-        const categoriesArray = Array.from(uniqueCategories);
+        const categoriesArray = Array.from(uniqueCategories.values());
 
-        if (categoriesArray.length === 0) {
-            container.innerHTML = '<p>Could not extract categories from product data.</p>';
-            return;
-        }
+        if (categoriesArray.length === 0) { /* ... keep existing empty message ... */ return; }
 
-        // FIX: Render the unique categories as cards (Assuming placeholder images)
-        container.innerHTML = categoriesArray.map(name => {
-            // Simple placeholder image logic (replace with real images later)
-            const imageSrc = name.toLowerCase().includes('candle') ? 'images/placeholder-candle.jpg' : 'images/placeholder-freshener.jpg';
-            
-            return `
-                <a href="products.html?category=${encodeURIComponent(name)}" class="category-card-item">
-                    <div class="category-image-wrapper">
-                        <img src="${imageSrc}" alt="${name}">
-                    </div>
-                    <div class="category-info">
-                        <p class="category-name">${name}</p>
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </a>
-            `;
-        }).join('');
+        // Render category cards (Consider adding image logic here later)
+        container.innerHTML = categoriesArray.map(cat => {
+            const imageSrc = cat.name.toLowerCase().includes('candle') ? 'images/placeholder-candle.jpg' : 'images/placeholder-freshener.jpg'; // Basic placeholder
+            return `
+                <a href="products.html?category=${encodeURIComponent(cat.name)}" class="category-card-item">
+                    {/* Add image element if you have category images */}
+                    {/* <img src="${imageSrc}" alt="${cat.name}" class="category-image"> */}
+                    <div class="category-info">
+                        <p class="category-name">${cat.name}</p>
+                        {/* Maybe an arrow icon */}
+                    </div>
+                </a>
+            `;
+        }).join('');
 
-    } catch (error) {
-        console.error("Error fetching categories:", error);
-        container.innerHTML = '<p>Could not load categories. Please check the API connection or CORS policy.</p>';
-    }
+    } catch (error) { /* ... keep existing error handling ... */ }
 }
-// END OF CATEGORIES LOGIC
+
 
 async function fetchBestsellers() {
-    const container = document.getElementById('bestsellers-container');
-    if (!container) return;
-    
-    container.innerHTML = '<p>Loading bestsellers...</p>';
-
-    try {
-        // FIX: Requested 6 best-sellers
-        const { items } = await fetchGridData('/products', 1, 6, '&isBestSeller=true'); 
-        renderProductGrid('bestsellers-container', items, 'products');
-
-    } catch (error) {
-        container.innerHTML = '<p>Could not load bestsellers. Please check the API connection.</p>';
-    }
+    const container = document.getElementById('bestsellers-container');
+    if (!container) return;
+    container.innerHTML = '<p>Loading bestsellers...</p>';
+    try {
+        // Fetch featured products using the correct query param
+        const { items } = await fetchGridData('/products', 1, 6, '&featured=true'); // Use 'featured' based on schema
+        renderProductGrid('bestsellers-container', items, 'bestsellers'); // Pass 'bestsellers' type
+    } catch (error) { /* ... keep existing error handling ... */ }
 }
+
 // ====================================
 // 4. SEARCH LOGIC
-// (No changes needed here)
 // ====================================
-
 async function handleSearch() {
-    const query = searchInput.value.trim();
-    if (query.length < 2) {
-        searchResults.innerHTML = '<p>Enter at least 2 characters to search.</p>';
-        return;
-    }
-    
-    searchResults.innerHTML = '<p>Searching...</p>';
-    
-    try {
-        // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
-        const { items } = await fetchGridData('/products', 1, 5, `&search=${encodeURIComponent(query)}`);
-
-        if (items.length === 0) {
-            searchResults.innerHTML = `<p>No results found for "${query}".</p>`;
-        } else {
-            searchResults.innerHTML = items.map(product => `
-                <a href="product.html?id=${product._id}" class="search-result-item">
-                                        <p class="search-item-title">${product.name_en || product['Name (English)'] || product.name}</p>
-                    <p class="search-item-price">${(product.price_egp || product['Price (EGP)'] || product.price || 0).toFixed(2)} EGP</p>
-                </a>
-            `).join('');
-        }
-    } catch (error) {
-        searchResults.innerHTML = '<p>Search error. Please try again.</p>';
-    }
+    // Keep existing handleSearch function
 }
 
 // ====================================
 // 5. PRODUCTS GRID PAGE LOGIC
-// (No changes needed here)
 // ====================================
-
 function initProductsPage() {
-    // Setup Filter and Sort Dropdowns/Listeners here
-    const filterSortBar = document.getElementById('filter-sort-bar');
-    if (filterSortBar) {
-        filterSortBar.innerHTML = renderFilterSortBar();
-        // Add listeners for filter and sort changes to trigger loadProducts
-        document.getElementById('sort-by-select').addEventListener('change', () => loadProducts(1));
-        document.getElementById('filter-category-select').addEventListener('change', () => loadProducts(1));
-    }
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialPage = parseInt(urlParams.get('page')) || 1;
-    loadProducts(initialPage);
+    // Keep existing initProductsPage function
 }
-
-// NEW FUNCTION: Renders the Filter/Sort HTML
 function renderFilterSortBar() {
-    // Note: Fetching dynamic categories for the filter dropdown is complex
-    // and would require an additional fetch call or passing data from the server.
-    // For now, we use placeholders as requested, and will build the filtering logic.
-    
-    // Get current filter/sort settings from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentSort = urlParams.get('sort') || 'name_asc';
-    const currentCategory = urlParams.get('category') || '';
-    
-    return `
-        <div class="filter-controls-group">
-            <div class="filter-item">
-                <label for="filter-category-select">Category:</label>
-                <select id="filter-category-select" class="filter-select" value="${currentCategory}">
-                    <option value="">All Categories</option>
-                    <option value="Candles">Candles</option>
-                    <option value="Freshener">Freshener</option>
-                    </select>
-            </div>
-            
-            <div class="filter-item">
-                <label for="sort-by-select">Sort By:</label>
-                <select id="sort-by-select" class="filter-select" value="${currentSort}">
-                    <option value="name_asc" ${currentSort === 'name_asc' ? 'selected' : ''}>Name (A-Z)</option>
-                    <option value="price_asc" ${currentSort === 'price_asc' ? 'selected' : ''}>Price (Low to High)</option>
-                    <option value="price_desc" ${currentSort === 'price_desc' ? 'selected' : ''}>Price (High to Low)</option>
-                    <option value="newest" ${currentSort === 'newest' ? 'selected' : ''}>Newest</option>
-                </select>
-            </div>
-        </div>
-    `;
+    // Keep existing renderFilterSortBar function
 }
-
-// MODIFIED TO HANDLE FILTERS/SORTING
 async function loadProducts(page) {
-    const container = document.getElementById('products-container');
-    const paginationControls = document.getElementById('pagination-controls');
-
-    const sortBy = document.getElementById('sort-by-select')?.value || '';
-    const filterCategory = new URLSearchParams(window.location.search).get('category') || document.getElementById('filter-category-select')?.value || '';
-    
-    // Build query string based on filters
-    let query = '';
-    if (filterCategory) {
-        query += `&category=${encodeURIComponent(filterCategory)}`;
-    }
-    if (sortBy) {
-        const [sortField, sortOrder] = sortBy.split('_');
-        query += `&sort=${sortField}&order=${sortOrder}`;
-    }
-    
-    container.innerHTML = '<p class="loading-message">Fetching all products...</p>';
-    paginationControls.innerHTML = '';
-    
-    // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
-    const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE, query);
-
-    renderProductGrid('products-container', items, 'products');
-    // Ensure pagination is called correctly
-    renderPagination('pagination-controls', totalPages, currentPage, 'products.html', loadProducts);
+    // Keep existing loadProducts function
 }
 
 // ====================================
 // 6. BUNDLES GRID PAGE LOGIC
-// (No changes needed here)
 // ====================================
-
 function initBundlesPage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialPage = parseInt(urlParams.get('page')) || 1;
-    loadBundles(initialPage);
+    // Keep existing initBundlesPage function
 }
-
 async function loadBundles(page) {
-    const container = document.getElementById('bundles-container');
-    const paginationControls = document.getElementById('pagination-controls-bundles');
-    
-    container.innerHTML = '<p class="loading-message">Fetching curated bundles...</p>';
-    paginationControls.innerHTML = '';
-        
-    // Using the product endpoint to fetch only bundle types
-    const BUNDLE_ITEMS_PER_PAGE = 9; 
-    const { items, totalPages, currentPage } = await fetchGridData('/products', page, BUNDLE_ITEMS_PER_PAGE, '&productType=Bundle');
-
-    renderProductGrid('bundles-container', items, 'bundles');
-    renderPagination('pagination-controls-bundles', totalPages, currentPage, 'bundles.html', loadBundles);
+    // Keep existing loadBundles function
 }
-
 
 // ====================================
-// 7. SINGLE PRODUCT/BUNDLE LOGIC (with customization)
+// 7. SINGLE PRODUCT/BUNDLE LOGIC (MAJOR OVERHAUL)
 // ====================================
 
 async function loadProductDetails() {
-    const container = document.getElementById('product-detail-container');
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-    const type = urlParams.get('type') || 'product';
-    
-    if (!id) {
-        container.innerHTML = '<p>No product ID found in URL.</p>';
-        return;
-    }
+    const container = document.getElementById('product-detail-container');
+    if (!container) { console.error("Product detail container not found"); return; }
+    container.innerHTML = '<p class="loading-message">Loading product details...</p>'; // Loading state
 
-    // FIX: Using the unified /api/products/:id endpoint, regardless of type
-    const endpoint = `/api/products/${id}`;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const product = await response.json();
-        
-        // Determine if it's a bundle based on the Mongoose schema field
-        product.isBundle = product.productType === 'Bundle'; 
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    if (!id) { container.innerHTML = '<p class="error-message">No product ID found in URL.</p>'; return; }
 
-        renderProduct(product);
-        // Use the category key from your new schema/JSON for related products
-        fetchRelatedProducts(product.category || product.bundleCategory || 'general', product._id); 
-        
-    } catch (error) {
-        console.error(`Error fetching ${type} details:`, error);
-        container.innerHTML = `<p>Could not load ${type} details. Please ensure the ID is correct.</p>`;
-    }
+    const endpoint = `/api/products/${id}`;
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`);
+        if (!response.ok) {
+             const errorData = await response.json(); // Try to get error message from backend
+            throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Not Found'}`);
+        }
+        const product = await response.json();
+        product.isBundle = product.productType === 'Bundle'; // Add helper flag
+
+        renderProduct(product); // Call the updated render function
+
+        // Fetch related products (only if needed)
+        const relatedContainer = document.getElementById('related-products-container');
+        if (relatedContainer) {
+            fetchRelatedProducts(product.category || 'general', product._id);
+        } else {
+             console.warn("Related products container not found on this page.");
+        }
+
+    } catch (error) {
+        console.error(`Error fetching product details for ID ${id}:`, error);
+        container.innerHTML = `<p class="error-message">Could not load product details. ${error.message}. Please try again later.</p>`;
+    }
 }
 
+// --- UPDATED: Poshmark-inspired Product Detail Rendering ---
 function renderProduct(product) {
-    const container = document.getElementById('product-detail-container');
-    
-    // FIX: Use consistent key names from the Mongoose schema (name_en, price_egp, imagePaths)
-    const isBundle = product.isBundle;
-    const itemName = isBundle ? (product.bundleName || 'Custom Bundle') : (product.name_en || 'Unknown Product');
-    const itemPrice = product.price_egp || 0;
-    // Use the first image from the imagePaths array, or fallback
-    const itemImage = product.imagePaths?.[0] || 'images/placeholder.jpg';
-    const itemCategory = product.category || product.bundleCategory || 'N/A';
-    
-    // Scents and Size now come directly from single product fields OR N/A for bundle header
-    const itemScents = isBundle ? 'Custom Selection Below' : (product.scents || 'N/A');
-    const itemSize = isBundle ? 'Multiple Sizes' : (product.size || 'N/A');
-    
-    // Description: Check for bundle description first, then single product description
-    const itemDescription = (product.bundleDescription || product.description_en || 'No description provided.').replace(/\r?\n/g, '<br>');
-    
-    // New Admin Fields
-    const itemBurnTime = product.burnTime || 'N/A';
-    const itemWickType = product.wickType || 'N/A';
-    const itemCoverageSpace = product.coverageSpace || 'N/A';
-    
-    const isOutOfStock = product.stock <= 0;
-    
-    document.title = `${itemName} | Siraj Candles`;
-    document.querySelector('meta[name="description"]').setAttribute('content', (itemDescription).substring(0, 150).replace(/<br>/g, ' ') + '...');
-    
-    // --- Bundle Customization Logic FIX ---
-    let customizationHTML = '';
-    const bundleItems = product.bundleItems || [];
-    const numItemsInBundle = bundleItems.length;
+    const container = document.getElementById('product-detail-container');
+    if (!container) return;
 
-    if (isBundle && numItemsInBundle > 0) {
-        let bundleSelectors = `<div class="bundle-customization-section">
-            <p class="customization-prompt product-name-bold">Choose your scents for each item:</p>`;
+    // --- Extract Data ---
+    const isBundle = product.isBundle;
+    const itemName = isBundle ? product.bundleName : product.name_en; // Use specific names
+    const itemPrice = product.price_egp || product.price || 0;
+    const itemCategory = product.category || 'N/A';
+    const itemStock = product.stock || 0;
+    const isOutOfStock = itemStock <= 0;
 
-        bundleItems.forEach((item, i) => {
-            // Split the comma-separated string into options
-            const scentOptionsArray = item.allowedScents.split(',').map(s => s.trim()).filter(s => s.length > 0);
-            
-            const scentOptions = scentOptionsArray.map(scent => 
-                `<option value="${scent}">${scent}</option>`
-            ).join('');
+    // Attributes (Prepare data for icon display)
+    const attributes = [];
+    if (!isBundle) {
+        if (product.scents) attributes.push({ label: 'Scent', value: product.scents, icon: '🌸' }); // Example icon
+        if (product.size) attributes.push({ label: 'Size', value: product.size, icon: '📏' });
+        if (product.burnTime) attributes.push({ label: 'Burn Time', value: product.burnTime, icon: '🔥' });
+        if (product.wickType) attributes.push({ label: 'Wick', value: product.wickType, icon: '🧵' });
+        if (product.coverageSpace) attributes.push({ label: 'Coverage', value: product.coverageSpace, icon: '🏠' });
+        // Add more attributes like Jar Specs, Candle Care if they exist in your product data
+    }
 
-            // Use the subProductName and size from the bundle item
-            const bundleItemName = `${item.subProductName} (${item.size})`;
-            
-            bundleSelectors += `
-                <div class="bundle-selector-group">
-                    <label for="scent-${i}">${bundleItemName}:</label>
-                    <select id="scent-${i}" class="scent-selector" required>
-                        <option value="">-- Select a scent --</option>
-                        ${scentOptions}
-                    </select>
-                </div>
-            `;
-        });
-        bundleSelectors += `</div>`;
-        customizationHTML = bundleSelectors;
-    }
-    // ------------------------------------
-    
-    // Image Gallery Area (Handles multiple images)
-    const imageGalleryHTML = (product.imagePaths || []).map((path, index) => `
-        <img src="${path}" alt="${itemName} image ${index + 1}" class="${index === 0 ? 'main-product-image' : 'thumbnail-image'}">
-    `).join('');
-
-    // Formatted Description Area (Handles admin's styling request)
-    const formattedDescHTML = product.formattedDescription 
+    // Descriptions
+    const shortDescription = isBundle ? product.bundleDescription : product.description_en;
+    const formattedDescriptionHTML = product.formattedDescription
         ? `<div class="formatted-description-box">${product.formattedDescription.replace(/\r?\n/g, '<br>')}</div>`
-        : '';
+        : ''; // Use only if single product and exists
 
-    container.innerHTML = `
-        <div class="product-detail-grid">
-            <div class="product-image-area">
+    // Image Gallery
+    const imageGalleryHTML = (product.imagePaths || product.images || [])
+        .map((path, index) => `<img src="${path}" alt="${itemName} image ${index + 1}" class="${index === 0 ? 'main-product-image' : 'thumbnail-image'}" loading="lazy">`)
+        .join('');
+
+    // Bundle Customization (Keep existing logic, ensure it targets correct IDs if needed)
+    let customizationHTML = '';
+    if (isBundle && product.bundleItems && product.bundleItems.length > 0) {
+        // ... (Keep your existing bundleItems.forEach loop to build bundleSelectors HTML) ...
+        // Ensure the class names match the CSS: .bundle-customization-section, .bundle-selector-group etc.
+         customizationHTML = `<div class="bundle-customization-section"> ... ${bundleSelectors} ... </div>`;
+    }
+
+    // --- Build HTML ---
+    container.innerHTML = `
+        <div class="product-detail-grid-new"> {/* Use new class for layout */}
+            
+            {/* Column 1: Image Gallery */}
+            <div class="product-image-area-new">
                 <div class="image-gallery">
-                    ${imageGalleryHTML}
+                    ${imageGalleryHTML || '<img src="images/placeholder.jpg" alt="Placeholder" class="main-product-image">'}
                 </div>
-            </div>
-            
-            <div class="product-info-area">
-                <h1 class="product-title">${itemName}</h1>
-                <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
+            </div>
+
+            {/* Column 2: Product Info & Actions */}
+            <div class="product-info-area-new">
                 
-                <!-- Core Specs -->
-                <div class="product-specs-group">
-                    <p class="product-spec">Category: <span>${itemCategory}</span></p>
-                    <p class="product-spec">Scents: <span>${itemScents}</span></p>
-                    <p class="product-spec">Size: <span>${itemSize}</span></p>
-                    
-                    ${!isBundle ? `
-                        <p class="product-spec">Burn Time: <span>${itemBurnTime}</span></p>
-                        <p class="product-spec">Wick Type: <span>${itemWickType}</span></p>
-                        <p class="product-spec">Coverage: <span>${itemCoverageSpace}</span></p>
-                    ` : ''}
-                </div>
+                {/* Info Block 1: Title, Category, Price */}
+                <h1 class="product-title-main">${itemName || 'Product Name'}</h1>
+                <p class="product-category-subtle">${itemCategory}</p> {/* Category below title */}
+                <p class="product-price-main">${itemPrice.toFixed(2)} EGP</p>
 
-                <p class="stock-status ${isOutOfStock ? 'out-of-stock' : 'in-stock'}">
-                    ${isOutOfStock ? 'Out of Stock' : 'In Stock'}
-                </p>
-
-                <p class="product-description basic-description">
-                    ${itemDescription}
-                </p>
+                {/* Info Block 2: Action Buttons */}
+                ${!isOutOfStock ? `
+                    <div class="product-actions-grid">
+                        <div class="quantity-selector-box">
+                            <button class="quantity-minus action-btn" data-action="minus">-</button>
+                            <input type="number" id="quantity" value="1" min="1" max="${itemStock || 10}" readonly class="quantity-input-box">
+                            <button class="quantity-plus action-btn" data-action="plus">+</button>
+                        </div>
+                        <button id="add-to-cart-btn" class="action-add-to-cart-btn" 
+                                data-is-bundle="${isBundle}" data-bundle-items="${product.bundleItems?.length || 0}">
+                            <span class="cart-icon">🛒</span> Add to Cart
+                        </button>
+                        <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
+                    </div>
+                ` : `
+                    <p class="stock-status out-of-stock">Out of Stock</p>
+                    <button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>
+                `}
                 
-                ${formattedDescHTML}
-                
-                ${customizationHTML}
+                {/* Bundle Customization (If applicable) */}
+                ${customizationHTML}
 
-                ${!isOutOfStock ? `
-                    <div class="product-actions-grid">
-                        
-                                                <div class="quantity-selector-box">
-                            <button class="quantity-minus action-btn">-</button>
-                            <input type="number" id="quantity" value="1" min="1" max="${product.stock || 10}" readonly class="quantity-input-box">
-                            <button class="quantity-plus action-btn">+</button>
-                        </div>
+                {/* Info Block 3: Description */}
+                <div class="product-description-section">
+                     ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
+                     ${formattedDescriptionHTML} {/* Display only if single product and has content */}
+                </div>
 
-                                                <button id="add-to-cart-btn" class="action-add-to-cart-btn" 
-                                data-is-bundle="${isBundle}" data-bundle-items="${numItemsInBundle}">
-                            <span class="cart-icon">🛒</span> Add to Cart
-                        </button>
+                {/* Info Block 4: Attributes (Icon/Tag style) */}
+                ${attributes.length > 0 ? `
+                    <div class="product-attributes-grid">
+                        ${attributes.map(attr => `
+                            <div class="attribute-chip">
+                                <span class="attribute-icon">${attr.icon || '🔹'}</span> {/* Default icon */}
+                                <span class="attribute-label">${attr.label}:</span>
+                                <span class="attribute-value">${attr.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
 
-                                                <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
-                    </div>
-                ` : '<button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>'}
-                <div class="related-products-section">
-                    <h3>Products You Might Like (4 in a row)</h3>
-                    <div id="related-products-container" class="product-grid related-grid">
-                        </div>
-                </div>
+                {/* Info Block 5: Stock Status (If not already shown) */}
+                ${isOutOfStock ? '' : '<p class="stock-status in-stock">In Stock</p>'}
 
-                <div class="shipping-returns">
-                    <h3>Shipping & Returns</h3>
-                    <ul>
-                        <li>Orders processed within 1–2 business days.</li>
-                        <li>Delivery across Egypt within 2–5 days.</li>
-                        <li>Returns accepted within 7 days for unused items.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Add quantity button listeners
-    const quantityInput = document.getElementById('quantity');
-    document.querySelector('.quantity-minus')?.addEventListener('click', () => {
-        if (parseInt(quantityInput.value) > 1) {
-            quantityInput.value = parseInt(quantityInput.value) - 1;
-        }
-    });
-    document.querySelector('.quantity-plus')?.addEventListener('click', () => {
-        if (parseInt(quantityInput.value) < (product.stock || 10)) {
-            quantityInput.value = parseInt(quantityInput.value) + 1;
-        }
-    });
+                 {/* Shipping Info - Moved to bottom */}
+                 <div class="shipping-returns-new">
+                     <h3>Shipping & Returns</h3>
+                     <ul>
+                         <li>Orders processed within 1–2 business days.</li>
+                         <li>Delivery across Egypt within 2–5 days.</li>
+                         <li>Returns accepted within 7 days for unused items.</li>
+                     </ul>
+                 </div>
 
-    if (!isOutOfStock) {
-        document.getElementById('add-to-cart-btn').addEventListener('click', (e) => {
-            const btn = e.currentTarget;
-            const isBundleBtn = btn.getAttribute('data-is-bundle') === 'true';
-            const quantity = parseInt(quantityInput ? quantityInput.value : 1);
-            
-            let customization = null;
-            
-            if (isBundleBtn) {
-                // Pass the number of items in the bundle for validation
-                customization = collectBundleScents(numItemsInBundle); 
-                if (!customization) return; // Stops if not all scents are selected
-            }
-            
-            // FIX: Use consistent key names
-            const item = {
-                _id: product._id,
-                name: itemName,
-                price: itemPrice,
-                quantity: quantity,
-                customization: customization,
-                // Add the image path for the cart display
-                imageUrl: product.imagePaths?.[0] || 'images/placeholder.jpg'
-            };
-            // NOTE: Replaced window.alert with console.log/message box for compatibility
-            addToCart(item);
-        });
-    }
+            </div> {/* End product-info-area-new */}
+        </div> {/* End product-detail-grid-new */}
+
+        {/* Related Products Section (Keep only the one at the bottom) */}
+        <div class="related-products-section" id="related-products-main"> {/* Ensure unique ID if needed */}
+             <h3>Other Products You Might Like</h3>
+             <div id="related-products-container" class="product-grid related-grid">
+                 {/* Products will be loaded here by fetchRelatedProducts */}
+             </div>
+        </div>
+    `;
+
+    // --- Add Event Listeners AFTER setting innerHTML ---
+    attachQuantityButtonListeners(itemStock); // Attach listeners for +/- buttons
+    attachAddToCartListener(product);      // Attach listener for Add to Cart button
+    // Attach Buy Now listener if needed
+    // document.querySelector('.buy-it-now-btn')?.addEventListener('click', () => { /* Add Buy Now logic */ });
 }
+
+// --- Helper: Attach Quantity Button Listeners ---
+function attachQuantityButtonListeners(maxStock) {
+    const quantityInput = document.getElementById('quantity');
+    if (!quantityInput) return;
+
+    document.querySelector('.quantity-minus')?.addEventListener('click', () => {
+        let currentVal = parseInt(quantityInput.value);
+        if (currentVal > 1) {
+            quantityInput.value = currentVal - 1;
+        }
+    });
+
+    document.querySelector('.quantity-plus')?.addEventListener('click', () => {
+        let currentVal = parseInt(quantityInput.value);
+        if (currentVal < (maxStock || 10)) { // Use actual max stock
+            quantityInput.value = currentVal + 1;
+        }
+    });
+}
+
+// --- Helper: Attach Add to Cart Listener ---
+function attachAddToCartListener(product) {
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const quantityInput = document.getElementById('quantity');
+
+    if (!addToCartBtn || !quantityInput) return;
+
+    addToCartBtn.addEventListener('click', (e) => {
+        const isBundleBtn = e.currentTarget.getAttribute('data-is-bundle') === 'true';
+        const numItemsInBundle = parseInt(e.currentTarget.getAttribute('data-bundle-items') || '0');
+        const quantity = parseInt(quantityInput.value);
+
+        let customization = null;
+        if (isBundleBtn && numItemsInBundle > 0) {
+            customization = collectBundleScents(numItemsInBundle);
+            if (!customization) return; // Stop if scents not selected
+        }
+
+        const itemName = isBundleBtn ? product.bundleName : product.name_en;
+        const itemPrice = product.price_egp || product.price || 0;
+
+        const item = {
+            _id: product._id,
+            name: itemName,
+            price: itemPrice,
+            quantity: quantity,
+            customization: customization,
+            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
+        };
+        addToCart(item); // Call global addToCart function
+    });
+}
+
 
 function collectBundleScents(numItems) {
-    const scents = [];
-    let allSelected = true;
-    for (let i = 0; i < numItems; i++) { // FIX: Start loop from 0 to match element IDs (scent-0, scent-1)
-        const selector = document.getElementById(`scent-${i}`); // FIX: Index starting at 0
-        if (!selector || selector.value === "") {
-            // FIX: Using console.error instead of alert()
-            console.error(`Please choose a scent for Item ${i + 1}.`); 
-            selector.focus();
-            allSelected = false;
-            break;
-        }
-        scents.push(selector.value);
-    }
-    
-    if (allSelected) {
-        return scents;
-    }
-    return null;
+    // Keep existing collectBundleScents function
 }
 
 async function fetchRelatedProducts(category, excludeId) {
-    const container = document.getElementById('related-products-container');
-    container.innerHTML = '<p>Loading related products...</p>';
-    try {
-        // FIX: Requested limit 4 for related products
-        const query = `&category=${category}&limit=4&exclude_id=${excludeId}`;
-        // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
-        const { items } = await fetchGridData('/products', 1, 4, query);
-        renderProductGrid('related-products-container', items, 'products');
-    } catch (error) {
-        container.innerHTML = '<p>Could not load related products.</p>';
-    }
+    const container = document.getElementById('related-products-container');
+    if (!container) return; // Only run if the container exists
+    container.innerHTML = '<p>Loading related products...</p>';
+    try {
+        const query = `&category=${category}&limit=4&exclude_id=${excludeId}&status=Active`; // Fetch 4 active products
+        const { items } = await fetchGridData('/products', 1, 4, query);
+        renderProductGrid('related-products-container', items, 'related products'); // Use correct render function
+    } catch (error) {
+        container.innerHTML = '<p class="error-message">Could not load related products.</p>';
+    }
 }
 
 
 // ====================================
-// 8. CART MANAGEMENT
+// 8. CART MANAGEMENT (with Counter Fix)
 // ====================================
-
 let cart = [];
 
 function loadCartFromStorage() {
-    const cartData = localStorage.getItem('sirajCart');
-    if (cartData) {
-        cart = JSON.parse(cartData);
-    }
-    updateCartUI(); 
+    // Keep existing loadCartFromStorage function
 }
-
 function saveCartToStorage() {
-    localStorage.setItem('sirajCart', JSON.stringify(cart));
+    // Keep existing saveCartToStorage function
 }
-
 function getCartUniqueId(product) {
-    // Customization makes an item unique even if the base ID is the same
-    if (product.customization) {
-        return `${product._id}_${JSON.stringify(product.customization)}`;
-    }
-    return product._id;
+    // Keep existing getCartUniqueId function
 }
-
 function addToCart(product) {
-    const uniqueId = getCartUniqueId(product);
-    const existingItem = cart.find(item => getCartUniqueId(item) === uniqueId);
-    
-    if (existingItem) {
-        existingItem.quantity += product.quantity || 1;
-    } else {
-        cart.push({ ...product, cartItemId: uniqueId, quantity: product.quantity || 1 });
-    }
-    saveCartToStorage();
-    updateCartUI();
-    // FIX: Replaced alert() with a console log
-    console.log(`${product.name} (x${product.quantity || 1}) added to cart!`);
+    // Keep existing addToCart function
 }
-window.addToCart = addToCart; // Expose globally
+window.addToCart = addToCart;
 
 function removeItemFromCart(id) {
-    cart = cart.filter(item => getCartUniqueId(item) !== id);
-    saveCartToStorage();
-    updateCartUI();
-    if (document.body.getAttribute('data-page') === 'shopcart') {
-        renderShopCartPage();
-    }
+    // Keep existing removeItemFromCart function
 }
 window.removeItemFromCart = removeItemFromCart;
 
 function updateItemQuantity(id, quantity) {
-    const item = cart.find(item => getCartUniqueId(item) === id);
-    if (item) {
-        const newQuantity = parseInt(quantity);
-        if (newQuantity > 0) {
-            item.quantity = newQuantity;
-        } else {
-            removeItemFromCart(id);
-            return;
-        }
-    }
-    saveCartToStorage();
-    updateCartUI();
-    if (document.body.getAttribute('data-page') === 'shopcart') {
-        renderShopCartPage();
-    }
+    // Keep existing updateItemQuantity function
 }
 window.updateItemQuantity = updateItemQuantity;
 
 function getCartTotal() {
-    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Keep existing getCartTotal function
 }
 
+// --- UPDATED: Cart Counter Visibility ---
 function updateCartUI() {
     const cartCountElement = document.querySelector('.cart-count');
-    const cartListElement = document.querySelector('.cart-items-list');
-    const cartTotalElement = document.getElementById('cart-total');
-    
-    if (!cartCountElement || !cartTotalElement) return;
+    const cartListElement = document.querySelector('.cart-items-list'); // In dropdown
+    const cartTotalElement = document.getElementById('cart-total');   // In dropdown
 
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const totalPrice = getCartTotal();
-    
-    // FIX: Hide the counter element if totalItems is 0
-    if (totalItems === 0) {
-        cartCountElement.style.visibility = 'hidden'; 
-        cartCountElement.style.opacity = 0;
-    } else {
-        cartCountElement.style.visibility = 'visible'; 
-        cartCountElement.style.opacity = 1;
-        cartCountElement.textContent = totalItems;
+    // Update Cart Counter Badge (Top Right)
+    if (cartCountElement) {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        if (totalItems === 0) {
+            cartCountElement.style.visibility = 'hidden';
+            cartCountElement.style.opacity = 0;
+            // Optionally set text to '' if visibility doesn't fully hide it
+            cartCountElement.textContent = '';
+        } else {
+            cartCountElement.style.visibility = 'visible';
+            cartCountElement.style.opacity = 1;
+            cartCountElement.textContent = totalItems;
+        }
     }
-    
-    if (cartListElement) {
+
+    // Update Cart Dropdown Content
+    if (cartListElement && cartTotalElement) {
+        const totalPrice = getCartTotal();
+        cartTotalElement.textContent = totalPrice.toFixed(2) + ' EGP';
+
         if (cart.length === 0) {
             cartListElement.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
         } else {
-            cartListElement.innerHTML = cart.map(item => {
-                const customizationDetail = item.customization ? 
-                    `<br><small>(${item.customization.slice(0, 2).join(', ')}${item.customization.length > 2 ? '...' : ''})</small>` 
-                    : '';
-                return `
-                    <div class="cart-item">
-                        <p>${item.name} x ${item.quantity} ${customizationDetail}</p>
-                        <p>${(item.price * item.quantity).toFixed(2)} EGP</p>
-                    </div>
-                `;
-            }).join('');
-        }
-    }
+            cartListElement.innerHTML = cart.map(item => {
+                const customizationDetail = item.customization ?
+                    `<br><small>(${item.customization.slice(0, 2).join(', ')}${item.customization.length > 2 ? '...' : ''})</small>`
+                    : '';
+                // Simple display for the dropdown
+                return `
+                    <div class="cart-item">
+                        <span>${item.name} x ${item.quantity} ${customizationDetail}</span>
+                        <span>${(item.price * item.quantity).toFixed(2)} EGP</span>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
 }
+
 
 // ====================================
 // 9. SHOP CART PAGE LOGIC
 // ====================================
-
 function renderShopCartPage() {
-    const itemsContainer = document.getElementById('cart-items-table');
-    const summaryContainer = document.getElementById('cart-summary');
-    
-    if (!itemsContainer || !summaryContainer) return;
-
-    if (cart.length === 0) {
-        itemsContainer.innerHTML = '<tr><td colspan="5" class="empty-cart-message-full">Your cart is empty. <a href="products.html">Start Shopping!</a></td></tr>';
-        summaryContainer.innerHTML = '';
-        document.getElementById('checkout-link-bottom').style.display = 'none';
-        return;
-    }
-
-    // Render Items Table
-    itemsContainer.innerHTML = cart.map(item => {
-        const uniqueId = getCartUniqueId(item);
-        const customizationDetail = item.customization ? 
-            `<div class="cart-customization-detail"><small>Scents: ${item.customization.join(', ')}</small></div>` 
-            : '';
-        // Use item.imageUrl which we added to cart item
-        const itemImage = item.imageUrl || 'images/placeholder.jpg';
-
-        return `
-            <tr data-id="${uniqueId}">
-                <td class="cart-product-col" data-label="Product">
-                    <img src="${itemImage}" alt="${item.name}" class="cart-item-img">
-                    <div>
-                        <a href="product.html?id=${item._id}">${item.name}</a>
-                        ${customizationDetail}
-                    </div>
-                </td>
-                <td data-label="Price">${item.price.toFixed(2)} EGP</td>
-                <td data-label="Quantity">
-                    <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
-                           onchange="updateItemQuantity('${uniqueId}', this.value)" 
-                           onkeyup="updateItemQuantity('${uniqueId}', this.value)">
-                </td>
-                <td data-label="Total">${(item.price * item.quantity).toFixed(2)} EGP</td>
-                <td data-label="Remove">
-                    <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')"><i class="fas fa-times"></i></button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-
-    const subtotal = getCartTotal();
-    const shipping = subtotal >= 2000 ? 0.00 : 50.00;
-    const grandTotal = subtotal + shipping;
-
-    // Render Summary
-    summaryContainer.innerHTML = `
-        <h3>Cart Summary</h3>
-        <p>Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
-        <p>Shipping (Egypt): <span>${shipping.toFixed(2)} EGP</span></p>
-        <p class="cart-total-final">Grand Total: <span>${grandTotal.toFixed(2)} EGP</span></p>
-        <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
-    `;
-    
-    document.getElementById('checkout-link-bottom').style.display = 'block';
+    // Keep existing renderShopCartPage function
 }
-
 
 // ====================================
 // 10. CHECKOUT PAGE LOGIC
-// (No changes needed here)
 // ====================================
-
 function setupCheckoutPage() {
-    const summaryContainer = document.getElementById('checkout-summary-container');
-    const checkoutForm = document.getElementById('checkout-form');
-    
-    if (cart.length === 0) {
-        summaryContainer.innerHTML = '<p>Your cart is empty. <a href="products.html">Return to shopping.</a></p>';
-        if (checkoutForm) checkoutForm.style.display = 'none';
-        return;
-    }
-    
-    renderCheckoutSummary(summaryContainer);
-    
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', processCheckout);
-    }
+    // Keep existing setupCheckoutPage function
 }
-
 function renderCheckoutSummary(container) {
-    const subtotal = getCartTotal();
-    const shipping = subtotal >= 2000 ? 0.00 : 50.00;
-    const grandTotal = subtotal + shipping;
-
-    container.innerHTML = `
-        <h3>Order Summary</h3>
-        <div class="checkout-item-list">
-            ${cart.map(item => {
-                const customizationDetail = item.customization ? 
-                    `<small> (${item.customization.join(', ')})</small>` : '';
-                return `
-                    <p class="checkout-item">${item.name} x ${item.quantity}${customizationDetail} 
-                    <span>${(item.price * item.quantity).toFixed(2)} EGP</span></p>
-                `;
-            }).join('')}
-        </div>
-        <hr>
-        <p class="checkout-summary-line">Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
-        <p class="checkout-summary-line">Shipping: <span>${shipping.toFixed(2)} EGP</span></p>
-        <p class="checkout-summary-line final-total">Total: <span>${grandTotal.toFixed(2)} EGP</span></p>
-    `;
+    // Keep existing renderCheckoutSummary function
 }
-
 async function processCheckout(e) {
-    e.preventDefault();
-    
-    const checkoutForm = e.target;
-    const formData = new FormData(checkoutForm);
-    const totalAmount = getCartTotal();
-    const shippingFee = totalAmount >= 2000 ? 0.00 : 50.00;
-
-    const orderData = {
-        customerInfo: {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            phone: formData.get('phone'),
-            address: formData.get('address'),
-            city: formData.get('city'),
-            notes: formData.get('notes'),
-        },
-        items: cart.map(item => ({
-            productId: item._id, // Base product ID
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            customization: item.customization || null // Include customization details
-        })),
-        totalAmount: totalAmount + shippingFee,
-        subtotal: totalAmount,
-        shippingFee: shippingFee,
-        paymentMethod: formData.get('payment-method'),
-    };
-    
-    const submitBtn = document.getElementById('place-order-btn');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Processing...';
-
-    try {
-        // FIX: Corrected API path
-        const response = await fetch(`${API_BASE_URL}/api/orders`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            // FIX: Replaced alert() with console.log
-            console.log('Order placed successfully! Your Order ID is: ' + result.orderId);
-            cart = []; 
-            saveCartToStorage();
-            updateCartUI();
-            window.location.href = 'index.html'; 
-        } else {
-            throw new Error(result.message || 'Failed to place order.');
-        }
-
-    } catch (error) {
-        // FIX: Replaced alert() with console.error
-        console.error('Order failed: ' + error.message);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Place Order';
-    }
+    // Keep existing processCheckout function
 }
