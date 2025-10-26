@@ -138,11 +138,11 @@ function renderProductGrid(containerId, items, endpointType) {
         
         return `
             <a href="product.html?id=${item._id}" class="product-card">
-                <img src="${itemImage}" alt="${itemName}" loading="lazy"> {/* Added lazy loading */}
+                <img src="${itemImage}" alt="${itemName}" loading="lazy"> { Added lazy loading }
                 <div class="product-info-minimal">
                     <p class="product-title">${itemName}</p>
                     <p class="product-price">${(itemPrice).toFixed(2)} EGP</p>
-                    {/* Add stars/reviews here later if needed */}
+                    { Add stars/reviews here later if needed }
                 </div>
             </a>
         `;
@@ -238,14 +238,14 @@ async function fetchAndrenderCategories() {
 
             return `
                 <a href="products.html?category=${encodeURIComponent(name)}" class="category-card-item">
-                    {/* Placeholder for image - uncomment and adjust when you have images
+                    {Placeholder for image - uncomment and adjust when you have images
                     <div class="category-image-wrapper">
                         <img src="${imageSrc}" alt="${name}" class="category-image" loading="lazy">
                     </div>
-                    */}
+                }
                     <div class="category-info">
                         <p class="category-name">${name}</p>
-                        {/* Arrow icon removed, add back if desired */}
+                        { Arrow icon removed, add back if desired }
                     </div>
                 </a>
             `;
