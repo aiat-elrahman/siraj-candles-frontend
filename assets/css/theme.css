@@ -497,5 +497,113 @@ color: var(--footer-bg);
 
     /* Checkout Page Desktop Adjustments */
    .checkout-grid { display: grid; grid-template-columns: 3fr 2fr; }
+   /* ------------------ Product Page Button Grid (NEW LAYOUT) ------------------ */
+
+.product-actions-grid {
+    display: grid;
+    /* Create two main columns for the Quantity and Add to Cart button */
+    grid-template-columns: 1.2fr 3fr; 
+    gap: 12px; /* Spacing between elements */
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+
+/* Buy It Now Button Spanning Full Width */
+.action-buy-now-btn {
+    grid-column: 1 / -1; /* Make it span both columns */
+    width: 100%;
+}
+
+/* --- Quantity Selector Box --- */
+.quantity-selector-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Use a light color for the background/border to match the target image */
+    border: 1px solid var(--accent-color); 
+    border-radius: 6px;
+    overflow: hidden;
+    height: 50px; /* Uniform height for buttons */
+    background-color: var(--background-light); /* Creamy background */
+}
+
+.action-btn {
+    /* Styles for the +/- buttons */
+    background-color: transparent;
+    color: var(--text-dark); 
+    border: none;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    flex-shrink: 0;
+    transition: background-color 0.2s;
+}
+
+.action-btn:hover {
+    background-color: var(--primary-color); /* Hover color matches hero section background */
+}
+
+.quantity-input-box {
+    text-align: center;
+    border: none;
+    height: 100%;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 600;
+    outline: none;
+    background-color: transparent;
+    color: var(--text-dark);
+}
+
+/* --- Button Styling --- */
+.action-add-to-cart-btn, .action-buy-now-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    transition: background-color 0.2s, opacity 0.2s;
+    height: 50px; /* Ensure uniform height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Primary (Add to Cart) Button */
+.action-add-to-cart-btn {
+    background-color: var(--accent-color); /* Deeper Rose/Brown */
+    color: var(--text-light); /* White text */
+}
+
+.action-add-to-cart-btn:hover {
+    background-color: #8C756B; /* Slightly darker hover color */
+}
+
+/* Secondary (Buy It Now) Button */
+.action-buy-now-btn {
+    background-color: var(--primary-color); /* Soft Muted Rose/Tan */
+    color: var(--text-dark); /* Dark text */
+    border: 1px solid var(--accent-color); /* Subtle border for definition */
+}
+
+.action-buy-now-btn:hover {
+    background-color: #D6CCC5; /* Slightly lighter hover color */
+}
+
+/* Disabled/Out of Stock */
+.action-add-to-cart-btn:disabled, .action-buy-now-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cart-icon {
+    font-size: 1.1em;
+    margin-right: 8px;
+    /* Ensure the icon color matches the button text color */
+    color: inherit; 
+}
 }
        
