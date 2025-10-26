@@ -754,29 +754,29 @@ function getCartTotal() {
 }
 
 function updateCartUI() {
-    const cartCountElement = document.querySelector('.cart-count');
-    const cartListElement = document.querySelector('.cart-items-list');
-    const cartTotalElement = document.getElementById('cart-total');
-    
-    if (!cartCountElement || !cartTotalElement) return;
+    const cartCountElement = document.querySelector('.cart-count');
+    const cartListElement = document.querySelector('.cart-items-list');
+    const cartTotalElement = document.getElementById('cart-total');
+    
+    if (!cartCountElement || !cartTotalElement) return;
 
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const totalPrice = getCartTotal();
-    
-    cartCountElement.textContent = totalItems;
-    cartTotalElement.textContent = totalPrice.toFixed(2) + ' EGP';
-if (totalItems === 0) {
-        cartCountElement.style.display = 'none';
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const totalPrice = getCartTotal();
+    
+    // FIX: Hide the counter element if totalItems is 0
+    if (totalItems === 0) {
+        cartCountElement.style.visibility = 'hidden'; 
+        cartCountElement.style.opacity = 0;
     } else {
-        cartCountElement.style.display = 'flex'; // Or 'block', depending on your CSS
-        cartCountElement.textContent = totalItems; 
+        cartCountElement.style.visibility = 'visible'; 
+        cartCountElement.style.opacity = 1;
+        cartCountElement.textContent = totalItems;
     }
     
-    cartTotalElement.textContent = totalPrice.toFixed(2) + ' EGP';
-    if (cartListElement) {
-        if (cart.length === 0) {
-            cartListElement.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
-        } else {
+    if (cartListElement) {
+        if (cart.length === 0) {
+            cartListElement.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
+        } else {
             cartListElement.innerHTML = cart.map(item => {
                 const customizationDetail = item.customization ? 
                     `<br><small>(${item.customization.slice(0, 2).join(', ')}${item.customization.length > 2 ? '...' : ''})</small>` 
