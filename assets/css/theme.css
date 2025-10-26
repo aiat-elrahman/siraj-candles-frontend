@@ -1,8 +1,8 @@
 /* ------------------ Base & Typography ------------------ */
 @font-face {
     font-family: 'Hello Paris';
-    src: url('../fonts/helloparisserif-bold-webfont.woff2') format('woff2'), 
-         url('../fonts/helloparisserif-bold-webfont.woff') format('woff'); 
+    src: url('../fonts/helloparisserif-bold-webfont.woff2') format('woff2'),
+         url('../fonts/helloparisserif-bold-webfont.woff') format('woff');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -17,16 +17,23 @@
     --footer-bg: #7A968E;         /* Dusty Slate/Green (Footer BG) */
     --text-dark: #333333;
     --text-light: #FFFFFF;
---font-logo-display: 'Playfair Display', serif; 
+    --font-logo-display: 'Playfair Display', serif;
     --font-logo-main: 'Hello Paris', var(--font-logo-display);
     --font-logo: var(--font-logo-display);
     --font-body: 'Montserrat', sans-serif;
+    --border-color: #DCDCDC; /* Added light gray for borders */
 }
 
+/* Base Resets & Defaults */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+/* ADDED for smooth scrolling */
+html {
+     scroll-behavior: smooth;
 }
 
 body {
@@ -34,13 +41,28 @@ body {
     color: var(--text-dark);
     background-color: var(--background-light);
     line-height: 1.6;
+    /* ADDED to remove default spacing */
+    margin: 0;
+    padding: 0;
 }
 
 h1, h2, h3 {
     font-family: var(--font-logo);
-    margin-bottom: 0.5em;
+    margin-bottom: 0.75em; /* Slightly increased margin */
     font-weight: 700;
+    line-height: 1.3; /* Added line-height */
 }
+/* Optional: Define more heading sizes */
+h1 { font-size: 2.2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.5rem; }
+
+
+/* ADDED default paragraph spacing */
+p {
+    margin-bottom: 1em;
+}
+
 
 a {
     text-decoration: none;
@@ -56,37 +78,66 @@ a:hover {
     width: 90%;
     max-width: 1200px;
     margin: 0 auto;
+    /* Added padding for mobile spacing */
+    padding-left: 15px;
+    padding-right: 15px;
 }
-
-/* ------------------ Announcement Ribbon ------------------ */
+/* Remove padding on desktop */
+@media (min-width: 768px) {
+    .container {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+/* ------------------ Announcement Ribbon (Updated Width/Spacing) ------------------ */
 
 .announcement-ribbon {
-    background-color: var(--accent-color); 
+    background-color: var(--accent-color);
     color: var(--text-light);
     text-align: center;
-    padding: 0.5rem 0;
-    font-size: 0.8rem;
+    padding: 0.6rem 1rem; /* Slightly more vertical padding */
+    font-size: 0.85rem; /* Slightly larger text */
+    font-weight: 500;
+    width: 100%; /* Full width on mobile */
+    margin: 0; /* Ensure no extra space around it */
 }
 
-/* ------------------ Navigation Bar ------------------ */
+@media (min-width: 768px) {
+    .announcement-ribbon {
+        max-width: 60%; /* Constrain width on desktop */
+        margin: 0 auto; /* Center it */
+        border-radius: 0 0 8px 8px; /* Optional: adds rounded bottom corners */
+    }
+}
+
+/* ------------------ Navigation Bar (FIXED Sticky & Mobile Layout) ------------------ */
 
 .navbar {
     background-color: var(--background-light);
-    padding: 1rem 0;
-    border-bottom: 1px solid #ddd;
+    padding: 0.8rem 0; /* Slightly reduced padding */
+    border-bottom: 1px solid var(--border-color); /* Use variable */
+    position: sticky; /* Make Navbar Sticky */
+    top: 0;
+    z-index: 100; /* Ensure it stays above other content */
+    transition: box-shadow 0.3s; /* Add smooth shadow transition */
+}
+/* Optional: Add shadow when scrolled (requires JS or Intersection Observer) */
+body.scrolled .navbar {
+     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 .navbar .container {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* Pushes logo left, icons right */
     align-items: center;
+    position: relative; /* Needed for absolute positioning of icons on mobile */
+    min-height: 50px; /* Ensure minimum height */
 }
 
-/* Logo Styling (REVISED to match logolgog.PNG) */
+/* Logo Styling (Keep your specific logo styles) */
 .logo {
     font-family: var(--font-logo);
-    /* Remove letter spacing and font size from the main container */
-    letter-spacing: normal; 
+    letter-spacing: normal;
     text-transform: uppercase;
     display: flex; /* Allows 'SIRAJ' and 'CANDLES' to sit side-by-side */
     align-items: baseline; /* Aligns CANDLES to the bottom of SIRAJ */
@@ -96,7 +147,7 @@ a:hover {
 
 .logo-siraj {
     font-family: var(--font-logo-main);
-    font-size: 2.5rem; /* Increased size for dominance */
+    font-size: 2.2rem; /* Slightly smaller mobile logo */
     font-weight: 700;
     color: #000000; /* Black */
     letter-spacing: 0.05em;;
@@ -104,67 +155,127 @@ a:hover {
 
 .logo-candles {
     font-family: var(--font-logo-main);
-    font-size: 1.5rem; /* Smaller size */
+    font-size: 1.3rem; /* Smaller size */
     font-weight: bold; /* Lighter font weight */
     color: #C6A29C; /* A specific muted pink/rose color for CANDLES */
     letter-spacing: 0.15em; /* Adjusted spacing */
-    /* Ensure CANDLES stays on one line */
-    white-space: nowrap; 
+    white-space: nowrap;
     padding-bottom: 0.3rem; /* Adjusted offset for better visual alignment */
 }
 
-@media (min-width: 768px) {
+
+/* Navigation Links (Hidden on mobile by default) */
+.nav-links {
+    display: none; /* Hide on mobile */
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    /* Centered on desktop (will be overridden) */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+.nav-links li { margin: 0; }
+.nav-links a {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    color: var(--text-dark);
+}
+.nav-links a:hover { color: var(--accent-color); }
+
+/* Navigation Icons (Right aligned on all screens) */
+.nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* Space between icons */
+    position: static; /* Let flexbox handle positioning now */
+}
+.nav-icons button {
+    background: none;
+    border: none;
+    font-size: 1.3rem; /* Slightly larger icons */
+    cursor: pointer;
+    color: var(--text-dark);
+    padding: 0.3rem; /* Smaller padding */
+    position: relative; /* For cart count positioning */
+    line-height: 1; /* Prevent extra space */
+}
+.nav-icons button:hover { color: var(--accent-color); }
+
+/* Cart Count Badge (FIXED Visibility Logic in JS) */
+.cart-count {
+    background-color: var(--accent-color);
+    color: var(--text-light);
+    border-radius: 50%;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.7rem;
+    font-weight: bold;
+    position: absolute;
+    top: -5px;   /* Position relative to button */
+    right: -8px;
+    min-width: 18px; /* Ensure circle shape for single digit */
+    text-align: center;
+    line-height: 1.1;
+    transition: opacity 0.2s, visibility 0.2s;
+    /* JS will set visibility/opacity */
+    visibility: hidden; /* Start hidden */
+    opacity: 0;
+}
+
+/* Mobile Menu Toggle (Add HTML element if needed) */
+/*
+.mobile-menu-toggle {
+     display: block; // Show hamburger on mobile
+     background: none; border: none; font-size: 1.5rem; cursor: pointer;
+     // Hide on desktop within the @media query below
+}
+*/
+
+/* Desktop Styles */
+@media (min-width: 992px) { /* Adjusted breakpoint */
+    /* .mobile-menu-toggle { display: none; } */ /* Hide hamburger */
+
     .logo-siraj {
         font-size: 3.2rem; /* Even bigger on desktop */
     }
     .logo-candles {
         font-size: 1.5rem; /* Slightly larger on desktop */
     }
-.nav-links {
-    display: none; 
-    list-style: none;
-}
 
-.nav-icons {
-    display: flex;
-    gap: 0.5rem;
-    position: relative;
-}
+    .nav-links {
+        display: flex; /* Show links */
+        gap: 2rem;
+        position: static; /* Put links back in normal flow */
+        transform: none; /* Remove centering transform */
+         /* Optionally re-center links if needed for wide screens */
+         /* position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); */
+    }
 
-.nav-icons button {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: var(--text-dark);
-    padding: 0.5rem;
-}
+    /* .nav-icons rule doesn't need override as it's static by default */
 
-.cart-count {
-    background-color: var(--accent-color);
-    color: var(--text-light);
-    border-radius: 50%;
-    padding: 0.1rem 0.4rem;
-    font-size: 0.7rem;
-    position: absolute;
-    top: 5px;
-    right: 5px;
-}
+     /* Ensure container keeps space between logo and icons */
+     .navbar .container {
+         justify-content: space-between;
+     }
 }
 /* ------------------ Dropdown Cart & Search Modal ------------------ */
 
 .cart-dropdown {
     position: absolute;
     right: 1rem;
-    top: 60px; 
+    top: 60px;
     width: 90%;
     max-width: 300px;
     background-color: var(--text-light);
-    border: 1px solid #ddd;
+    border: 1px solid #ddd; /* Consider var(--border-color) */
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     z-index: 1000;
     padding: 1rem;
-    display: none;
+    display: none; /* Controlled by JS */
 }
 
 .cart-item {
@@ -172,30 +283,44 @@ a:hover {
     justify-content: space-between;
     padding: 0.5rem 0;
     border-bottom: 1px dotted #eee;
+    font-size: 0.9rem; /* Slightly smaller text */
 }
+
+/* Added style for empty message */
+.empty-cart-message {
+    font-style: italic;
+    color: #666;
+    text-align: center;
+    padding: 1rem 0;
+}
+
 
 .cart-summary {
     font-weight: 700;
     margin-top: 1rem;
     padding-top: 0.5rem;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #ddd; /* Consider var(--border-color) */
+    font-size: 0.95rem;
 }
 
 .search-modal {
-    position: fixed; 
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(248, 244, 242, 0.95); 
+    background-color: rgba(248, 244, 242, 0.98); /* Slightly more opaque */
     padding: 2rem;
-    display: none;
+    display: none; /* Controlled by JS */
+    justify-content: center; /* Center content horizontally */
+    align-items: flex-start; /* Align content to top */
     z-index: 1001;
 }
 
 .search-content {
+    width: 100%; /* Take full width on mobile */
     max-width: 600px;
-    margin: 5% auto;
+    margin-top: 10vh; /* Position down from top */
     position: relative;
 }
 
@@ -206,156 +331,426 @@ a:hover {
     border: 2px solid var(--accent-color);
     border-radius: 5px;
 }
+
+/* Added close button style */
+.close-search {
+    position: absolute;
+    top: -30px; /* Position above the input */
+    right: 0;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-dark);
+    padding: 5px;
+}
+.close-search:hover {
+    color: var(--accent-color);
+}
+
 .search-results {
     margin-top: 1rem;
     background: white;
     border-radius: 5px;
+    max-height: 60vh; /* Limit height and allow scrolling */
+    overflow-y: auto;
+    border: 1px solid #eee; /* Add subtle border */
 }
 .search-result-item {
     display: flex;
     justify-content: space-between;
     padding: 0.75rem 1rem;
     border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
 }
-
-/* ------------------ Hero Section ------------------ */
+.search-result-item:hover {
+     background-color: #f9f9f9; /* Add hover effect */
+}
+.search-item-title {
+     font-weight: 500;
+}
+.search-item-price {
+     color: #555;
+}
+/* ------------------ Hero Section (Updated with Background Image) ------------------ */
 
 .hero-section {
-    background-color: var(--primary-color); 
-    padding: 3rem 1rem;
+    /* background-color: var(--primary-color); /* Replaced */
+    background-image: url('../images/hero-background.jpg'); /* ADJUST PATH AS NEEDED */
+    background-size: cover;
+    background-position: center center; /* More specific centering */
+    background-repeat: no-repeat;
+    padding: 5rem 1rem; /* Increased padding for better image display */
     text-align: center;
+    position: relative; /* For overlay positioning */
+    color: var(--text-light); /* Make default text white */
+    overflow: hidden; /* Prevent potential overlay bleed */
 }
 
-.shop-now-btn, .checkout-btn {
+/* Overlay */
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3); /* Dark overlay (30% opacity) - adjust as needed */
+    z-index: 1; /* Place overlay behind text */
+}
+
+/* Ensure Text/Button elements inside hero are above overlay */
+/* Add selectors for your specific heading/paragraph elements if needed */
+.hero-section h1,
+.hero-section p,
+.hero-section .shop-now-btn {
+    position: relative;
+    z-index: 2; /* Ensure text/buttons are above the ::before overlay */
+}
+
+/* Keep button styles - they should work on the overlay */
+.shop-now-btn, .checkout-btn { /* Assuming .checkout-btn might also appear here */
     display: inline-block;
-    background-color: var(--accent-color); 
+    background-color: var(--accent-color);
     color: var(--text-light);
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1.8rem; /* Slightly more padding */
     border-radius: 5px;
     transition: background-color 0.3s;
     font-weight: 600;
     text-align: center;
+    border: none; /* Ensure no border */
+    font-size: 1rem; /* Match base font size */
+    margin-top: 1rem; /* Add space above button */
 }
 
 .shop-now-btn:hover, .checkout-btn:hover {
-    background-color: #8C756B; 
+    background-color: #8C756B; /* Keep hover color */
 }
 
-/* ------------------ Category & Product Sections ------------------ */
 
-.category-section, .bestsellers-section {
-    padding: 2rem 1rem;
+/* ------------------ Category & Product Sections (Updated) ------------------ */
+
+.category-section, .bestsellers-section, .related-products-section {
+    padding: 3rem 0; /* Use container padding */
     text-align: center;
 }
-
-.category-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
-    gap: 1rem;
-    margin-top: 1.5rem;
+.related-products-section h3 { /* Style for related products heading */
+    margin-bottom: 2rem;
 }
 
-.product-grid {
+
+/* Category Grid */
+.category-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
     gap: 1.5rem;
     margin-top: 1.5rem;
 }
-
-.product-card {
-    background-color: var(--text-light);
-    border: 1px solid #eee;
-    padding: 1rem;
+.category-card-item {
+    display: block; /* Make the link a block */
     text-align: center;
-    transition: box-shadow 0.3s;
+    /* Add border/background if desired */
+    /* border: 1px solid var(--border-color); */
+    /* background-color: #fff; */
+    /* padding: 1rem; */
+    border-radius: 4px;
+    transition: box-shadow 0.2s;
 }
-.product-card img {
+.category-card-item:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+}
+.category-image-wrapper { /* Style if using images */
+    overflow: hidden;
+    border-radius: 4px;
+    margin-bottom: 0.8rem; /* Space below image */
+    background-color: #eee; /* Placeholder bg */
+}
+.category-image { /* Style actual category image */
     width: 100%;
     height: auto;
     aspect-ratio: 1 / 1;
     object-fit: cover;
-    margin-bottom: 0.5rem;
 }
-.product-name-bold {
-    font-size: 1.15rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.product-price {
-    color: var(--accent-color);
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+.category-name {
+    font-weight: 600;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--text-dark);
 }
 
-.view-product-btn {
-    display: block;
-    background-color: var(--accent-color);
-    color: var(--text-light);
-    padding: 0.5rem;
-    border-radius: 3px;
+
+/* --- Product Grid (Minimalist Card - FINAL) --- */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
+    gap: 2rem 1.5rem; /* Row gap, Column gap */
+    margin-top: 1.5rem;
+}
+
+.product-card {
+    background-color: transparent; /* FIX: Remove white background */
+    border: none; /* FIX: Remove border */
+    padding: 0; /* FIX: Remove padding */
+    text-align: left; /* FIX: Align text left */
+    transition: transform 0.2s ease-out;
+    display: block; /* Ensure 'a' tag behaves like a block */
+}
+.product-card:hover {
+    transform: translateY(-3px); /* Subtle hover lift */
+}
+
+.product-card img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5; /* Taller aspect ratio */
+    object-fit: cover;
+    margin-bottom: 0.8rem; /* Space below image */
+    background-color: #eee; /* Placeholder bg color while loading */
+    border-radius: 3px; /* Slightly rounded corners */
+}
+
+.product-info-minimal { /* New class from site.js */
+    padding: 0 0.2rem; /* Small horizontal padding */
+}
+
+.product-title { /* New class used in site.js */
+    font-family: var(--font-body); /* Use body font */
+    font-size: 0.95rem; /* Adjust size */
+    font-weight: 600; /* Medium weight */
+    margin-bottom: 0.3rem;
+    color: var(--text-dark);
+    line-height: 1.4;
+    /* Limit title to 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;         /* Add standard property */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: calc(1.4em * 2); /* Reserve space for two lines */
+}
+
+.product-price { /* Re-style price */
+    color: var(--text-dark); /* Match text color */
+    font-weight: 600;
     font-size: 0.9rem;
-    opacity: 0.9;
+    margin-bottom: 0; /* Remove extra space */
+    font-family: var(--font-body); /* Use body font */
 }
 
-/* ------------------ Single Product Page Details ------------------ */
+/* Remove old button style if it existed */
+.view-product-btn {
+    display: none;
+}
+/* Remove old product name style */
+.product-name-bold {
+    /* Styles moved to .product-title */
+    display: none; /* Hide if element still exists */
+}
+/* ------------------ Single Product Page (NEW LAYOUT) ------------------ */
 
-.product-detail-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+/* Main grid for image and info */
+.product-detail-grid-new {
+    display: grid;
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 2rem; /* Space between image and info */
     padding: 2rem 0;
 }
+
+/* Image area styling */
+.product-image-area-new { /* Container for images */
+    width: 100%;
+}
+
 .main-product-image {
     width: 100%;
     height: auto;
-    max-height: 500px;
-    object-fit: contain;
+    aspect-ratio: 1 / 1; /* Keep images square or adjust as needed */
+    object-fit: cover; /* Use cover to fill the space nicely */
+    border: 1px solid var(--border-color);
+    border-radius: 8px; /* Slightly rounded corners */
+    background-color: #fff; /* White background behind image */
+    margin: 0 auto; /* Center image if container is wider */
+    max-width: 500px; /* Optional max width for image */
+}
+/* Style for thumbnail images if you add them */
+.thumbnail-image {
+    width: 60px; height: 60px; border: 1px solid var(--border-color); cursor: pointer;
+    object-fit: cover; border-radius: 4px; opacity: 0.7; transition: opacity 0.2s;
+}
+.thumbnail-image:hover, .thumbnail-image.active {
+    opacity: 1; border-color: var(--accent-color);
 }
 
-.product-price {
-    font-size: 1.5rem;
-}
-
-.shipping-returns {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid #ddd;
-}
-
-.add-to-cart-btn {
-    background-color: var(--accent-color);
-    color: var(--text-light);
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 1rem;
-    font-weight: 600;
-}
-.quantity-selector {
+/* Info area styling */
+.product-info-area-new {
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
+}
+
+/* Specific styling for elements in the new order */
+.product-title-main { /* Main title */
+    font-size: 1.8rem; /* Adjust size as needed */
+    margin-bottom: 0.1rem;
+    font-family: var(--font-logo);
+    line-height: 1.3;
+}
+.product-category-subtle { /* Category below title */
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+.product-price-main { /* Main price */
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-bottom: 1.5rem; /* Space before actions */
+    font-family: var(--font-body);
+}
+
+/* --- Product Page Action Buttons (NEW CSS, Mobile First) --- */
+.product-actions-grid {
+    display: grid;
+    /* Mobile: Stack quantity above Add to Cart, Buy Now below */
+    grid-template-columns: 1fr; /* Everything full width on mobile */
+    gap: 12px;
+    margin-top: 0; /* No top margin needed after price */
+    margin-bottom: 1.5rem; /* Space before description */
+}
+
+/* Style for the box containing +/-/input */
+.quantity-selector-box {
+    display: flex;
     align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--border-color); /* Use defined border color */
+    border-radius: 6px;
+    overflow: hidden;
+    height: 48px; /* Consistent height */
+    background-color: #fff; /* White background */
+    max-width: 130px; /* Limit width */
+    margin-bottom: 8px; /* Space below quantity on mobile */
 }
-.quantity-selector input {
-    width: 60px;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    text-align: center;
+.action-btn { /* Style for +/- buttons */
+    background-color: transparent; color: var(--text-dark); border: none; padding: 0 14px;
+    cursor: pointer; font-size: 18px; font-weight: 400; line-height: 46px; flex-shrink: 0;
+    transition: background-color 0.2s;
 }
+.action-btn:hover { background-color: var(--primary-color); }
+.quantity-input-box {
+    text-align: center; border: none; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);
+    height: 100%; width: 100%; font-size: 1rem; font-weight: 600; outline: none; background-color: transparent; color: var(--text-dark);
+    -moz-appearance: textfield; appearance: textfield;
+}
+.quantity-input-box::-webkit-outer-spin-button, .quantity-input-box::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-.out-of-stock {
-    color: #CC0000;
+/* Shared styles for Add to Cart & Buy Now */
+.action-add-to-cart-btn, .action-buy-now-btn {
+    border: none; border-radius: 6px; padding: 12px 20px; cursor: pointer; font-size: 1rem; font-weight: 600;
+    height: 48px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; width: 100%;
+}
+/* Primary Button (Add to Cart) */
+.action-add-to-cart-btn { background-color: var(--accent-color); color: var(--text-light); }
+.action-add-to-cart-btn:hover { background-color: #8C756B; }
+/* Secondary Button (Buy It Now) */
+.action-buy-now-btn { background-color: var(--primary-color); color: var(--text-dark); border: 1px solid var(--accent-color); }
+.action-buy-now-btn:hover { background-color: #D6CCC5; }
+/* Disabled / Out of Stock Button */
+.action-add-to-cart-btn.out-of-stock-btn, .action-add-to-cart-btn:disabled, .action-buy-now-btn:disabled {
+    opacity: 0.6; cursor: not-allowed; background-color: #ccc; color: #666; border-color: #ccc;
+}
+.cart-icon { font-size: 1.1em; margin-right: 8px; color: inherit; }
+
+
+/* Description & Attributes Styling */
+.section-subtitle { /* Added style for subtitles like Description, Details */
+    font-family: var(--font-body);
+    font-size: 1.1rem;
     font-weight: 600;
+    margin-bottom: 0.8rem;
+    color: var(--text-dark);
+}
+.product-description-section, .product-attributes-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+.formatted-description-box { margin-top: 1rem; padding: 1rem; background-color: #f9f9f9; border-left: 3px solid var(--primary-color); font-size: 0.9rem; }
+.product-attributes-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.attribute-chip { display: inline-flex; align-items: center; background-color: var(--primary-color); color: var(--text-dark); padding: 6px 12px; border-radius: 16px; font-size: 0.85rem; border: 1px solid #DCDCDC; }
+.attribute-icon { margin-right: 6px; font-size: 1em; }
+.attribute-label { font-weight: 600; margin-right: 4px; }
+
+
+/* Stock Status Styling */
+.stock-status { font-weight: 600; margin-top: 1.5rem; font-size: 0.9rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+.stock-status.in-stock { color: #28a745; }
+.stock-status.out-of-stock { color: #dc3545; /* Shown before buttons if out of stock */}
+
+/* Shipping Info Styling */
+.shipping-returns-new { /* Renamed class */
+    margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);
+    font-size: 0.9rem; color: #555;
+}
+.shipping-returns-new h3 { font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.8rem; font-family: var(--font-body); font-weight: 600; }
+.shipping-returns-new ul { list-style: disc; padding-left: 20px; }
+
+/* Hide the old spec group and description classes if they still render */
+.product-specs-group, .basic-description { display: none !important; }
+
+/* Hide the misplaced related products section */
+.related-products-section:not(#related-products-main) { display: none !important; }
+
+/* Related Products Section at Bottom */
+.related-products-section#related-products-main {
+    margin-top: 3rem; /* Add space above */
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
 }
 
-/* ------------------ Bundle Customization Styles ------------------ */
+/* --- Desktop Overrides for Product Page --- */
+@media (min-width: 768px) {
+    .product-detail-grid-new {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* Two equal columns */
+        gap: 3rem; /* Adjust gap */
+    }
+     .product-info-area-new { order: 1; } /* Info on right */
+     .product-image-area-new { order: 0; } /* Image on left */
+
+     /* Action Buttons on Desktop */
+    .product-actions-grid {
+        grid-template-columns: 130px 1fr; /* Quantity box | Add to Cart */
+         margin-top: 1.5rem; /* Ensure consistent spacing */
+    }
+     .quantity-selector-box { margin-bottom: 0; } /* Remove bottom margin */
+    .action-buy-now-btn { margin-top: 10px; } /* Space between button rows */
+}
+
+/* Keep old product-price rule if used elsewhere, otherwise remove */
+/* .product-price { font-size: 1.5rem; } */ /* Commented out */
+
+/* Keep old shipping-returns rule if used elsewhere, otherwise remove */
+/* .shipping-returns { ... } */ /* Commented out */
+
+/* Keep old add-to-cart-btn rule if used elsewhere, otherwise remove */
+/* .add-to-cart-btn { ... } */ /* Commented out */
+
+/* Keep old quantity-selector rule if used elsewhere, otherwise remove */
+/* .quantity-selector { ... } */ /* Commented out */
+
+/* Keep old out-of-stock rule if used elsewhere, otherwise remove */
+/* .out-of-stock { ... } */ /* Commented out */
+
+/* ------------------ Bundle Customization Styles (Reduced Spacing) ------------------ */
 
 .bundle-customization-section {
-    margin: 1.5rem 0;
-    padding: 1.5rem;
+    margin: 1rem 0; /* Reduced vertical margin */
+    padding: 1rem; /* Reduced padding */
     border: 1px dashed var(--accent-color);
     background-color: var(--primary-color);
     border-radius: 5px;
@@ -363,61 +758,238 @@ a:hover {
 
 .customization-prompt {
     font-weight: 700;
-    margin-bottom: 1rem;
-    font-size: 1.1rem;
+    margin-bottom: 0.75rem; /* Reduced margin */
+    font-size: 1rem; /* Slightly smaller */
     color: var(--text-dark);
 }
 
 .bundle-selector-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem; /* Reduced margin */
 }
 
 .bundle-selector-group label {
     font-weight: 600;
-    margin-bottom: 0.3rem;
-    font-size: 0.95rem;
+    margin-bottom: 0.2rem; /* Reduced margin */
+    font-size: 0.9rem; /* Slightly smaller */
 }
 
 .scent-selector {
-    padding: 0.75rem;
+    padding: 0.5rem; /* Reduced padding */
     border: 1px solid var(--accent-color);
     border-radius: 4px;
     background-color: white;
-    font-size: 1rem;
+    font-size: 0.95rem; /* Slightly smaller */
     cursor: pointer;
 }
+/* ------------------ Cart Page Styles (Updated Consistency) ------------------ */
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    font-size: 0.95rem; /* Base size for cart table */
+}
+.cart-table th, .cart-table td {
+    padding: 0.8rem 1rem; /* Slightly reduced padding */
+    border-bottom: 1px solid var(--border-color); /* Use variable */
+    text-align: left;
+    vertical-align: middle;
+}
+.cart-table th {
+    background-color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.9rem; /* Smaller heading */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.cart-item-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    margin-right: 1rem;
+    border-radius: 4px; /* Add subtle rounding */
+}
+.cart-product-col {
+    display: flex;
+    align-items: center;
+}
+.cart-product-col a { /* Style product link */
+    font-weight: 600;
+    color: var(--text-dark);
+}
+.cart-product-col a:hover {
+    color: var(--accent-color);
+}
+.item-quantity-input {
+    width: 60px;
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid var(--border-color); /* Use variable */
+    border-radius: 4px; /* Consistent rounding */
+}
+.remove-item-btn {
+    background: none;
+    border: none;
+    color: #CC0000;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 5px; /* Add padding for easier clicking */
+}
+.remove-item-btn:hover {
+    color: #a00000; /* Darker red on hover */
+}
+.cart-summary-box {
+    max-width: 400px;
+    margin-left: auto;
+    padding: 1.5rem; /* Adjusted padding */
+    border: 1px solid var(--border-color); /* Use variable */
+    background-color: var(--background-light);
+    border-radius: 4px; /* Consistent rounding */
+}
+.cart-summary-box h3 { /* Style summary heading */
+    font-family: var(--font-body); /* Use body font */
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+.cart-summary-box p {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.6rem; /* Adjust spacing */
+    font-size: 0.95rem;
+}
+.cart-summary-box .cart-total-final {
+    font-weight: 700;
+    font-size: 1.2rem;
+    border-top: 1px solid var(--border-color); /* Use variable */
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+.empty-cart-message-full {
+    text-align: center !important;
+    font-size: 1.2rem;
+    padding: 3rem 0 !important;
+    color: #666;
+}
+.cart-customization-detail {
+    font-size: 0.85rem;
+    color: #555;
+    margin-top: 0.3rem;
+}
 
-/* ------------------ Cart Page Styles ------------------ */
-.cart-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-.cart-table th, .cart-table td { padding: 1rem; border-bottom: 1px solid #ddd; text-align: left; vertical-align: middle; }
-.cart-table th { background-color: var(--primary-color); font-weight: 600; }
-.cart-item-img { width: 60px; height: 60px; object-fit: cover; margin-right: 1rem; }
-.cart-product-col { display: flex; align-items: center; }
-.item-quantity-input { width: 60px; padding: 0.5rem; text-align: center; border: 1px solid #ccc; }
-.remove-item-btn { background: none; border: none; color: #CC0000; cursor: pointer; font-size: 1.1rem; }
-.cart-summary-box { max-width: 400px; margin-left: auto; padding: 2rem; border: 1px solid var(--primary-color); background-color: var(--background-light); }
-.cart-summary-box p { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
-.cart-summary-box .cart-total-final { font-weight: 700; font-size: 1.2rem; border-top: 1px solid #ddd; padding-top: 1rem; margin-top: 1rem; }
-.empty-cart-message-full { text-align: center !important; font-size: 1.2rem; padding: 3rem 0 !important; }
-.cart-customization-detail { font-size: 0.85rem; color: #555; margin-top: 0.3rem; }
+/* Ensure checkout button inherits general button style */
+.cart-summary-box .checkout-btn {
+     margin-top: 1.5rem;
+     width: 100%; /* Make button full width */
+}
+/* ------------------ Checkout Page Styles (Updated Consistency) ------------------ */
+.checkout-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Single column mobile */
+    gap: 2.5rem; /* Increased gap */
+    padding: 2rem 0;
+}
+.checkout-section h2 { /* Heading for Shipping/Payment */
+    font-family: var(--font-body); /* Use body font for these */
+    font-size: 1.5rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color); /* Lighter border */
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
 
-/* ------------------ Checkout Page Styles ------------------ */
-.checkout-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; padding: 2rem 0; }
-.checkout-form label { display: block; margin-top: 1rem; font-weight: 600; }
-.checkout-form input[type="text"], .checkout-form input[type="email"], 
-.checkout-form input[type="tel"], .checkout-form textarea { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; margin-top: 0.3rem; }
-.checkout-section h2 { border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+/* Form Styles */
+.checkout-form label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: 600;
+    font-size: 0.9rem; /* Slightly smaller label */
+    margin-bottom: 0.3rem; /* Space below label */
+}
+.checkout-form input[type="text"],
+.checkout-form input[type="email"],
+.checkout-form input[type="tel"],
+.checkout-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color); /* Use variable */
+    border-radius: 4px;
+    margin-top: 0; /* Remove margin-top from input */
+    background-color: #fff; /* Ensure white background */
+}
+.checkout-form textarea {
+    min-height: 80px; /* Give textarea some height */
+}
 
-.order-summary-box { background-color: var(--primary-color); padding: 2rem; border-radius: 5px; }
-.checkout-summary-line { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
-.checkout-summary-line span { font-weight: 600; }
-.final-total { font-size: 1.5rem; font-weight: 700 !important; margin-top: 1rem; }
+/* Order Summary Box */
+.order-summary-box {
+    background-color: #fff; /* Changed to white */
+    padding: 1.5rem; /* Adjusted padding */
+    border-radius: 5px;
+    border: 1px solid var(--border-color); /* Use variable */
+}
+.order-summary-box h3 { /* Style summary heading */
+     font-family: var(--font-body);
+     font-size: 1.3rem;
+     margin-bottom: 1rem;
+     border-bottom: 1px solid var(--border-color);
+     padding-bottom: 0.5rem;
+}
 .checkout-item-list { margin-bottom: 1rem; font-size: 0.9rem; }
-.checkout-item span { font-weight: 400; }
-.payment-options label { display: block; background-color: #fff; padding: 0.75rem; border: 1px solid #ddd; margin-bottom: 0.5rem; cursor: pointer; }
-#place-order-btn { width: 100%; margin-top: 1.5rem; background-color: var(--accent-color); color: white; padding: 1rem; border: none; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: 700; }
+.checkout-item { display: flex; justify-content: space-between; margin-bottom: 0.3rem;} /* Use flex for alignment */
+.checkout-item span { font-weight: 400; color: #555; } /* Style price span */
+.checkout-summary-line { display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.95rem; }
+.checkout-summary-line span { font-weight: 600; }
+.final-total { font-size: 1.3rem; font-weight: 700 !important; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.8rem;}
+
+/* Payment Options */
+.payment-options label {
+    display: flex; /* Use flex for alignment */
+    align-items: center;
+    background-color: #fff;
+    padding: 0.8rem 1rem; /* Adjust padding */
+    border: 1px solid var(--border-color); /* Use variable */
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    border-radius: 4px; /* Consistent rounding */
+    transition: border-color 0.2s;
+}
+.payment-options input[type="radio"] {
+    margin-right: 0.75rem; /* Space between radio and text */
+}
+.payment-options input[type="radio"]:checked + label { /* Style selected option */
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 1px var(--accent-color);
+}
+.payment-options label:hover {
+     border-color: #aaa;
+}
+
+
+/* Place Order Button */
+#place-order-btn {
+    width: 100%;
+    margin-top: 1.5rem;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 0.9rem; /* Adjust padding */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: background-color 0.3s; /* Add transition */
+}
+#place-order-btn:hover {
+    background-color: #8C756B; /* Darker accent */
+}
+#place-order-btn:disabled { /* Style for disabled state */
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 
 /* ------------------ Footer ------------------ */
 
@@ -463,147 +1035,118 @@ color: var(--footer-bg);
  pointer-events: none; 
 }
 
-/* ------------------ Desktop/Tablet Styles (Overrides) ------------------ */
+/* ------------------ Desktop/Tablet Styles (Overrides - FINAL) ------------------ */
 @media (min-width: 768px) {
+    /* --- Base & Container --- */
+    .container {
+        padding-left: 0; /* Remove mobile padding */
+        padding-right: 0;
+    }
+
+    /* --- Navigation --- */
     .logo-siraj {
-        font-size: 3.2rem; 
+        font-size: 3.2rem;
     }
     .logo-candles {
-        font-size: 1.5rem; 
+        font-size: 1.5rem;
     }
     .nav-links {
-        display: flex; 
+        display: flex; /* Show nav links */
         gap: 2rem;
-        align-items: center; 
+        align-items: center;
+        position: static; /* Reset mobile positioning */
+        transform: none;
+        /* Optional: Re-center if needed */
+        /* position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); */
     }
-    .category-grid { grid-template-columns: repeat(4, 1fr); } 
-    .product-grid { grid-template-columns: repeat(4, 1fr); } 
-.product-grid.bestsellers-grid {
-        grid-template-columns: repeat(6, 1fr);}
-    .product-detail-grid { flex-direction: row; gap: 4rem; }
-    .product-image-area, .product-info-area { flex: 1; }
-    .add-to-cart-btn { width: auto; }
+    .nav-icons {
+        position: static; /* Ensure icons are in flow */
+        transform: none;
+    }
+    .navbar .container {
+         justify-content: space-between; /* Re-affirm spacing */
+     }
+    /* Hide hamburger menu if you added one */
+    /* .mobile-menu-toggle { display: none; } */
 
-    /* Cart Page Desktop Adjustments */
+
+    /* --- Grids --- */
+    .category-grid { grid-template-columns: repeat(4, 1fr); gap: 2rem; } /* 4 categories */
+    .product-grid { grid-template-columns: repeat(4, 1fr); gap: 2.5rem 2rem; } /* 4 products */
+    .product-grid.bestsellers-grid { grid-template-columns: repeat(6, 1fr); } /* 6 bestsellers */
+    .product-grid.related-grid { grid-template-columns: repeat(4, 1fr); } /* 4 related */
+
+
+    /* --- Single Product Page (NEW LAYOUT Overrides) --- */
+    .product-detail-grid-new {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* Two equal columns */
+        gap: 3rem; /* Adjust gap */
+        align-items: start; /* Align tops of columns */
+    }
+    .product-info-area-new { order: 1; } /* Info on right */
+    .product-image-area-new { order: 0; } /* Image on left */
+
+    /* Action Buttons Grid on Desktop */
+    .product-actions-grid {
+        grid-template-columns: 130px 1fr; /* Fixed width for quantity | Add to Cart */
+        /* Buy now button remains full width below due to grid-column: 1 / -1; */
+         margin-top: 1.5rem;
+    }
+    .quantity-selector-box { margin-bottom: 0; } /* Remove mobile margin */
+    .action-buy-now-btn { margin-top: 10px; } /* Space between button rows */
+    .action-add-to-cart-btn, .action-buy-now-btn { width: 100%; } /* Fill grid areas */
+
+
+    /* --- Cart Page Desktop Adjustments --- */
     .cart-table thead { display: table-header-group; }
-    .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: table; width: 100%; }
-    .cart-table tr { margin-bottom: 0; border: none; }
-    .cart-table td { text-align: left; position: static; padding-left: 1rem; }
-    .cart-table td::before { content: none; }
-    .cart-product-col { justify-content: flex-start; }
-    .cart-content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: flex-start; }
-    .cart-summary-box { margin-left: 0; }
-    .checkout-link-bottom { display: none !important; }
+    .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: table; width: 100%; }
+    .cart-table tr { margin-bottom: 0; border: none; }
+    .cart-table td { text-align: left; position: static; padding-left: 1rem; vertical-align: middle; } /* Ensure vertical alignment */
+    .cart-table td::before { content: none; }
+    .cart-product-col { justify-content: flex-start; }
+    /* Grid layout for cart items + summary */
+    .cart-content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr; /* Adjust ratio as needed */
+        gap: 2rem;
+        align-items: flex-start;
+        margin-top: 2rem; /* Add some space above */
+    }
+    .cart-summary-box {
+        margin-left: 0; /* Remove mobile margin */
+        position: sticky; /* Optional: make summary sticky */
+        top: calc(80px + 1rem); /* Position below sticky nav */
+    }
+    .checkout-link-bottom { display: none !important; } /* Hide mobile checkout link */
 
-    /* Checkout Page Desktop Adjustments */
-   .checkout-grid { display: grid; grid-template-columns: 3fr 2fr; }
-   /* ------------------ Product Page Button Grid (NEW LAYOUT) ------------------ */
 
-.product-actions-grid {
-    display: grid;
-    /* Create two main columns for the Quantity and Add to Cart button */
-    grid-template-columns: 1.2fr 3fr; 
-    gap: 12px; /* Spacing between elements */
-    margin-top: 25px;
-    margin-bottom: 10px;
-}
+    /* --- Checkout Page Desktop Adjustments --- */
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 3fr 2fr; /* Adjust ratio as needed */
+        gap: 3rem; /* Increase gap */
+    }
+    .order-summary-box {
+        position: sticky; /* Optional: make summary sticky */
+        top: calc(80px + 1rem); /* Position below sticky nav */
+    }
 
-/* Buy It Now Button Spanning Full Width */
-.action-buy-now-btn {
-    grid-column: 1 / -1; /* Make it span both columns */
-    width: 100%;
-}
+    /* --- Remove OLD desktop styles if they conflict --- */
+    /* If you had old rules like .product-detail-grid { flex-direction: row; }
+       or specific width overrides for .add-to-cart-btn, remove them now as
+       the new grid system handles the layout. */
+    .product-detail-grid { /* Hide old container if it exists */
+        display: none !important;
+    }
+     .add-to-cart-btn:not(.action-add-to-cart-btn) { /* Hide old button */
+         display: none !important;
+     }
 
-/* --- Quantity Selector Box --- */
-.quantity-selector-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    /* Use a light color for the background/border to match the target image */
-    border: 1px solid var(--accent-color); 
-    border-radius: 6px;
-    overflow: hidden;
-    height: 50px; /* Uniform height for buttons */
-    background-color: var(--background-light); /* Creamy background */
-}
+} /* End @media (min-width: 768px) */
 
-.action-btn {
-    /* Styles for the +/- buttons */
-    background-color: transparent;
-    color: var(--text-dark); 
-    border: none;
-    padding: 10px 14px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 500;
-    flex-shrink: 0;
-    transition: background-color 0.2s;
+/* Optional: Larger Desktop Screens */
+@media (min-width: 1200px) {
+    .container { max-width: 1140px; } /* Slightly smaller max width */
+    .product-grid { grid-template-columns: repeat(4, 1fr); } /* Keep 4 for larger screens */
+    .product-grid.bestsellers-grid { grid-template-columns: repeat(6, 1fr); }
 }
-
-.action-btn:hover {
-    background-color: var(--primary-color); /* Hover color matches hero section background */
-}
-
-.quantity-input-box {
-    text-align: center;
-    border: none;
-    height: 100%;
-    width: 100%;
-    font-size: 16px;
-    font-weight: 600;
-    outline: none;
-    background-color: transparent;
-    color: var(--text-dark);
-}
-
-/* --- Button Styling --- */
-.action-add-to-cart-btn, .action-buy-now-btn {
-    border: none;
-    border-radius: 6px;
-    padding: 12px 20px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    text-align: center;
-    transition: background-color 0.2s, opacity 0.2s;
-    height: 50px; /* Ensure uniform height */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Primary (Add to Cart) Button */
-.action-add-to-cart-btn {
-    background-color: var(--accent-color); /* Deeper Rose/Brown */
-    color: var(--text-light); /* White text */
-}
-
-.action-add-to-cart-btn:hover {
-    background-color: #8C756B; /* Slightly darker hover color */
-}
-
-/* Secondary (Buy It Now) Button */
-.action-buy-now-btn {
-    background-color: var(--primary-color); /* Soft Muted Rose/Tan */
-    color: var(--text-dark); /* Dark text */
-    border: 1px solid var(--accent-color); /* Subtle border for definition */
-}
-
-.action-buy-now-btn:hover {
-    background-color: #D6CCC5; /* Slightly lighter hover color */
-}
-
-/* Disabled/Out of Stock */
-.action-add-to-cart-btn:disabled, .action-buy-now-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.cart-icon {
-    font-size: 1.1em;
-    margin-right: 8px;
-    /* Ensure the icon color matches the button text color */
-    color: inherit; 
-}
-}
-       
