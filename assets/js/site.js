@@ -567,20 +567,22 @@ function renderProduct(product) {
                 ${customizationHTML}
 
                 ${!isOutOfStock ? `
-                    <div class="quantity-add-group">
-                        <div class="quantity-selector">
-                            <button class="quantity-minus">-</button>
-                            <input type="number" id="quantity" value="1" min="1" max="${product.stock || 10}" readonly>
-                            <button class="quantity-plus">+</button>
+                    <div class="product-actions-grid">
+                        
+                                                <div class="quantity-selector-box">
+                            <button class="quantity-minus action-btn">-</button>
+                            <input type="number" id="quantity" value="1" min="1" max="${product.stock || 10}" readonly class="quantity-input-box">
+                            <button class="quantity-plus action-btn">+</button>
                         </div>
-                        <button id="add-to-cart-btn" class="add-to-cart-btn add-to-cart-footer-color" 
-                                data-is-bundle="${isBundle}" data-bundle-items="${numItemsInBundle}">
-                            Add to Cart
-                        </button>
-                        <button class="buy-it-now-btn">Buy it Now</button>
-                    </div>
-                ` : '<button class="add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>'}
 
+                                                <button id="add-to-cart-btn" class="action-add-to-cart-btn" 
+                                data-is-bundle="${isBundle}" data-bundle-items="${numItemsInBundle}">
+                            <span class="cart-icon">🛒</span> Add to Cart
+                        </button>
+
+                                                <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
+                    </div>
+                ` : '<button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>'}
                 <div class="related-products-section">
                     <h3>Products You Might Like (4 in a row)</h3>
                     <div id="related-products-container" class="product-grid related-grid">
