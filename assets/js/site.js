@@ -765,7 +765,14 @@ function updateCartUI() {
     
     cartCountElement.textContent = totalItems;
     cartTotalElement.textContent = totalPrice.toFixed(2) + ' EGP';
-
+if (totalItems === 0) {
+        cartCountElement.style.display = 'none';
+    } else {
+        cartCountElement.style.display = 'flex'; // Or 'block', depending on your CSS
+        cartCountElement.textContent = totalItems; 
+    }
+    
+    cartTotalElement.textContent = totalPrice.toFixed(2) + ' EGP';
     if (cartListElement) {
         if (cart.length === 0) {
             cartListElement.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
