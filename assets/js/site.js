@@ -139,7 +139,7 @@ function renderProductGrid(containerId, items, endpointType) {
         
         return `
             <a href="product.html?id=${item._id}" class="product-card">
-                <img src="${itemImage}" alt="${itemName}" loading="lazy"> {/* Added lazy loading */}
+                <img src="${itemImage}" alt="${itemName}" loading="lazy"> 
                 <div class="product-info-minimal">
                     <p class="product-title">${itemName}</p>
                     <p class="product-price">${(itemPrice).toFixed(2)} EGP</p>
