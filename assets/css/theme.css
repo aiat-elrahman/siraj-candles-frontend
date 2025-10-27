@@ -550,13 +550,14 @@ body.scrolled .navbar {
 /* ------------------ Product Page Filters (NEW) ------------------ */
 
 .filter-controls-group {
-    display: flex; /* Makes "Category" and "Sort By" go side-by-side */
-    flex-direction: column;
-    gap: 1rem; /* Add space between stacked items */
+    display: flex;
+    flex-direction: row; /* FIX: Make side-by-side */
+    justify-content: space-between; /* FIX: Push to opposite ends */
+    align-items: center; /* Vertically align them */
     padding: 0.5rem 0;
-    align-items: center; /* Vertically aligns them */
     margin-bottom: 1.5rem;
     border-bottom: 1px solid var(--border-color);
+    gap: 1rem; /* Add space between items */
 }
 
 .filter-item {
@@ -573,6 +574,7 @@ body.scrolled .navbar {
 }
 
 .filter-item label {
+    display: none; /* FIX: Hide label on mobile */
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-dark);
@@ -581,9 +583,11 @@ body.scrolled .navbar {
 .filter-select {
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    padding: 0.4rem 0.5rem;
+    padding: 0.5rem 0.5rem; /* Increased padding slightly */
     background-color: #fff;
     font-size: 0.9rem;
+    flex-grow: 1; /* FIX: Allow dropdowns to grow */
+    width: 100%; /* Make them flexible */
 }
 /* ------------------ Single Product Page (NEW LAYOUT) ------------------ */
 
@@ -762,7 +766,12 @@ padding-top: 1rem; /* Reduced padding */
     }
      .product-info-area-new { order: 1; } /* Info on right */
      .product-image-area-new { order: 0; } /* Image on left */
-
+  /* --- ADD/REPLACE THIS for Filters --- */
+    .filter-controls-group {
+        flex-direction: row; /* Go side-by-side on desktop */
+        justify-content: space-between;
+        align-items: center;
+    }
      /* Action Buttons on Desktop */
     .product-actions-grid {
         grid-template-columns: 130px 1fr; /* Quantity box | Add to Cart */
@@ -778,6 +787,17 @@ padding-top: 1rem; /* Reduced padding */
     .product-grid.bestsellers-grid {
         grid-template-columns: repeat(6, 1fr); /* 6 columns for bestsellers on desktop */
     }
+    .product-grid.related-grid {
+         grid-template-columns: repeat(4, 1fr); /* 4 columns for related */
+    }
+
+  .filter-item label {
+    display: block; /* FIX: Show label on desktop */
+ }
+  .filter-select {
+    width: auto; /* Let it shrink to fit content */
+    flex-grow: 0;
+}
 }
 
 
