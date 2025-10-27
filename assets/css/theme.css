@@ -613,7 +613,7 @@ body.mobile-menu-open::before {
     flex-direction: row; /* FIX: Make side-by-side */
     justify-content: space-between; /* FIX: Push to opposite ends */
     align-items: center; /* Vertically align them */
-    padding: 0.5rem 0;
+    padding: 0.25rem 0;
     margin-bottom: 1.5rem;
     border-bottom: 1px solid var(--border-color);
     gap: 1rem; /* Add space between items */
@@ -623,6 +623,8 @@ body.mobile-menu-open::before {
     display: flex;
     align-items: center;
     gap: 0.5rem; /* Space between label and dropdown */
+    flex-grow: 1; /* <<< ADD THIS: Makes the item grow */
+    flex-basis: 0;
 }
 
 /* Remove default margins that might be causing spacing issues */
