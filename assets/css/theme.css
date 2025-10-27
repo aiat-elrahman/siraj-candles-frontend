@@ -547,6 +547,43 @@ body.scrolled .navbar {
     /* Styles moved to .product-title */
     display: none; /* Hide if element still exists */
 }
+/* ------------------ Product Page Filters (NEW) ------------------ */
+
+.filter-controls-group {
+    display: flex; /* Makes "Category" and "Sort By" go side-by-side */
+    justify-content: space-between; /* Pushes them to opposite ends */
+    align-items: center; /* Vertically aligns them */
+    padding: 0.5rem 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Space between label and dropdown */
+}
+
+/* Remove default margins that might be causing spacing issues */
+.filter-item label, 
+.filter-item select {
+    margin-bottom: 0; 
+    font-family: var(--font-body);
+}
+
+.filter-item label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.filter-select {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.4rem 0.5rem;
+    background-color: #fff;
+    font-size: 0.9rem;
+}
 /* ------------------ Single Product Page (NEW LAYOUT) ------------------ */
 
 /* Main grid for image and info */
@@ -729,6 +766,14 @@ padding-top: 1rem; /* Reduced padding */
     }
      .quantity-selector-box { margin-bottom: 0; } /* Remove bottom margin */
     .action-buy-now-btn { margin-top: 10px; } /* Space between button rows */
+    .product-grid {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns on desktop */
+        gap: 2.5rem 2rem; /* Optional: Adjust gap for desktop */
+    }
+
+    .product-grid.bestsellers-grid {
+        grid-template-columns: repeat(6, 1fr); /* 6 columns for bestsellers on desktop */
+    }
 }
 
 /* Keep old product-price rule if used elsewhere, otherwise remove */
