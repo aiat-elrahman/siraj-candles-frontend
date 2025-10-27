@@ -72,9 +72,9 @@ function setupEventListeners() {
             e.stopPropagation();
             cartDropdown.style.display = cartDropdown.style.display === 'block' ? 'none' : 'block';
         });
-    } // <-- *** THIS IS THE MISSING CLOSING BRACE ***
+    } // <-- This was the brace you fixed
 
-    // --- Mobile Menu Toggle Logic (Now in the correct place) ---
+    // --- Mobile Menu Toggle Logic ---
     const menuToggle = document.getElementById('mobile-menu-toggle');
     const mobileMenu = document.getElementById('mobile-nav-menu');
 
@@ -83,10 +83,13 @@ function setupEventListeners() {
             // Toggle 'active' class on both button and menu
             menuToggle.classList.toggle('active');
             mobileMenu.classList.toggle('active');
+            // --- ADD THIS LINE ---
+            document.body.classList.toggle('mobile-menu-open'); // For the overlay
         });
     }
     // --- END OF NEW BLOCK ---
 
+    // This body click listener handles closing popups
     document.body.addEventListener('click', (e) => {
         if (cartDropdown && !cartDropdown.contains(e.target) && e.target !== cartToggle && cartDropdown.style.display === 'block') {
             cartDropdown.style.display = 'none';
@@ -98,6 +101,7 @@ function setupEventListeners() {
         if (mobileMenu && mobileMenu.classList.contains('active') && !mobileMenu.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
             menuToggle.classList.remove('active');
             mobileMenu.classList.remove('active');
+            document.body.classList.remove('mobile-menu-open'); // Also remove overlay
         }
     });
 
