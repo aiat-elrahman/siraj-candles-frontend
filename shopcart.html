@@ -7,56 +7,55 @@
     <meta name="description" content="Review and manage the items in your Siraj Candles shopping cart.">
     <link rel="stylesheet" href="assets/css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        /* Add specific styles for the cart page table and layout */
-        .cart-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-        .cart-table th, .cart-table td { padding: 1rem; border-bottom: 1px solid #ddd; text-align: left; vertical-align: middle; }
-        .cart-table th { background-color: var(--primary-color); font-weight: 600; }
-        .cart-item-img { width: 60px; height: 60px; object-fit: cover; margin-right: 1rem; }
-        .cart-product-col { display: flex; align-items: center; }
-        .item-quantity-input { width: 60px; padding: 0.5rem; text-align: center; border: 1px solid #ccc; }
-        .remove-item-btn { background: none; border: none; color: #CC0000; cursor: pointer; font-size: 1.1rem; }
-        .cart-summary-box { max-width: 400px; margin-left: auto; padding: 2rem; border: 1px solid var(--primary-color); background-color: var(--background-light); }
-        .cart-summary-box p { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
-        .cart-summary-box .cart-total-final { font-weight: 700; font-size: 1.2rem; border-top: 1px solid #ddd; padding-top: 1rem; margin-top: 1rem; }
-        .cart-summary-box .checkout-btn { display: block; text-align: center; margin-top: 1.5rem; }
-        .empty-cart-message-full { text-align: center !important; font-size: 1.2rem; padding: 3rem 0 !important; }
-
-        @media (max-width: 768px) {
-            .cart-table thead { display: none; }
-            .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: block; width: 100%; }
-            .cart-table tr { margin-bottom: 1rem; border: 1px solid #ddd; }
-            .cart-table td { text-align: right; border: none; position: relative; padding-left: 50%; }
-            .cart-table td::before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; }
-            .cart-product-col { justify-content: flex-end; }
-        }
-    </style>
-</head>
+    
+    </head>
 <body data-page="shopcart">
+
     <div class="announcement-ribbon"><p>🎉 Free delivery on orders over 2000 EGP. Handmade elegance for your home! 💖</p></div>
+
     <nav class="navbar">
         <div class="container">
-           <a href="index.html" class="logo">
-    <span class="logo-siraj">SIRAJ</span>
-    <span class="logo-candles">CANDLES</span>
-</a>
+            
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Open navigation menu">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+            <a href="index.html" class="logo">
+                <span class="logo-siraj">SIRAJ</span>
+                <span class="logo-candles">CANDLES</span>
+            </a>
+
             <ul class="nav-links">
                 <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
                 <li><a href="products.html"><i class="fas fa-box-open"></i> Products</a></li>
                 <li><a href="bundles.html"><i class="fas fa-gift"></i> Bundles</a></li>
             </ul>
+
             <div class="nav-icons">
                 <button id="search-toggle" aria-label="Search"><i class="fas fa-search"></i></button>
-                <button id="cart-toggle" aria-label="Shopping Cart"><i class="fas fa-shopping-cart"></i> <span class="cart-count">0</span></button>
+                <button id="cart-toggle" class="cart-icon-button" aria-label="View cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" style="visibility: hidden; opacity: 0;">0</span>
+                </button>
             </div>
         </div>
     </nav>
+
+    <div class="mobile-nav-menu" id="mobile-nav-menu">
+        <a href="index.html">Home</a>
+        <a href="products.html">Products</a>
+        <a href="bundles.html">Bundles</a>
+    </div>
+
     <div id="cart-dropdown" class="cart-dropdown">
         <h3 class="dropdown-header">Your Cart</h3>
         <div class="cart-items-list"></div>
         <div class="cart-summary"><p>Total: <span id="cart-total">0.00 EGP</span></p></div>
         <a href="checkout.html" class="checkout-btn">Go to Checkout</a>
     </div>
+
     <div id="search-modal" class="search-modal"><div class="search-content">
         <button class="close-search">&times;</button>
         <input type="text" id="search-input" placeholder="Search for product name or category...">
@@ -79,14 +78,15 @@
                         </tr>
                     </thead>
                     <tbody id="cart-items-table">
-                        <tr><td colspan="5">Loading cart...</td></tr>
+                        <tr><td colspan="5" class="loading-message">Loading cart...</td></tr>
                     </tbody>
                 </table>
                 <a href="products.html" class="continue-shopping-btn">← Continue Shopping</a>
             </div>
 
             <div class="cart-summary-box" id="cart-summary">
-                </div>
+                <p class="loading-message">Loading summary...</p>
+            </div>
             
             <a href="checkout.html" id="checkout-link-bottom" class="checkout-btn" style="display: none; margin-top: 1rem;">Go to Checkout</a>
         </div>
@@ -97,9 +97,9 @@
         <p>Email us for **bulk orders** and **customized gifts**: <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a></p>
         <p>&copy; 2025 Siraj Candles. All rights reserved.</p>
         <div class="social-links">
-            <a href="#" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="#" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+             <a href="https://www.instagram.com/siraj_candles_eg" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+             <a href="https://www.facebook.com/people/sirajcandles/61576576972784/" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+             <a href="https://www.tiktok.com/@sirajcandles" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
         </div>
         <p>From our Home to Yours ❤️</p>
     </footer>
