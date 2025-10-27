@@ -72,8 +72,23 @@ function setupEventListeners() {
             e.stopPropagation();
             cartDropdown.style.display = cartDropdown.style.display === 'block' ? 'none' : 'block';
         });
-    }
 
+    const menuToggle = document.getElementById('mobile-menu-toggle');
+    const mobileMenu = document.getElementById('mobile-nav-menu');
+
+    if (menuToggle && mobileMenu) {
+        menuToggle.addEventListener('click', () => {
+            // Toggle 'active' class on both button and menu
+            menuToggle.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        });
+    }
+    // --- END OF NEW BLOCK ---
+
+    if (searchInput) {
+        // ... (your existing searchInput code) ...
+    }
+}
     document.body.addEventListener('click', (e) => {
         if (cartDropdown && !cartDropdown.contains(e.target) && e.target !== cartToggle && cartDropdown.style.display === 'block') {
             cartDropdown.style.display = 'none';
