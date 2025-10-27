@@ -53,27 +53,29 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    if (searchToggle) {
-        searchToggle.addEventListener('click', () => {
-            searchModal.style.display = 'flex';
-            searchInput.focus();
-        });
-    }
+    if (searchToggle) {
+        searchToggle.addEventListener('click', () => {
+            searchModal.style.display = 'flex';
+            searchInput.focus();
+        });
+    }
 
-    if (closeSearch) {
-        closeSearch.addEventListener('click', () => {
-            searchModal.style.display = 'none';
-            searchResults.innerHTML = '';
-        });
-    }
+    if (closeSearch) {
+        closeSearch.addEventListener('click', () => {
+            searchModal.style.display = 'none';
+            searchResults.innerHTML = '';
+        });
+    }
 
-    if (cartToggle) {
-        cartToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            cartDropdown.style.display = cartDropdown.style.display === 'block' ? 'none' : 'block';
-        });
+    if (cartToggle) {
+        cartToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cartDropdown.style.display = cartDropdown.style.display === 'block' ? 'none' : 'block';
+        });
+    } // <-- *** THIS IS THE MISSING CLOSING BRACE ***
 
-    const menuToggle = document.getElementById('mobile-menu-toggle');
+    // --- Mobile Menu Toggle Logic (Now in the correct place) ---
+    const menuToggle = document.getElementById('mobile-menu-toggle');
     const mobileMenu = document.getElementById('mobile-nav-menu');
 
     if (menuToggle && mobileMenu) {
@@ -85,22 +87,23 @@ function setupEventListeners() {
     }
     // --- END OF NEW BLOCK ---
 
-    if (searchInput) {
-        // ... (your existing searchInput code) ...
-    }
-}
-    document.body.addEventListener('click', (e) => {
-        if (cartDropdown && !cartDropdown.contains(e.target) && e.target !== cartToggle && cartDropdown.style.display === 'block') {
-            cartDropdown.style.display = 'none';
-        }
-        if (searchModal && !searchModal.contains(e.target) && e.target !== searchToggle && searchModal.style.display === 'flex') {
-            searchModal.style.display = 'none';
-        }
-    });
+    document.body.addEventListener('click', (e) => {
+        if (cartDropdown && !cartDropdown.contains(e.target) && e.target !== cartToggle && cartDropdown.style.display === 'block') {
+            cartDropdown.style.display = 'none';
+        }
+        if (searchModal && !searchModal.contains(e.target) && e.target !== searchToggle && searchModal.style.display === 'flex') {
+            searchModal.style.display = 'none';
+        }
+        // ADDED: Close mobile menu if clicking outside
+        if (mobileMenu && mobileMenu.classList.contains('active') && !mobileMenu.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
+            menuToggle.classList.remove('active');
+            mobileMenu.classList.remove('active');
+        }
+    });
 
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce(handleSearch, 300));
-    }
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(handleSearch, 300));
+    }
 }
 
 // ====================================
