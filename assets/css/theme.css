@@ -708,8 +708,8 @@ body.scrolled .navbar {
 
 /* Related Products Section at Bottom */
 .related-products-section#related-products-main {
-    margin-top: 3rem; /* Add space above */
-    padding-top: 2rem;
+   margin-top: 1rem; /* Reduced margin */
+padding-top: 1rem; /* Reduced padding */
     border-top: 1px solid var(--border-color);
 }
 
