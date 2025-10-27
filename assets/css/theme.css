@@ -120,7 +120,7 @@ a:hover {
     top: 0;
     z-index: 100; /* Ensure it stays above other content */
     transition: box-shadow 0.3s; /* Add smooth shadow transition */
-}
+} 
 /* Optional: Add shadow when scrolled (requires JS or Intersection Observer) */
 body.scrolled .navbar {
      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
@@ -163,18 +163,12 @@ body.scrolled .navbar {
     padding-bottom: 0.3rem; /* Adjusted offset for better visual alignment */
 }
 
-
-/* Navigation Links (Hidden on mobile by default) */
+/* --- Navigation Links (Mobile-First) --- */
 .nav-links {
-    display: none; /* Hide on mobile */
+    display: none; /* 1. HIDE desktop links on mobile */
     list-style: none;
     margin: 0;
     padding: 0;
-    /* Centered on desktop (will be overridden) */
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
 }
 .nav-links li { margin: 0; }
 .nav-links a {
@@ -187,12 +181,12 @@ body.scrolled .navbar {
 }
 .nav-links a:hover { color: var(--accent-color); }
 
-/* Navigation Icons (Right aligned on all screens) */
+/* --- Navigation Icons (Mobile-First) --- */
 .nav-icons {
     display: flex;
     align-items: center;
     gap: 0.75rem; /* Space between icons */
-    position: static; /* Let flexbox handle positioning now */
+    position: static; /* Let flexbox handle positioning */
 }
 .nav-icons button {
     background: none;
@@ -206,7 +200,7 @@ body.scrolled .navbar {
 }
 .nav-icons button:hover { color: var(--accent-color); }
 
-/* Cart Count Badge (FIXED Visibility Logic in JS) */
+/* --- Cart Count Badge (Mobile-First) --- */
 .cart-count {
     background-color: var(--accent-color);
     color: var(--text-light);
@@ -226,14 +220,82 @@ body.scrolled .navbar {
     opacity: 0;
 }
 
-/* Mobile Menu Toggle (Add HTML element if needed) */
-/*
+/* --- Mobile Menu (Hamburger) --- */
 .mobile-menu-toggle {
-     display: block; // Show hamburger on mobile
-     background: none; border: none; font-size: 1.5rem; cursor: pointer;
-     // Hide on desktop within the @media query below
+    display: flex; /* Show hamburger on mobile */
+    flex-direction: column;
+    justify-content: space-around;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 101; /* Above sticky nav */
+    flex-shrink: 0; /* Stops the logo from squishing it */
+    margin-right: 15px; /* Adds space between button and logo */
 }
-*/
+.mobile-menu-toggle .icon-bar {
+    width: 100%;
+    height: 3px;
+    background-color: var(--text-dark);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+.mobile-menu-toggle.active .icon-bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+.mobile-menu-toggle.active .icon-bar:nth-child(2) { opacity: 0; }
+.mobile-menu-toggle.active .icon-bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+/* --- Mobile Menu Panel (Slide from left) --- */
+.mobile-nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem;
+    background-color: var(--background-light);
+    border-right: 1px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80%;
+    max-width: 320px;
+    height: 100vh;
+    z-index: 1001; /* Above overlay */
+    transform: translateX(-100%); /* Hidden off-screen */
+    transition: transform 0.3s ease-in-out;
+}
+.mobile-nav-menu.active {
+    transform: translateX(0); /* Slides in */
+}
+.mobile-nav-menu a {
+    font-family: var(--font-logo);
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+/* --- Mobile Menu Overlay --- */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000; /* Just below the menu */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0s 0.3s;
+}
+body.mobile-menu-open::before {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s;
+}
+
+
 
 /* Desktop Styles */
 @media (min-width: 992px) { /* Adjusted breakpoint */
@@ -427,7 +489,6 @@ body.scrolled .navbar {
     background-color: #8C756B; /* Keep hover color */
 }
 
-
 /* ------------------ Category & Product Sections (Updated) ------------------ */
 
 .category-section, .bestsellers-section, .related-products-section {
@@ -449,16 +510,13 @@ body.scrolled .navbar {
 .category-card-item {
     display: block; /* Make the link a block */
     text-align: center;
-    /* Add border/background if desired */
-    /* border: 1px solid var(--border-color); */
-    /* background-color: #fff; */
-    /* padding: 1rem; */
     border-radius: 4px;
     transition: box-shadow 0.2s;
 }
-.category-card-item:hover {
+/* Uncomment this if you want a hover effect */
+/* .category-card-item:hover {
     box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-}
+} */
 .category-image-wrapper { /* Style if using images */
     overflow: hidden;
     border-radius: 4px;
@@ -547,6 +605,7 @@ body.scrolled .navbar {
     /* Styles moved to .product-title */
     display: none; /* Hide if element still exists */
 }
+
 /* ------------------ Product Page Filters (NEW) ------------------ */
 
 .filter-controls-group {
@@ -589,6 +648,7 @@ body.scrolled .navbar {
     flex-grow: 1; /* FIX: Allow dropdowns to grow */
     width: 100%; /* Make them flexible */
 }
+
 /* ------------------ Single Product Page (NEW LAYOUT) ------------------ */
 
 /* Main grid for image and info */
@@ -603,19 +663,17 @@ body.scrolled .navbar {
 .product-image-area-new { /* Container for images */
     width: 100%;
 }
-
 .main-product-image {
     width: 100%;
     height: auto;
-    aspect-ratio: 1 / 1; /* Keep images square or adjust as needed */
-    object-fit: cover; /* Use cover to fill the space nicely */
+    aspect-ratio: 1 / 1; /* Keep images square */
+    object-fit: cover;
     border: 1px solid var(--border-color);
-    border-radius: 8px; /* Slightly rounded corners */
-    background-color: #fff; /* White background behind image */
-    margin: 0 auto; /* Center image if container is wider */
-    max-width: 500px; /* Optional max width for image */
+    border-radius: 8px;
+    background-color: #fff;
+    margin: 0 auto;
+    max-width: 500px;
 }
-/* Style for thumbnail images if you add them */
 .thumbnail-image {
     width: 60px; height: 60px; border: 1px solid var(--border-color); cursor: pointer;
     object-fit: cover; border-radius: 4px; opacity: 0.7; transition: opacity 0.2s;
@@ -632,7 +690,7 @@ body.scrolled .navbar {
 
 /* Specific styling for elements in the new order */
 .product-title-main { /* Main title */
-    font-size: 1.8rem; /* Adjust size as needed */
+    font-size: 1.8rem;
     margin-bottom: 0.1rem;
     font-family: var(--font-logo);
     line-height: 1.3;
@@ -656,11 +714,15 @@ body.scrolled .navbar {
 /* --- Product Page Action Buttons (NEW CSS, Mobile First) --- */
 .product-actions-grid {
     display: grid;
-    /* Mobile: Stack quantity above Add to Cart, Buy Now below */
-    grid-template-columns: 1fr; /* Everything full width on mobile */
+    grid-template-columns: 130px 1fr; /* Quantity | Add to Cart */
     gap: 12px;
     margin-top: 0; /* No top margin needed after price */
     margin-bottom: 1.5rem; /* Space before description */
+}
+.action-buy-now-btn {
+    grid-column: 1 / -1; /* Buy now spans full width below */
+    width: 100%;
+    margin-top: 10px; /* Space between button rows */
 }
 
 /* Style for the box containing +/-/input */
@@ -668,13 +730,12 @@ body.scrolled .navbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border: 1px solid var(--border-color); /* Use defined border color */
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     overflow: hidden;
-    height: 48px; /* Consistent height */
-    background-color: #fff; /* White background */
-    max-width: 130px; /* Limit width */
-    margin-bottom: 8px; /* Space below quantity on mobile */
+    height: 48px;
+    background-color: #fff;
+    max-width: 130px;
 }
 .action-btn { /* Style for +/- buttons */
     background-color: transparent; color: var(--text-dark); border: none; padding: 0 14px;
@@ -742,7 +803,7 @@ body.scrolled .navbar {
 .shipping-returns-new h3 { font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.8rem; font-family: var(--font-body); font-weight: 600; }
 .shipping-returns-new ul { list-style: disc; padding-left: 20px; }
 
-/* Hide the old spec group and description classes if they still render */
+/* Hide the old spec group and description classes */
 .product-specs-group, .basic-description { display: none !important; }
 
 /* Hide the misplaced related products section */
@@ -750,11 +811,10 @@ body.scrolled .navbar {
 
 /* Related Products Section at Bottom */
 .related-products-section#related-products-main {
-   margin-top: 1rem; /* Reduced margin */
-padding-top: 1rem; /* Reduced padding */
-    border-top: 1px solid var(--border-color);
+   margin-top: 3rem; /* Add space above */
+   padding-top: 2rem;
+   border-top: 1px solid var(--border-color);
 }
-
 /* --- Desktop Overrides for Product Page --- */
 @media (min-width: 768px) {
     .product-detail-grid-new {
@@ -1111,8 +1171,6 @@ color: var(--footer-bg);
         align-items: center;
         position: static; /* Reset mobile positioning */
         transform: none;
-        /* Optional: Re-center if needed */
-        /* position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); */
     }
     .nav-icons {
         position: static; /* Ensure icons are in flow */
@@ -1121,72 +1179,99 @@ color: var(--footer-bg);
     .navbar .container {
          justify-content: space-between; /* Re-affirm spacing */
      }
-    /* Hide hamburger menu if you added one */
-    /* .mobile-menu-toggle { display: none; } */
+    .mobile-menu-toggle {
+        display: none; /* Hide hamburger button on desktop */
+    }
+    
+    /* --- Product Page Filters --- */
+    .filter-controls-group {
+        flex-direction: row; /* Make filters side-by-side */
+        justify-content: space-between;
+        align-items: center;
+    }
+    .filter-item label {
+        display: block; /* Show label on desktop */
+    }
+    .filter-select {
+        width: auto; /* Let it shrink to fit content */
+        flex-grow: 0;
+    }
 
+    /* --- Homepage & Product Grids --- */
+    .category-grid { 
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 2rem; 
+    } 
+    .product-grid { 
+        grid-template-columns: repeat(4, 1fr); /* 4 columns for product/bundle pages */
+        gap: 2.5rem 2rem; 
+    } 
+    .product-grid.bestsellers-grid {
+        grid-template-columns: repeat(6, 1fr); /* 6 columns for homepage bestsellers */
+    }
+    .product-grid.related-grid {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns for related products */
+    }
 
-    /* --- Grids --- */
-    .category-grid { grid-template-columns: repeat(4, 1fr); gap: 2rem; } /* 4 categories */
-    .product-grid { grid-template-columns: repeat(4, 1fr); gap: 2.5rem 2rem; } /* 4 products */
-    .product-grid.bestsellers-grid { grid-template-columns: repeat(6, 1fr); } /* 6 bestsellers */
-    .product-grid.related-grid { grid-template-columns: repeat(4, 1fr); } /* 4 related */
-
-
-    /* --- Single Product Page (NEW LAYOUT Overrides) --- */
+    /* --- Single Product Page (FIXED) --- */
     .product-detail-grid-new {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* Two equal columns */
-        gap: 3rem; /* Adjust gap */
+        grid-template-columns: repeat(2, 1fr); /* FIX: 2 columns (image + info) */
+        gap: 3rem; 
         align-items: start; /* Align tops of columns */
     }
-    .product-info-area-new { order: 1; } /* Info on right */
-    .product-image-area-new { order: 0; } /* Image on left */
-
-    /* Action Buttons Grid on Desktop */
-    .product-actions-grid {
-        grid-template-columns: 130px 1fr; /* Fixed width for quantity | Add to Cart */
-        /* Buy now button remains full width below due to grid-column: 1 / -1; */
-         margin-top: 1.5rem;
+    .product-info-area-new { 
+        order: 1; /* Info on right */
     }
-    .quantity-selector-box { margin-bottom: 0; } /* Remove mobile margin */
-    .action-buy-now-btn { margin-top: 10px; } /* Space between button rows */
-    .action-add-to-cart-btn, .action-buy-now-btn { width: 100%; } /* Fill grid areas */
+    .product-image-area-new { 
+        order: 0; /* Image on left */
+    }
 
+    /* Action Buttons on Desktop */
+    .product-actions-grid {
+        grid-template-columns: 130px 1fr; /* Quantity box | Add to Cart */
+        margin-top: 1.5rem; 
+    }
+    .quantity-selector-box { 
+        margin-bottom: 0; /* Remove mobile margin */
+    }
+    .action-buy-now-btn { 
+        margin-top: 10px; /* Space between button rows */
+    }
 
     /* --- Cart Page Desktop Adjustments --- */
     .cart-table thead { display: table-header-group; }
     .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: table; width: 100%; }
     .cart-table tr { margin-bottom: 0; border: none; }
-    .cart-table td { text-align: left; position: static; padding-left: 1rem; vertical-align: middle; } /* Ensure vertical alignment */
+    .cart-table td { text-align: left; position: static; padding-left: 1rem; vertical-align: middle; }
     .cart-table td::before { content: none; }
     .cart-product-col { justify-content: flex-start; }
-    /* Grid layout for cart items + summary */
     .cart-content-grid {
         display: grid;
-        grid-template-columns: 2fr 1fr; /* Adjust ratio as needed */
+        grid-template-columns: 2fr 1fr; 
         gap: 2rem;
         align-items: flex-start;
-        margin-top: 2rem; /* Add some space above */
+        margin-top: 2rem; 
     }
     .cart-summary-box {
-        margin-left: 0; /* Remove mobile margin */
-        position: sticky; /* Optional: make summary sticky */
-        top: calc(80px + 1rem); /* Position below sticky nav */
+        margin-left: 0; 
+        position: sticky; 
+        top: 100px; /* Position below sticky nav */
     }
-    .checkout-link-bottom { display: none !important; } /* Hide mobile checkout link */
+    .checkout-link-bottom { display: none !important; } 
 
 
     /* --- Checkout Page Desktop Adjustments --- */
-    .checkout-grid {
-        display: grid;
-        grid-template-columns: 3fr 2fr; /* Adjust ratio as needed */
-        gap: 3rem; /* Increase gap */
+    .checkout-grid { 
+        display: grid; 
+        grid-template-columns: 3fr 2fr; 
+        gap: 3rem; 
     }
     .order-summary-box {
-        position: sticky; /* Optional: make summary sticky */
-        top: calc(80px + 1rem); /* Position below sticky nav */
+        position: sticky; 
+        top: 100px; /* Position below sticky nav */
     }
 
-    
+    /* --- Cleanup Old/Conflicting Styles --- */
     .product-detail-grid { /* Hide old container if it exists */
         display: none !important;
     }
@@ -1198,16 +1283,16 @@ color: var(--footer-bg);
 
 /* Optional: Larger Desktop Screens */
 @media (min-width: 1200px) {
-    .container { max-width: 1140px; } /* Slightly smaller max width */
-    .product-grid { grid-template-columns: repeat(4, 1fr); } /* Keep 4 for larger screens */
+    .container { max-width: 1140px; } 
+    .product-grid { grid-template-columns: repeat(4, 1fr); } 
     .product-grid.bestsellers-grid { grid-template-columns: repeat(6, 1fr); }
 }
+
 /* ------------------ Mobile Navigation Menu (FINAL FIX) ------------------ */
+/* This section MUST be OUTSIDE the 768px media query */
 
 /* 1. HIDE THE OLD DESKTOP LINKS ON MOBILE */
-.nav-links {
-    display: none;
-}
+/* .nav-links rule moved to outside media query earlier */
 
 /* 2. STYLE THE HAMBURGER BUTTON (Show it and stop it from squishing) */
 .mobile-menu-toggle {
@@ -1264,8 +1349,6 @@ color: var(--footer-bg);
     
     /* Hide it */
     transform: translateX(-100%); /* <<< FIX: Move 100% to the left */
-    opacity: 1; /* Opacity is fine */
-    visibility: visible; /* Visibility is fine */
     transition: transform 0.3s ease-in-out;
 }
 
