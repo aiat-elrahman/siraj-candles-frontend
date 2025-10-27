@@ -1150,8 +1150,14 @@ color: var(--footer-bg);
     .product-grid { grid-template-columns: repeat(4, 1fr); } /* Keep 4 for larger screens */
     .product-grid.bestsellers-grid { grid-template-columns: repeat(6, 1fr); }
 }
-/* ------------------ Mobile Navigation Menu (NEW) ------------------ */
+/* ------------------ Mobile Navigation Menu (FINAL FIX) ------------------ */
 
+/* 1. HIDE THE OLD DESKTOP LINKS ON MOBILE */
+.nav-links {
+    display: none;
+}
+
+/* 2. STYLE THE HAMBURGER BUTTON (Show it and stop it from squishing) */
 .mobile-menu-toggle {
     display: flex; /* Show hamburger on mobile */
     flex-direction: column;
@@ -1163,6 +1169,8 @@ color: var(--footer-bg);
     cursor: pointer;
     padding: 0;
     z-index: 101; /* Above sticky nav */
+    flex-shrink: 0; /* <<< FIX: Stops the logo from squishing it */
+    margin-right: 15px; /* <<< FIX: Adds space between button and logo */
 }
 
 .mobile-menu-toggle .icon-bar {
@@ -1173,7 +1181,7 @@ color: var(--footer-bg);
     transition: all 0.3s ease;
 }
 
-/* Animate hamburger to 'X' */
+/* 3. STYLE THE 'X' ANIMATION */
 .mobile-menu-toggle.active .icon-bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
 }
@@ -1184,30 +1192,34 @@ color: var(--footer-bg);
     transform: translateY(-8px) rotate(-45deg);
 }
 
+/* 4. STYLE THE NEW MENU PANEL (Slide from left) */
 .mobile-nav-menu {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
     padding: 2rem;
     background-color: var(--background-light);
-    border-bottom: 1px solid var(--border-color);
-    position: absolute; /* Position below nav */
-    top: 100%; /* Place right below the navbar */
+    border-right: 1px solid var(--border-color); /* Side border */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Add shadow */
+    
+    position: fixed;   /* <<< FIX: Use 'fixed' to cover screen */
+    top: 0;            /* <<< FIX: Align to top of screen */
     left: 0;
-    width: 100%;
-    z-index: 99;
+    width: 80%;        /* <<< FIX: Set width */
+    max-width: 320px;
+    height: 100vh;     /* <<< FIX: Full screen height */
+    z-index: 1001;     /* Above overlay */
+    
     /* Hide it */
-    transform: translateY(-150%);
-    opacity: 0;
-    visibility: hidden;
-    transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s;
+    transform: translateX(-100%); /* <<< FIX: Move 100% to the left */
+    opacity: 1; /* Opacity is fine */
+    visibility: visible; /* Visibility is fine */
+    transition: transform 0.3s ease-in-out;
 }
 
-/* Show menu when active */
+/* 5. STYLE THE VISIBLE MENU PANEL */
 .mobile-nav-menu.active {
-    transform: translateY(0);
-    opacity: 1;
-    visibility: visible;
+    transform: translateX(0); /* <<< FIX: Slide it back to 0 */
 }
 
 .mobile-nav-menu a {
@@ -1217,9 +1229,49 @@ color: var(--footer-bg);
     font-weight: 600;
 }
 
-/* Hide hamburger on desktop */
+/* 6. ADD THE DARK OVERLAY */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000; /* Just below the menu */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0s 0.3s;
+}
+/* Show overlay when menu is open */
+body.mobile-menu-open::before {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s;
+}
+
+/* 7. DESKTOP OVERRIDE: Hide hamburger, show old links */
 @media (min-width: 992px) {
     .mobile-menu-toggle {
+        display: none;
+    }
+    
+    /* This overrides the 'display: none' from step 1 */
+    .nav-links {
+        display: flex; 
+        position: static;
+        transform: none;
+        gap: 2rem;
+        align-items: center;
+    }
+    
+    /* Hide mobile menu on desktop */
+    .mobile-nav-menu {
+        display: none;
+    }
+    
+    /* Hide overlay on desktop */
+    body::before {
         display: none;
     }
 }
