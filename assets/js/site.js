@@ -248,7 +248,7 @@ async function fetchAndrenderCategories() {
                     </div>
                     <div class="category-info">
                         <p class="category-name">${name}</p>
-                        { <i class="fas fa-arrow-right"></i>  }
+                        <i class="fas fa-arrow-right"></i>  
                     </div>
                 </a>
             `;
