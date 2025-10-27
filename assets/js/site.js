@@ -234,21 +234,25 @@ async function fetchAndrenderCategories() {
 
         // Render categories with simplified structure (ready for images later)
         container.innerHTML = categoriesArray.map(name => {
-            // Placeholder for potential future image logic
-            // const imageSrc = 'path/to/category/image/' + name.toLowerCase() + '.jpg';
+            
+            // --- FIX: Re-added the imageSrc variable definition ---
+            // Simple placeholder image logic
+            const imageSrc = name.toLowerCase().includes('candle') ? 'images/placeholder-candle.jpg' : 'images/placeholder-freshener.jpg';
+            // --- END FIX ---
 
+            // --- FIX: Corrected the HTML structure ---
             return `
                 <a href="products.html?category=${encodeURIComponent(name)}" class="category-card-item">
-                    
+                    <div class="category-image-wrapper">
                         <img src="${imageSrc}" alt="${name}" class="category-image" loading="lazy">
                     </div>
-                    }
                     <div class="category-info">
                         <p class="category-name">${name}</p>
-                        
+                        {/* <i class="fas fa-arrow-right"></i> You can add this back if you want an arrow */ }
                     </div>
                 </a>
             `;
+            // --- END FIX ---
         }).join('');
 
     } catch (error) {
