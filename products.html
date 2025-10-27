@@ -9,30 +9,52 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body data-page="products">
+
     <div class="announcement-ribbon"><p>🎉 Free delivery on orders over 2000 EGP. Handmade elegance for your home! 💖</p></div>
+
     <nav class="navbar">
         <div class="container">
+            
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Open navigation menu">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
             <a href="index.html" class="logo">
-    <span class="logo-siraj">SIRAJ</span>
-    <span class="logo-candles">CANDLES</span>
-</a>
+                <span class="logo-siraj">SIRAJ</span>
+                <span class="logo-candles">CANDLES</span>
+            </a>
+
             <ul class="nav-links">
                 <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
                 <li><a href="products.html" class="active"><i class="fas fa-box-open"></i> Products</a></li>
                 <li><a href="bundles.html"><i class="fas fa-gift"></i> Bundles</a></li>
             </ul>
+
             <div class="nav-icons">
                 <button id="search-toggle" aria-label="Search"><i class="fas fa-search"></i></button>
-                <button id="cart-toggle" aria-label="Shopping Cart"><i class="fas fa-shopping-cart"></i> <span class="cart-count">0</span></button>
+                <button id="cart-toggle" class="cart-icon-button" aria-label="View cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" style="visibility: hidden; opacity: 0;">0</span>
+                </button>
             </div>
         </div>
     </nav>
+
+    <div class="mobile-nav-menu" id="mobile-nav-menu">
+        <a href="index.html">Home</a>
+        <a href="products.html">Products</a>
+        <a href="bundles.html">Bundles</a>
+    </div>
+
     <div id="cart-dropdown" class="cart-dropdown">
         <h3 class="dropdown-header">Your Cart</h3>
         <div class="cart-items-list"></div>
         <div class="cart-summary"><p>Total: <span id="cart-total">0.00 EGP</span></p></div>
         <a href="checkout.html" class="checkout-btn">Go to Checkout</a>
     </div>
+
     <div id="search-modal" class="search-modal"><div class="search-content">
         <button class="close-search">&times;</button>
         <input type="text" id="search-input" placeholder="Search for product name or category...">
@@ -43,16 +65,16 @@
         <h1 class="page-title">All Products</h1>
 
         <div class="filter-bar" id="filter-sort-bar">
-    </div>
+        </div>
 
         <section class="products-grid-section">
             <div class="product-grid" id="products-container">
-                <p>Loading products...</p>
+                <p class="loading-message">Loading products...</p>
             </div>
         </section>
 
         <div class="pagination-controls" id="pagination-controls">
-            </div>
+        </div>
 
     </main>
     
@@ -60,9 +82,9 @@
         <p>Email us for **bulk orders** and **customized gifts**: <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a></p>
         <p>&copy; 2025 Siraj Candles. All rights reserved.</p>
         <div class="social-links">
-            <a href="#" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="#" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/siraj_candles_eg" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.facebook.com/people/sirajcandles/61576576972784/" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://www.tiktok.com/@sirajcandles" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
         </div>
         <p>From our Home to Yours ❤️</p>
     </footer>
