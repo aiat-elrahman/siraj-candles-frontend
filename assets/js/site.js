@@ -6,6 +6,7 @@ const AVAILABLE_SCENTS = []; // Remove hardcoded list
 
 // ====================================
 // 1. DOM & INITIALIZATION
+
 // ====================================
 
 const searchToggle = document.getElementById('search-toggle');
@@ -138,11 +139,11 @@ function renderProductGrid(containerId, items, endpointType) {
         
         return `
             <a href="product.html?id=${item._id}" class="product-card">
-                <img src="${itemImage}" alt="${itemName}" loading="lazy"> { Added lazy loading }
+                <img src="${itemImage}" alt="${itemName}" loading="lazy"> {/* Added lazy loading */}
                 <div class="product-info-minimal">
                     <p class="product-title">${itemName}</p>
                     <p class="product-price">${(itemPrice).toFixed(2)} EGP</p>
-                    { Add stars/reviews here later if needed }
+                    
                 </div>
             </a>
         `;
@@ -238,14 +239,13 @@ async function fetchAndrenderCategories() {
 
             return `
                 <a href="products.html?category=${encodeURIComponent(name)}" class="category-card-item">
-                    {Placeholder for image - uncomment and adjust when you have images
-                    <div class="category-image-wrapper">
+                    
                         <img src="${imageSrc}" alt="${name}" class="category-image" loading="lazy">
                     </div>
-                }
+                    }
                     <div class="category-info">
                         <p class="category-name">${name}</p>
-                        { Arrow icon removed, add back if desired }
+                        
                     </div>
                 </a>
             `;
@@ -536,25 +536,25 @@ function renderProduct(product) {
 
     // --- Build HTML ---
     container.innerHTML = `
-        <div class="product-detail-grid-new"> {Use new class for layout }
+        <div class="product-detail-grid-new"> 
 
-            { Column 1: Image Gallery }
+            
             <div class="product-image-area-new">
                 <div class="image-gallery">
                     ${imageGalleryHTML || '<img src="images/placeholder.jpg" alt="Placeholder" class="main-product-image">'}
                 </div>
-                { Add thumbnail container here if needed }
+                
             </div>
 
-            { Column 2: Product Info & Actions }
+            
             <div class="product-info-area-new">
 
-                { Info Block 1: Title, Category, Price }
+                
                 <h1 class="product-title-main">${itemName || 'Product Name'}</h1>
-                <p class="product-category-subtle">${itemCategory}</p> { Category below title }
+                <p class="product-category-subtle">${itemCategory}</p> 
                 <p class="product-price-main">${itemPrice.toFixed(2)} EGP</p>
 
-                {/Info Block 2: Action Buttons }
+            
                 ${!isOutOfStock ? `
                     <div class="product-actions-grid">
                         <div class="quantity-selector-box">
@@ -573,20 +573,20 @@ function renderProduct(product) {
                     <button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>
                 `}
 
-                { Bundle Customization (If applicable) }
+                
                 ${customizationHTML}
 
-                { Info Block 3: Description }
+                
                 <div class="product-description-section">
-                     <h3 class="section-subtitle">Description</h3> { Added subtitle }
+                     <h3 class="section-subtitle">Description</h3> 
                      ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
-                     ${formattedDescriptionHTML} {Display only if single product and has content }
+                     ${formattedDescriptionHTML} 
                 </div>
 
-                { Info Block 4: Attributes (Icon/Tag style) }
+                
                 ${attributes.length > 0 ? `
-                    <div class="product-attributes-section"> { Added section wrapper }
-                        <h3 class="section-subtitle">Details</h3> {Added subtitle }
+                    <div class="product-attributes-section"> 
+                        <h3 class="section-subtitle">Details</h3> 
                         <div class="product-attributes-grid">
                             ${attributes.map(attr => `
                                 <div class="attribute-chip">
@@ -599,10 +599,10 @@ function renderProduct(product) {
                     </div>
                 ` : ''}
 
-                {Info Block 5: Stock Status (If not already shown & In Stock) }
+                {/* Info Block 5: Stock Status (If not already shown & In Stock) */}
                 ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
 
-                 {/Shipping Info - Moved to bottom }
+                 
                  <div class="shipping-returns-new">
                      <h3>Shipping & Returns</h3>
                      <ul>
@@ -612,16 +612,16 @@ function renderProduct(product) {
                      </ul>
                  </div>
 
-            </div> {End product-info-area-new }
-        </div> {End product-detail-grid-new }
+            </div> 
+        </div> 
 
-        { Related Products Section (Keep only the one at the bottom) }
-        { Ensure the container exists in your product.html }
+        
+        
         <div class="related-products-section" id="related-products-main">
              <h3>Other Products You Might Like</h3>
              <div id="related-products-container" class="product-grid related-grid">
-                 { Products will be loaded here by fetchRelatedProducts }
-                 <p>Loading related products...</p> { Initial loading text }
+                 
+                 <p>Loading related products...</p> 
              </div>
         </div>
     `;
