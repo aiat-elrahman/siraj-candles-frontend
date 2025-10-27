@@ -598,8 +598,6 @@ function renderProduct(product) {
                         </div>
                     </div>
                 ` : ''}
-
-                {/* Info Block 5: Stock Status (If not already shown & In Stock) */}
                 ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
 
                  
