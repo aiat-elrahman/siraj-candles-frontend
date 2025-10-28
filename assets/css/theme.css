@@ -613,9 +613,9 @@ body.mobile-menu-open::before {
     flex-direction: row; /* FIX: Make side-by-side */
     justify-content: space-between; /* FIX: Push to opposite ends */
     align-items: center; /* Vertically align them */
-    padding: 0.25rem 0;
+    padding: 0;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: none;
     gap: 1rem; /* Add space between items */
 }
 
@@ -644,11 +644,19 @@ body.mobile-menu-open::before {
 .filter-select {
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    padding: 0.5rem 0.5rem; /* Increased padding slightly */
     background-color: #fff;
     font-size: 0.9rem;
-    
-    width: 100%; /* Make them flexible */
+    width: 100%;
+   height: 44px; /* 1. Set a fixed height */
+   padding: 0 0.75rem; /* 2. Adjust padding (0 top/bottom) */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2712%27%20height%3D%2712%27%20viewBox%3D%270%200%2012%2012%27%3E%3Cpath%20fill%3D%27%23333%27%20d%3D%27M10.293%203.293L6%207.586%201.707%203.293%200.293%204.707%206%2010.414%2011.707%204.707z%27%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 12px 12px;
+    padding-right: 2.5rem;
 }
 
 /* ------------------ Single Product Page (NEW LAYOUT) ------------------ */
