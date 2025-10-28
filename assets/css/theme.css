@@ -34,6 +34,13 @@
 /* ADDED for smooth scrolling */
 html {
      scroll-behavior: smooth;
+     font-size: 14px; /* Base font size for mobile */
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px; /* Base font size for desktop */
+    }
 }
 
 body {
@@ -78,17 +85,10 @@ a:hover {
     width: 90%;
     max-width: 1200px;
     margin: 0 auto;
-    /* Added padding for mobile spacing */
-    padding-left: 15px;
-    padding-right: 15px;
+    /* FIXED: Consistent padding on all screens */
+    padding: 0 15px;
 }
-/* Remove padding on desktop */
-@media (min-width: 768px) {
-    .container {
-        padding-left: 0;
-        padding-right: 0;
-    }
-}
+
 /* ------------------ Announcement Ribbon (Updated Width/Spacing) ------------------ */
 
 .announcement-ribbon {
@@ -537,12 +537,37 @@ body.mobile-menu-open::before {
 }
 
 
-/* --- Product Grid (Minimalist Card - FINAL) --- */
+/* --- Product Grid (FIXED Responsive Grid) --- */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
-    gap: 2rem 1.5rem; /* Row gap, Column gap */
+    gap: 1.5rem;
     margin-top: 1.5rem;
+}
+
+/* FIXED: Bestsellers grid - 3 columns on mobile, 4-5 on desktop */
+.product-grid.bestsellers-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 columns on mobile */
+}
+
+/* FIXED: Related products grid - same as bestsellers */
+.product-grid.related-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 columns on mobile */
+}
+
+@media (min-width: 768px) {
+    .product-grid {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns for main products */
+        gap: 2rem;
+    }
+    
+    .product-grid.bestsellers-grid {
+        grid-template-columns: repeat(5, 1fr); /* 5 columns for bestsellers */
+    }
+    
+    .product-grid.related-grid {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns for related */
+    }
 }
 
 .product-card {
@@ -606,77 +631,85 @@ body.mobile-menu-open::before {
     display: none; /* Hide if element still exists */
 }
 
-/* ------------------ Product Page Filters (NEW) ------------------ */
+/* ------------------ Product Page Filters (FIXED Layout) ------------------ */
 
 .filter-controls-group {
     display: flex;
-    flex-direction: row; /* FIX: Make side-by-side */
-    justify-content: space-between; /* FIX: Push to opposite ends */
-    align-items: center; /* Vertically align them */
+    flex-direction: column; /* FIXED: Stack vertically on mobile */
+    gap: 1rem; /* FIXED: Consistent spacing */
     padding: 0;
     margin-bottom: 1.5rem;
     border-bottom: none;
-    gap: 1rem; /* Add space between items */
 }
 
 .filter-item {
     display: flex;
-    align-items: center;
-    gap: 0.5rem; /* Space between label and dropdown */
-    flex-grow: 1; /* <<< ADD THIS: Makes the item grow */
-    flex-basis: 0;
+    flex-direction: column; /* FIXED: Stack label and select vertically */
+    gap: 0.5rem;
+    width: 100%; /* FIXED: Full width on mobile */
 }
 
-/* Remove default margins that might be causing spacing issues */
-.filter-item label, 
-.filter-item select {
-    margin-bottom: 0; 
-    font-family: var(--font-body);
-}
-
+/* FIXED: Better label styling */
 .filter-item label {
-    display: none; /* FIX: Hide label on mobile */
+    display: block; /* Show labels on mobile */
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-dark);
+    margin-bottom: 0.3rem;
 }
 
 .filter-select {
-border: 1px solid var(--border-color);
-border-radius: 4px;
-background-color: #fff;
-font-size: 0.9rem;
-width: 100%;
-padding: 0.75rem 2.5rem 0.75rem 1rem; /* T/B, Right, Left */
--webkit-appearance: none;
--moz-appearance: none;
-appearance: none;
-
-    /* 3. Add the custom arrow back */
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 0.9rem;
+    width: 100%; /* FIXED: Full width on mobile */
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2712%27%20height%3D%2712%27%20viewBox%3D%270%200%2012%2012%27%3E%3Cpath%20fill%3D%27%23333%27%20d%3D%27M10.293%203.293L6%207.586%201.707%203.293%200.293%204.707%206%2010.414%2011.707%204.707z%27%2F%3E%3C%2Fsvg%3E");
     background-repeat: no-repeat;
-    background-position: right 1rem center; /* Position arrow */
+    background-position: right 1rem center;
     background-size: 12px 12px;
 }
 
-/* ------------------ Single Product Page (NEW LAYOUT) ------------------ */
+@media (min-width: 768px) {
+    .filter-controls-group {
+        flex-direction: row; /* Side by side on desktop */
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .filter-item {
+        width: auto; /* Auto width on desktop */
+        flex-direction: row; /* Label and select side by side */
+        align-items: center;
+    }
+    
+    .filter-select {
+        width: auto; /* Auto width on desktop */
+    }
+}
+
+/* ------------------ Single Product Page (FIXED Layout) ------------------ */
 
 /* Main grid for image and info */
 .product-detail-grid-new {
     display: grid;
     grid-template-columns: 1fr; /* Single column on mobile */
-    gap: 2rem; /* Space between image and info */
+    gap: 2rem;
     padding: 2rem 0;
 }
 
 /* Image area styling */
-.product-image-area-new { /* Container for images */
+.product-image-area-new {
     width: 100%;
 }
 .main-product-image {
     width: 100%;
     height: auto;
-    aspect-ratio: 1 / 1; /* Keep images square */
+    aspect-ratio: 1 / 1;
     object-fit: cover;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -699,13 +732,13 @@ appearance: none;
 }
 
 /* Specific styling for elements in the new order */
-.product-title-main { /* Main title */
+.product-title-main {
     font-size: 1.8rem;
     margin-bottom: 0.1rem;
     font-family: var(--font-logo);
     line-height: 1.3;
 }
-.product-category-subtle { /* Category below title */
+.product-category-subtle {
     font-size: 0.9rem;
     color: #666;
     margin-bottom: 0.8rem;
@@ -713,29 +746,28 @@ appearance: none;
     letter-spacing: 0.05em;
     font-weight: 500;
 }
-.product-price-main { /* Main price */
+.product-price-main {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--accent-color);
-    margin-bottom: 1.5rem; /* Space before actions */
+    margin-bottom: 1.5rem;
     font-family: var(--font-body);
 }
 
-/* --- Product Page Action Buttons (NEW CSS, Mobile First) --- */
+/* --- Product Page Action Buttons --- */
 .product-actions-grid {
     display: grid;
-    grid-template-columns: 130px 1fr; /* Quantity | Add to Cart */
+    grid-template-columns: 130px 1fr;
     gap: 12px;
-    margin-top: 0; /* No top margin needed after price */
-    margin-bottom: 1.5rem; /* Space before description */
+    margin-top: 0;
+    margin-bottom: 1.5rem;
 }
 .action-buy-now-btn {
-    grid-column: 1 / -1; /* Buy now spans full width below */
+    grid-column: 1 / -1;
     width: 100%;
-    margin-top: 10px; /* Space between button rows */
+    margin-top: 10px;
 }
 
-/* Style for the box containing +/-/input */
 .quantity-selector-box {
     display: flex;
     align-items: center;
@@ -747,7 +779,7 @@ appearance: none;
     background-color: #fff;
     max-width: 130px;
 }
-.action-btn { /* Style for +/- buttons */
+.action-btn {
     background-color: transparent; color: var(--text-dark); border: none; padding: 0 14px;
     cursor: pointer; font-size: 18px; font-weight: 400; line-height: 46px; flex-shrink: 0;
     transition: background-color 0.2s;
@@ -760,26 +792,21 @@ appearance: none;
 }
 .quantity-input-box::-webkit-outer-spin-button, .quantity-input-box::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-/* Shared styles for Add to Cart & Buy Now */
 .action-add-to-cart-btn, .action-buy-now-btn {
     border: none; border-radius: 6px; padding: 12px 20px; cursor: pointer; font-size: 1rem; font-weight: 600;
     height: 48px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; width: 100%;
 }
-/* Primary Button (Add to Cart) */
 .action-add-to-cart-btn { background-color: var(--accent-color); color: var(--text-light); }
 .action-add-to-cart-btn:hover { background-color: #8C756B; }
-/* Secondary Button (Buy It Now) */
 .action-buy-now-btn { background-color: var(--primary-color); color: var(--text-dark); border: 1px solid var(--accent-color); }
 .action-buy-now-btn:hover { background-color: #D6CCC5; }
-/* Disabled / Out of Stock Button */
 .action-add-to-cart-btn.out-of-stock-btn, .action-add-to-cart-btn:disabled, .action-buy-now-btn:disabled {
     opacity: 0.6; cursor: not-allowed; background-color: #ccc; color: #666; border-color: #ccc;
 }
 .cart-icon { font-size: 1.1em; margin-right: 8px; color: inherit; }
 
-
 /* Description & Attributes Styling */
-.section-subtitle { /* Added style for subtitles like Description, Details */
+.section-subtitle {
     font-family: var(--font-body);
     font-size: 1.1rem;
     font-weight: 600;
@@ -799,14 +826,13 @@ appearance: none;
 .attribute-icon { margin-right: 6px; font-size: 1em; }
 .attribute-label { font-weight: 600; margin-right: 4px; }
 
-
 /* Stock Status Styling */
 .stock-status { font-weight: 600; margin-top: 1.5rem; font-size: 0.9rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
 .stock-status.in-stock { color: #28a745; }
-.stock-status.out-of-stock { color: #dc3545; /* Shown before buttons if out of stock */}
+.stock-status.out-of-stock { color: #dc3545; }
 
 /* Shipping Info Styling */
-.shipping-returns-new { /* Renamed class */
+.shipping-returns-new {
     margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);
     font-size: 0.9rem; color: #555;
 }
@@ -821,61 +847,25 @@ appearance: none;
 
 /* Related Products Section at Bottom */
 .related-products-section#related-products-main {
-   margin-top: 3rem; /* Add space above */
+   margin-top: 3rem;
    padding-top: 2rem;
    border-top: 1px solid var(--border-color);
 }
-/* --- Desktop Overrides for Product Page --- */
+
+/* FIXED: Single Product Page Desktop Layout */
 @media (min-width: 768px) {
     .product-detail-grid-new {
-        grid-template-columns: repeat(4, 1fr); 
-        gap: 3rem; /* Adjust gap */
-        flex-direction: row; /* Go side-by-side on desktop */
-    justify-content: space-between; /* Spread them apart */
-    align-items: center;
+        grid-template-columns: 1fr 1fr; /* FIXED: Simple 2-column layout */
+        gap: 3rem;
+        align-items: start;
     }
-     .product-info-area-new { order: 1; } /* Info on right */
-     .product-image-area-new { order: 0; } /* Image on left */
-  /* --- ADD/REPLACE THIS for Filters --- */
-    .filter-controls-group {
-        flex-direction: row; /* Go side-by-side on desktop */
-        justify-content: space-between;
-        align-items: center;
-    }
-     /* Action Buttons on Desktop */
-    .product-actions-grid {
-        grid-template-columns: 130px 1fr; /* Quantity box | Add to Cart */
-         margin-top: 1.5rem; /* Ensure consistent spacing */
-    }
-     .quantity-selector-box { margin-bottom: 0; } /* Remove bottom margin */
-    .action-buy-now-btn { margin-top: 10px; } /* Space between button rows */
-    .product-grid {
-        grid-template-columns: repeat(4, 1fr); /* 4 columns on desktop */
-        gap: 2.5rem 2rem; /* Optional: Adjust gap for desktop */
-    }
-
-    .product-grid.bestsellers-grid {
-        grid-template-columns: repeat(6, 1fr); /* 6 columns for bestsellers on desktop */
-    }
-    .product-grid.related-grid {
-         grid-template-columns: repeat(4, 1fr); /* 4 columns for related */
-    }
-
-  .filter-item label {
-    display: block; /* FIX: Show label on desktop */
- }
-  .filter-select {
-    width: auto; /* Let it shrink to fit content */
-    flex-grow: 0;
 }
-}
-
 
 /* ------------------ Bundle Customization Styles (Reduced Spacing) ------------------ */
 
 .bundle-customization-section {
-    margin: 1rem 0; /* Reduced vertical margin */
-    padding: 1rem; /* Reduced padding */
+    margin: 1rem 0;
+    padding: 1rem;
     border: 1px dashed var(--accent-color);
     background-color: var(--primary-color);
     border-radius: 5px;
@@ -883,144 +873,232 @@ appearance: none;
 
 .customization-prompt {
     font-weight: 700;
-    margin-bottom: 0.75rem; /* Reduced margin */
-    font-size: 1rem; /* Slightly smaller */
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
     color: var(--text-dark);
 }
 
 .bundle-selector-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 0.5rem; /* Reduced margin */
+    margin-bottom: 0.5rem;
 }
 
 .bundle-selector-group label {
     font-weight: 600;
-    margin-bottom: 0.2rem; /* Reduced margin */
-    font-size: 0.9rem; /* Slightly smaller */
+    margin-bottom: 0.2rem;
+    font-size: 0.9rem;
 }
 
 .scent-selector {
-    padding: 0.5rem; /* Reduced padding */
+    padding: 0.5rem;
     border: 1px solid var(--accent-color);
     border-radius: 4px;
     background-color: white;
-    font-size: 0.95rem; /* Slightly smaller */
+    font-size: 0.95rem;
     cursor: pointer;
 }
-/* ------------------ Cart Page Styles (Updated Consistency) ------------------ */
+
+/* ------------------ Cart Page Styles (FIXED Mobile Responsive) ------------------ */
 .cart-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 2rem;
-    font-size: 0.95rem; /* Base size for cart table */
+    font-size: 0.95rem;
 }
+
+/* FIXED: Mobile responsive cart table */
+@media (max-width: 767px) {
+    .cart-table, 
+    .cart-table thead, 
+    .cart-table tbody, 
+    .cart-table th, 
+    .cart-table td, 
+    .cart-table tr {
+        display: block;
+    }
+    
+    .cart-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    .cart-table tr {
+        border: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        background: white;
+    }
+    
+    .cart-table td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+        padding: 0.5rem 1rem 0.5rem 50%;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .cart-table td:last-child {
+        border-bottom: none;
+    }
+    
+    .cart-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 1rem;
+        width: 45%;
+        padding-right: 1rem;
+        font-weight: bold;
+        text-align: left;
+        white-space: nowrap;
+    }
+}
+
 .cart-table th, .cart-table td {
-    padding: 0.8rem 1rem; /* Slightly reduced padding */
-    border-bottom: 1px solid var(--border-color); /* Use variable */
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border-color);
     text-align: left;
     vertical-align: middle;
 }
+
 .cart-table th {
     background-color: var(--primary-color);
     font-weight: 600;
-    font-size: 0.9rem; /* Smaller heading */
+    font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
+
 .cart-item-img {
     width: 60px;
     height: 60px;
     object-fit: cover;
     margin-right: 1rem;
-    border-radius: 4px; /* Add subtle rounding */
+    border-radius: 4px;
 }
+
 .cart-product-col {
     display: flex;
     align-items: center;
 }
-.cart-product-col a { /* Style product link */
+
+.cart-product-col a {
     font-weight: 600;
     color: var(--text-dark);
 }
+
 .cart-product-col a:hover {
     color: var(--accent-color);
 }
+
 .item-quantity-input {
     width: 60px;
     padding: 0.5rem;
     text-align: center;
-    border: 1px solid var(--border-color); /* Use variable */
-    border-radius: 4px; /* Consistent rounding */
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
 }
+
 .remove-item-btn {
     background: none;
     border: none;
     color: #CC0000;
     cursor: pointer;
     font-size: 1.1rem;
-    padding: 5px; /* Add padding for easier clicking */
+    padding: 5px;
 }
+
 .remove-item-btn:hover {
-    color: #a00000; /* Darker red on hover */
+    color: #a00000;
 }
+
 .cart-summary-box {
     max-width: 400px;
     margin-left: auto;
-    padding: 1.5rem; /* Adjusted padding */
-    border: 1px solid var(--border-color); /* Use variable */
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
     background-color: var(--background-light);
-    border-radius: 4px; /* Consistent rounding */
+    border-radius: 4px;
+    /* FIXED: Make cart summary sticky on mobile */
+    position: sticky;
+    bottom: 1rem;
+    background: white;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 99;
 }
-.cart-summary-box h3 { /* Style summary heading */
-    font-family: var(--font-body); /* Use body font */
+
+.cart-summary-box h3 {
+    font-family: var(--font-body);
     font-size: 1.3rem;
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 0.5rem;
 }
+
 .cart-summary-box p {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 0.6rem; /* Adjust spacing */
+    margin-bottom: 0.6rem;
     font-size: 0.95rem;
 }
+
 .cart-summary-box .cart-total-final {
     font-weight: 700;
     font-size: 1.2rem;
-    border-top: 1px solid var(--border-color); /* Use variable */
+    border-top: 1px solid var(--border-color);
     padding-top: 1rem;
     margin-top: 1rem;
 }
+
 .empty-cart-message-full {
     text-align: center !important;
     font-size: 1.2rem;
     padding: 3rem 0 !important;
     color: #666;
 }
+
 .cart-customization-detail {
     font-size: 0.85rem;
     color: #555;
     margin-top: 0.3rem;
 }
 
-/* Ensure checkout button inherits general button style */
 .cart-summary-box .checkout-btn {
      margin-top: 1.5rem;
-     width: 100%; /* Make button full width */
+     width: 100%;
 }
-/* ------------------ Checkout Page Styles (Updated Consistency) ------------------ */
+
+/* FIXED: Cart content layout for desktop */
+@media (min-width: 768px) {
+    .cart-content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        align-items: flex-start;
+    }
+    
+    .cart-summary-box {
+        position: sticky;
+        top: 100px;
+        bottom: auto;
+        box-shadow: none;
+    }
+}
+
+/* ------------------ Checkout Page Styles (FIXED Mobile Layout) ------------------ */
 .checkout-grid {
-    display: grid;
-    grid-template-columns: 1fr; /* Single column mobile */
-    gap: 2.5rem; /* Increased gap */
+    display: block; /* FIXED: Simple stack on mobile */
     padding: 2rem 0;
 }
-.checkout-section h2 { /* Heading for Shipping/Payment */
-    font-family: var(--font-body); /* Use body font for these */
+
+.checkout-section h2 {
+    font-family: var(--font-body);
     font-size: 1.5rem;
     font-weight: 600;
-    border-bottom: 1px solid var(--border-color); /* Lighter border */
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 0.5rem;
     margin-bottom: 1.5rem;
 }
@@ -1030,68 +1108,103 @@ appearance: none;
     display: block;
     margin-top: 1rem;
     font-weight: 600;
-    font-size: 0.9rem; /* Slightly smaller label */
-    margin-bottom: 0.3rem; /* Space below label */
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
 }
+
 .checkout-form input[type="text"],
 .checkout-form input[type="email"],
 .checkout-form input[type="tel"],
 .checkout-form textarea {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid var(--border-color); /* Use variable */
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    margin-top: 0; /* Remove margin-top from input */
-    background-color: #fff; /* Ensure white background */
+    margin-top: 0;
+    background-color: #fff;
 }
+
 .checkout-form textarea {
-    min-height: 80px; /* Give textarea some height */
+    min-height: 80px;
 }
 
 /* Order Summary Box */
 .order-summary-box {
-    background-color: #fff; /* Changed to white */
-    padding: 1.5rem; /* Adjusted padding */
+    background-color: #fff;
+    padding: 1.5rem;
     border-radius: 5px;
-    border: 1px solid var(--border-color); /* Use variable */
+    border: 1px solid var(--border-color);
+    margin-top: 2rem; /* FIXED: Space on mobile */
 }
-.order-summary-box h3 { /* Style summary heading */
-     font-family: var(--font-body);
-     font-size: 1.3rem;
-     margin-bottom: 1rem;
-     border-bottom: 1px solid var(--border-color);
-     padding-bottom: 0.5rem;
+
+.order-summary-box h3 {
+    font-family: var(--font-body);
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
 }
-.checkout-item-list { margin-bottom: 1rem; font-size: 0.9rem; }
-.checkout-item { display: flex; justify-content: space-between; margin-bottom: 0.3rem;} /* Use flex for alignment */
-.checkout-item span { font-weight: 400; color: #555; } /* Style price span */
-.checkout-summary-line { display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.95rem; }
-.checkout-summary-line span { font-weight: 600; }
-.final-total { font-size: 1.3rem; font-weight: 700 !important; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.8rem;}
+
+.checkout-item-list {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.checkout-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+}
+
+.checkout-item span {
+    font-weight: 400;
+    color: #555;
+}
+
+.checkout-summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+}
+
+.checkout-summary-line span {
+    font-weight: 600;
+}
+
+.final-total {
+    font-size: 1.3rem;
+    font-weight: 700 !important;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.8rem;
+}
 
 /* Payment Options */
 .payment-options label {
-    display: flex; /* Use flex for alignment */
+    display: flex;
     align-items: center;
     background-color: #fff;
-    padding: 0.8rem 1rem; /* Adjust padding */
-    border: 1px solid var(--border-color); /* Use variable */
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border-color);
     margin-bottom: 0.5rem;
     cursor: pointer;
-    border-radius: 4px; /* Consistent rounding */
+    border-radius: 4px;
     transition: border-color 0.2s;
 }
+
 .payment-options input[type="radio"] {
-    margin-right: 0.75rem; /* Space between radio and text */
+    margin-right: 0.75rem;
 }
-.payment-options input[type="radio"]:checked + label { /* Style selected option */
+
+.payment-options input[type="radio"]:checked + label {
     border-color: var(--accent-color);
     box-shadow: 0 0 0 1px var(--accent-color);
 }
-.payment-options label:hover {
-     border-color: #aaa;
-}
 
+.payment-options label:hover {
+    border-color: #aaa;
+}
 
 /* Place Order Button */
 #place-order-btn {
@@ -1099,22 +1212,38 @@ appearance: none;
     margin-top: 1.5rem;
     background-color: var(--accent-color);
     color: white;
-    padding: 0.9rem; /* Adjust padding */
+    padding: 0.9rem;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 1.1rem;
     font-weight: 700;
-    transition: background-color 0.3s; /* Add transition */
+    transition: background-color 0.3s;
 }
+
 #place-order-btn:hover {
-    background-color: #8C756B; /* Darker accent */
+    background-color: #8C756B;
 }
-#place-order-btn:disabled { /* Style for disabled state */
+
+#place-order-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
+/* FIXED: Checkout desktop layout */
+@media (min-width: 768px) {
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 3fr 2fr;
+        gap: 3rem;
+    }
+    
+    .order-summary-box {
+        margin-top: 0;
+        position: sticky;
+        top: 100px;
+    }
+}
 
 /* ------------------ Footer ------------------ */
 
@@ -1142,32 +1271,29 @@ appearance: none;
     margin-top: 30px;
     margin-bottom: 50px;
 }
+
 .pagination-button {
-background: none;
-border: none;
-padding: 10px 15px;
-cursor: pointer;
-font-size: 1.25rem;
-font-weight: bold;
-color: var(--text-dark);
-transition: color 0.2s;
+    background: none;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--text-dark);
+    transition: color 0.2s;
 }
+
 .pagination-button:hover:not(.active) {
-color: var(--accent-color); 
+    color: var(--accent-color); 
 }
+
 .pagination-button.active {
-color: var(--footer-bg);
- pointer-events: none; 
+    color: var(--footer-bg);
+    pointer-events: none; 
 }
 
 /* ------------------ Desktop/Tablet Styles (Overrides - FINAL) ------------------ */
 @media (min-width: 768px) {
-    /* --- Base & Container --- */
-    .container {
-        padding-left: 0; /* Remove mobile padding */
-        padding-right: 0;
-    }
-
     /* --- Navigation --- */
     .logo-siraj {
         font-size: 3.2rem;
@@ -1176,126 +1302,22 @@ color: var(--footer-bg);
         font-size: 1.5rem;
     }
     .nav-links {
-        display: flex; /* Show nav links */
+        display: flex;
         gap: 2rem;
         align-items: center;
-        position: static; /* Reset mobile positioning */
+        position: static;
         transform: none;
     }
     .nav-icons {
-        position: static; /* Ensure icons are in flow */
+        position: static;
         transform: none;
     }
     .navbar .container {
-         justify-content: space-between; /* Re-affirm spacing */
-     }
-    .mobile-menu-toggle {
-        display: none; /* Hide hamburger button on desktop */
-    }
-    
-    /* --- Product Page Filters --- */
-    .filter-controls-group {
-        flex-direction: row; /* Make filters side-by-side */
         justify-content: space-between;
-        align-items: center;
     }
-    .filter-item label {
-        display: block; /* Show label on desktop */
+    .mobile-menu-toggle {
+        display: none;
     }
-    .filter-select {
-        width: auto; /* Let it shrink to fit content */
-        flex-grow: 0;
-    }
-
-    /* --- Homepage & Product Grids --- */
-    .category-grid { 
-        grid-template-columns: repeat(4, 1fr); 
-        gap: 2rem; 
-    } 
-    .product-grid { 
-        grid-template-columns: repeat(4, 1fr); /* 4 columns for product/bundle pages */
-        gap: 2.5rem 2rem; 
-    } 
-    .product-grid.bestsellers-grid {
-        grid-template-columns: repeat(6, 1fr); /* 6 columns for homepage bestsellers */
-    }
-    .product-grid.related-grid {
-        grid-template-columns: repeat(4, 1fr); /* 4 columns for related products */
-    }
-
-    /* --- Single Product Page (FIXED) --- */
-    .product-detail-grid-new {
-        grid-template-columns: repeat(2, 1fr); /* FIX: 2 columns (image + info) */
-        gap: 3rem; 
-        align-items: start; /* Align tops of columns */
-    }
-    .product-info-area-new { 
-        order: 1; /* Info on right */
-    }
-    .product-image-area-new { 
-        order: 0; /* Image on left */
-    }
-
-    /* Action Buttons on Desktop */
-    .product-actions-grid {
-        grid-template-columns: 130px 1fr; /* Quantity box | Add to Cart */
-        margin-top: 1.5rem; 
-    }
-    .quantity-selector-box { 
-        margin-bottom: 0; /* Remove mobile margin */
-    }
-    .action-buy-now-btn { 
-        margin-top: 10px; /* Space between button rows */
-    }
-
-    /* --- Cart Page Desktop Adjustments --- */
-    .cart-table thead { display: table-header-group; }
-    .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: table; width: 100%; }
-    .cart-table tr { margin-bottom: 0; border: none; }
-    .cart-table td { text-align: left; position: static; padding-left: 1rem; vertical-align: middle; }
-    .cart-table td::before { content: none; }
-    .cart-product-col { justify-content: flex-start; }
-    .cart-content-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr; 
-        gap: 2rem;
-        align-items: flex-start;
-        margin-top: 2rem; 
-    }
-    .cart-summary-box {
-        margin-left: 0; 
-        position: sticky; 
-        top: 100px; /* Position below sticky nav */
-    }
-    .checkout-link-bottom { display: none !important; } 
-
-
-    /* --- Checkout Page Desktop Adjustments --- */
-    .checkout-grid { 
-        display: grid; 
-        grid-template-columns: 3fr 2fr; 
-        gap: 3rem; 
-    }
-    .order-summary-box {
-        position: sticky; 
-        top: 100px; /* Position below sticky nav */
-    }
-
-    /* --- Cleanup Old/Conflicting Styles --- */
-    .product-detail-grid { /* Hide old container if it exists */
-        display: none !important;
-    }
-     .add-to-cart-btn:not(.action-add-to-cart-btn) { /* Hide old button */
-         display: none !important;
-     }
-
-} /* End @media (min-width: 768px) */
-
-/* Optional: Larger Desktop Screens */
-@media (min-width: 1200px) {
-    .container { max-width: 1140px; } 
-    .product-grid { grid-template-columns: repeat(4, 1fr); } 
-    .product-grid.bestsellers-grid { grid-template-columns: repeat(6, 1fr); }
 }
 
 /* ------------------ Mobile Navigation Menu (FINAL FIX) ------------------ */
@@ -1306,7 +1328,7 @@ color: var(--footer-bg);
 
 /* 2. STYLE THE HAMBURGER BUTTON (Show it and stop it from squishing) */
 .mobile-menu-toggle {
-    display: flex; /* Show hamburger on mobile */
+    display: flex;
     flex-direction: column;
     justify-content: space-around;
     width: 24px;
@@ -1315,9 +1337,9 @@ color: var(--footer-bg);
     border: none;
     cursor: pointer;
     padding: 0;
-    z-index: 101; /* Above sticky nav */
-    flex-shrink: 0; /* <<< FIX: Stops the logo from squishing it */
-    margin-right: 15px; /* <<< FIX: Adds space between button and logo */
+    z-index: 101;
+    flex-shrink: 0;
+    margin-right: 15px;
 }
 
 .mobile-menu-toggle .icon-bar {
@@ -1332,9 +1354,11 @@ color: var(--footer-bg);
 .mobile-menu-toggle.active .icon-bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
 }
+
 .mobile-menu-toggle.active .icon-bar:nth-child(2) {
     opacity: 0;
 }
+
 .mobile-menu-toggle.active .icon-bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
 }
@@ -1346,25 +1370,22 @@ color: var(--footer-bg);
     gap: 1.5rem;
     padding: 2rem;
     background-color: var(--background-light);
-    border-right: 1px solid var(--border-color); /* Side border */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Add shadow */
-    
-    position: fixed;   /* <<< FIX: Use 'fixed' to cover screen */
-    top: 0;            /* <<< FIX: Align to top of screen */
+    border-right: 1px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
     left: 0;
-    width: 80%;        /* <<< FIX: Set width */
+    width: 80%;
     max-width: 320px;
-    height: 100vh;     /* <<< FIX: Full screen height */
-    z-index: 1001;     /* Above overlay */
-    
-    /* Hide it */
-    transform: translateX(-100%); /* <<< FIX: Move 100% to the left */
+    height: 100vh;
+    z-index: 1001;
+    transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
 }
 
 /* 5. STYLE THE VISIBLE MENU PANEL */
 .mobile-nav-menu.active {
-    transform: translateX(0); /* <<< FIX: Slide it back to 0 */
+    transform: translateX(0);
 }
 
 .mobile-nav-menu a {
@@ -1383,11 +1404,12 @@ body::before {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000; /* Just below the menu */
+    z-index: 1000;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s, visibility 0s 0.3s;
 }
+
 /* Show overlay when menu is open */
 body.mobile-menu-open::before {
     opacity: 1;
@@ -1401,21 +1423,18 @@ body.mobile-menu-open::before {
         display: none;
     }
     
-    /* This overrides the 'display: none' from step 1 */
     .nav-links {
-        display: flex; 
+        display: flex;
         position: static;
         transform: none;
         gap: 2rem;
         align-items: center;
     }
     
-    /* Hide mobile menu on desktop */
     .mobile-nav-menu {
         display: none;
     }
     
-    /* Hide overlay on desktop */
     body::before {
         display: none;
     }
