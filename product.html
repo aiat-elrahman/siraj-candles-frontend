@@ -10,11 +10,10 @@
 </head>
 <body data-page="product-detail">
 
-    <div class="announcement-ribbon"><p>🎉 Free delivery on orders over 2000 EGP. Handmade elegance for your home! 💖</p></div>
+    <div class="announcement-ribbon"><p>🎉 Free delivery on orders over 2000 EGP. </p></div>
 
     <nav class="navbar">
         <div class="container">
-
             <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Open navigation menu">
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
@@ -55,17 +54,21 @@
         <a href="checkout.html" class="checkout-btn">Go to Checkout</a>
     </div>
 
-    <div id="search-modal" class="search-modal"><div class="search-content">
-        <button class="close-search">&times;</button>
-        <input type="text" id="search-input" placeholder="Search for product name or category...">
-        <div id="search-results" class="search-results"></div>
-    </div></div>
+    <div id="search-modal" class="search-modal">
+        <div class="search-content">
+            <button class="close-search">&times;</button>
+            <input type="text" id="search-input" placeholder="Search for product name or category...">
+            <div id="search-results" class="search-results"></div>
+        </div>
+    </div>
 
     <main class="single-product-main container">
-        <div class.="product-detail-container" id="product-detail-container">
+        <!-- Main Product Details - Filled by JavaScript -->
+        <div class="product-detail-container" id="product-detail-container">
             <p class="loading-message">Loading product details...</p>
         </div>
         
+        <!-- Related Products Section - Filled by JavaScript -->
         <section class="related-products-section" id="related-products-main">
             <h3>Other Products You Might Like</h3>
             <div class="product-grid related-grid" id="related-products-container">
@@ -75,7 +78,7 @@
     </main>
     
     <footer class="footer">
-        <p>Email us for **bulk orders** and **customized gifts**: <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a></p>
+        <p>Email us for <strong>bulk orders</strong> and <strong>customized gifts</strong>: <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a></p>
         <p>&copy; 2025 Siraj Candles. All rights reserved.</p>
         <div class="social-links">
             <a href="https://www.instagram.com/siraj_candles_eg" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
