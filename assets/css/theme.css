@@ -295,12 +295,8 @@ body.mobile-menu-open::before {
     transition: opacity 0.3s;
 }
 
-
-
 /* Desktop Styles */
-@media (min-width: 992px) { /* Adjusted breakpoint */
-    /* .mobile-menu-toggle { display: none; } */ /* Hide hamburger */
-
+@media (min-width: 992px) {
     .logo-siraj {
         font-size: 3.2rem; /* Even bigger on desktop */
     }
@@ -313,17 +309,14 @@ body.mobile-menu-open::before {
         gap: 2rem;
         position: static; /* Put links back in normal flow */
         transform: none; /* Remove centering transform */
-         /* Optionally re-center links if needed for wide screens */
-         /* position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); */
     }
-
-    /* .nav-icons rule doesn't need override as it's static by default */
 
      /* Ensure container keeps space between logo and icons */
      .navbar .container {
          justify-content: space-between;
      }
 }
+
 /* ------------------ Dropdown Cart & Search Modal ------------------ */
 
 .cart-dropdown {
@@ -333,7 +326,7 @@ body.mobile-menu-open::before {
     width: 90%;
     max-width: 300px;
     background-color: var(--text-light);
-    border: 1px solid #ddd; /* Consider var(--border-color) */
+    border: 1px solid #ddd;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     z-index: 1000;
     padding: 1rem;
@@ -345,10 +338,9 @@ body.mobile-menu-open::before {
     justify-content: space-between;
     padding: 0.5rem 0;
     border-bottom: 1px dotted #eee;
-    font-size: 0.9rem; /* Slightly smaller text */
+    font-size: 0.9rem;
 }
 
-/* Added style for empty message */
 .empty-cart-message {
     font-style: italic;
     color: #666;
@@ -356,12 +348,11 @@ body.mobile-menu-open::before {
     padding: 1rem 0;
 }
 
-
 .cart-summary {
     font-weight: 700;
     margin-top: 1rem;
     padding-top: 0.5rem;
-    border-top: 1px solid #ddd; /* Consider var(--border-color) */
+    border-top: 1px solid #ddd;
     font-size: 0.95rem;
 }
 
@@ -371,18 +362,18 @@ body.mobile-menu-open::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(248, 244, 242, 0.98); /* Slightly more opaque */
+    background-color: rgba(248, 244, 242, 0.98);
     padding: 2rem;
-    display: none; /* Controlled by JS */
-    justify-content: center; /* Center content horizontally */
-    align-items: flex-start; /* Align content to top */
+    display: none;
+    justify-content: center;
+    align-items: flex-start;
     z-index: 1001;
 }
 
 .search-content {
-    width: 100%; /* Take full width on mobile */
+    width: 100%;
     max-width: 600px;
-    margin-top: 10vh; /* Position down from top */
+    margin-top: 10vh;
     position: relative;
 }
 
@@ -394,10 +385,9 @@ body.mobile-menu-open::before {
     border-radius: 5px;
 }
 
-/* Added close button style */
 .close-search {
     position: absolute;
-    top: -30px; /* Position above the input */
+    top: -30px;
     right: 0;
     background: none;
     border: none;
@@ -414,9 +404,9 @@ body.mobile-menu-open::before {
     margin-top: 1rem;
     background: white;
     border-radius: 5px;
-    max-height: 60vh; /* Limit height and allow scrolling */
+    max-height: 60vh;
     overflow-y: auto;
-    border: 1px solid #eee; /* Add subtle border */
+    border: 1px solid #eee;
 }
 .search-result-item {
     display: flex;
@@ -426,7 +416,7 @@ body.mobile-menu-open::before {
     font-size: 0.95rem;
 }
 .search-result-item:hover {
-     background-color: #f9f9f9; /* Add hover effect */
+     background-color: #f9f9f9;
 }
 .search-item-title {
      font-weight: 500;
@@ -434,22 +424,21 @@ body.mobile-menu-open::before {
 .search-item-price {
      color: #555;
 }
-/* ------------------ Hero Section (Updated with Background Image) ------------------ */
+
+/* ------------------ Hero Section ------------------ */
 
 .hero-section {
-    /* background-color: var(--primary-color); /* Replaced */
-    background-image: url('../images/hero-background.jpg'); /* ADJUST PATH AS NEEDED */
+    background-image: url('../images/hero-background.jpg');
     background-size: cover;
-    background-position: center center; /* More specific centering */
+    background-position: center center;
     background-repeat: no-repeat;
-    padding: 5rem 1rem; /* Increased padding for better image display */
+    padding: 5rem 1rem;
     text-align: center;
-    position: relative; /* For overlay positioning */
-    color: var(--text-light); /* Make default text white */
-    overflow: hidden; /* Prevent potential overlay bleed */
+    position: relative;
+    color: var(--text-light);
+    overflow: hidden;
 }
 
-/* Overlay */
 .hero-section::before {
     content: "";
     position: absolute;
@@ -457,73 +446,64 @@ body.mobile-menu-open::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.3); /* Dark overlay (30% opacity) - adjust as needed */
-    z-index: 1; /* Place overlay behind text */
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 1;
 }
 
-/* Ensure Text/Button elements inside hero are above overlay */
-/* Add selectors for your specific heading/paragraph elements if needed */
 .hero-section h1,
 .hero-section p,
 .hero-section .shop-now-btn {
     position: relative;
-    z-index: 2; /* Ensure text/buttons are above the ::before overlay */
+    z-index: 2;
 }
 
-/* Keep button styles - they should work on the overlay */
-.shop-now-btn, .checkout-btn { /* Assuming .checkout-btn might also appear here */
+.shop-now-btn, .checkout-btn {
     display: inline-block;
     background-color: var(--accent-color);
     color: var(--text-light);
-    padding: 0.75rem 1.8rem; /* Slightly more padding */
+    padding: 0.75rem 1.8rem;
     border-radius: 5px;
     transition: background-color 0.3s;
     font-weight: 600;
     text-align: center;
-    border: none; /* Ensure no border */
-    font-size: 1rem; /* Match base font size */
-    margin-top: 1rem; /* Add space above button */
+    border: none;
+    font-size: 1rem;
+    margin-top: 1rem;
 }
 
 .shop-now-btn:hover, .checkout-btn:hover {
-    background-color: #8C756B; /* Keep hover color */
+    background-color: #8C756B;
 }
 
-/* ------------------ Category & Product Sections (Updated) ------------------ */
+/* ------------------ Category & Product Sections ------------------ */
 
 .category-section, .bestsellers-section, .related-products-section {
-    padding: 3rem 0; /* Use container padding */
+    padding: 3rem 0;
     text-align: center;
 }
-.related-products-section h3 { /* Style for related products heading */
+.related-products-section h3 {
     margin-bottom: 2rem;
 }
 
-
-/* Category Grid */
 .category-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
     margin-top: 1.5rem;
 }
 .category-card-item {
-    display: block; /* Make the link a block */
+    display: block;
     text-align: center;
     border-radius: 4px;
     transition: box-shadow 0.2s;
 }
-/* Uncomment this if you want a hover effect */
-/* .category-card-item:hover {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-} */
-.category-image-wrapper { /* Style if using images */
+.category-image-wrapper {
     overflow: hidden;
     border-radius: 4px;
-    margin-bottom: 0.8rem; /* Space below image */
-    background-color: #eee; /* Placeholder bg */
+    margin-bottom: 0.8rem;
+    background-color: #eee;
 }
-.category-image { /* Style actual category image */
+.category-image {
     width: 100%;
     height: auto;
     aspect-ratio: 1 / 1;
@@ -536,36 +516,38 @@ body.mobile-menu-open::before {
     color: var(--text-dark);
 }
 
+/* ------------------ Product Grid & Filters (COMPLETELY REBUILT) ------------------ */
 
-/* --- Product Grid (FIXED Mobile 2x2 Layout) --- */
+/* --- Product Grid (Rebuilt) --- */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
-    gap: 1rem; /* Reduced gap for mobile */
+    gap: 1rem;
     margin-top: 1.5rem;
 }
 
-/* FIXED: All product grids now 2 columns on mobile */
+/* All product grids are 2 columns on mobile */
 .product-grid.bestsellers-grid,
 .product-grid.related-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
+    grid-template-columns: repeat(2, 1fr);
 }
 
 @media (min-width: 768px) {
     .product-grid {
-        grid-template-columns: repeat(4, 1fr); /* 4 columns for main products */
+        grid-template-columns: repeat(4, 1fr);
         gap: 2rem;
     }
     
     .product-grid.bestsellers-grid {
-        grid-template-columns: repeat(5, 1fr); /* 5 columns for bestsellers */
+        grid-template-columns: repeat(5, 1fr);
     }
     
     .product-grid.related-grid {
-        grid-template-columns: repeat(4, 1fr); /* 4 columns for related */
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
+/* Product Card (Keep your theme) */
 .product-card {
     background-color: transparent;
     border: none;
@@ -594,7 +576,7 @@ body.mobile-menu-open::before {
 
 .product-title {
     font-family: var(--font-body);
-    font-size: 0.85rem; /* Smaller for mobile 2-column layout */
+    font-size: 0.85rem;
     font-weight: 600;
     margin-bottom: 0.3rem;
     color: var(--text-dark);
@@ -611,30 +593,25 @@ body.mobile-menu-open::before {
 .product-price {
     color: var(--text-dark);
     font-weight: 600;
-    font-size: 0.8rem; /* Smaller for mobile */
+    font-size: 0.8rem;
     margin-bottom: 0;
     font-family: var(--font-body);
 }
 
-/* Remove old button style if it existed */
-.view-product-btn {
-    display: none;
-}
-.product-name-bold {
-    display: none;
-}
-
-/* ------------------ Product Page Filters (FIXED Mobile Layout) ------------------ */
-
+/* --- Filters (Completely Rebuilt - Like 2segypt) --- */
 .filter-controls-group {
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-bottom: none;
-    background: var(--primary-color);
-    border-radius: 8px;
+    flex-direction: column; /* Stack on mobile */
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0;
+}
+
+.filter-row {
+    display: flex;
+    flex-direction: column; /* Stack on mobile */
+    gap: 0.5rem;
+    width: 100%;
 }
 
 .filter-item {
@@ -668,31 +645,37 @@ body.mobile-menu-open::before {
     background-size: 10px 10px;
 }
 
+/* Desktop filters - side by side like 2segypt */
 @media (min-width: 768px) {
     .filter-controls-group {
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        gap: 1.5rem;
-        background: transparent;
-        padding: 0;
+        gap: 1rem;
+    }
+    
+    .filter-row {
+        flex-direction: row;
+        gap: 1rem;
+        width: auto;
     }
     
     .filter-item {
         width: auto;
         flex-direction: row;
         align-items: center;
-        margin-bottom: 0;
+        gap: 0.5rem;
     }
     
     .filter-select {
         width: auto;
+        min-width: 150px;
         font-size: 0.9rem;
-        padding: 0.75rem 2.5rem 0.75rem 1rem;
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
     }
 }
 
-/* ------------------ Single Product Page (FIXED Layout) ------------------ */
+/* ------------------ Single Product Page ------------------ */
 
 .product-detail-grid-new {
     display: grid;
@@ -834,12 +817,39 @@ body.mobile-menu-open::before {
 .product-specs-group, .basic-description { display: none !important; }
 .related-products-section:not(#related-products-main) { display: none !important; }
 
+/* Fix related products section */
 .related-products-section#related-products-main {
-   margin-top: 3rem;
-   padding-top: 2rem;
-   border-top: 1px solid var(--border-color);
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
 }
 
+.related-products-section h3 {
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+/* Remove loading text */
+.related-products-section:empty::before {
+    display: none;
+}
+
+/* Fix scent names breaking layout */
+.cart-customization-detail,
+.checkout-item-list .checkout-item {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.cart-customization-detail {
+    font-size: 0.8rem;
+    color: #555;
+    margin-top: 0.3rem;
+    line-height: 1.3;
+}
+
+/* Single Product Page Desktop Layout */
 @media (min-width: 768px) {
     .product-detail-grid-new {
         grid-template-columns: 1fr 1fr;
@@ -856,6 +866,7 @@ body.mobile-menu-open::before {
     border: 1px dashed var(--accent-color);
     background-color: var(--primary-color);
     border-radius: 5px;
+    overflow: hidden; /* Prevent overflow */
 }
 
 .customization-prompt {
@@ -869,6 +880,7 @@ body.mobile-menu-open::before {
     display: flex;
     flex-direction: column;
     margin-bottom: 0.5rem;
+    width: 100%;
 }
 
 .bundle-selector-group label {
@@ -882,11 +894,13 @@ body.mobile-menu-open::before {
     border: 1px solid var(--accent-color);
     border-radius: 4px;
     background-color: white;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     cursor: pointer;
+    width: 100%;
+    max-width: 100%;
 }
 
-/* ------------------ Cart Page Styles (FIXED Mobile Sticky Cart) ------------------ */
+/* ------------------ Cart Page (FIXED - No More Disappearing) ------------------ */
 .cart-table {
     width: 100%;
     border-collapse: collapse;
@@ -894,7 +908,7 @@ body.mobile-menu-open::before {
     font-size: 0.95rem;
 }
 
-/* FIXED: Mobile responsive cart table */
+/* Mobile cart table */
 @media (max-width: 767px) {
     .cart-table, 
     .cart-table thead, 
@@ -943,19 +957,21 @@ body.mobile-menu-open::before {
         white-space: nowrap;
     }
     
-    /* FIXED: Cart summary stays visible when scrolling */
+    /* FIXED: Cart summary - properly sticky */
+    .cart-content-grid {
+        display: block;
+    }
+    
     .cart-summary-box {
-        position: fixed;
+        position: sticky;
         bottom: 0;
         left: 0;
         right: 0;
-        margin: 0;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-        border-bottom: none;
-        z-index: 100;
-        box-shadow: 0 -2px 15px rgba(0,0,0,0.1);
+        margin: 1rem 0 0 0;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        z-index: 99;
         max-width: none;
     }
 }
@@ -1057,18 +1073,12 @@ body.mobile-menu-open::before {
     color: #666;
 }
 
-.cart-customization-detail {
-    font-size: 0.85rem;
-    color: #555;
-    margin-top: 0.3rem;
-}
-
 .cart-summary-box .checkout-btn {
      margin-top: 1.5rem;
      width: 100%;
 }
 
-/* FIXED: Cart content layout for desktop */
+/* Desktop cart layout */
 @media (min-width: 768px) {
     .cart-content-grid {
         display: grid;
@@ -1080,7 +1090,7 @@ body.mobile-menu-open::before {
     .cart-summary-box {
         position: sticky;
         top: 100px;
-        max-width: 400px;
+        margin-left: 0;
     }
 }
 
@@ -1148,6 +1158,21 @@ body.mobile-menu-open::before {
     display: flex;
     justify-content: space-between;
     margin-bottom: 0.3rem;
+    flex-wrap: wrap;
+}
+
+.checkout-item .item-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 1rem;
+}
+
+.checkout-item .item-price {
+    flex-shrink: 0;
+    font-weight: 600;
 }
 
 .checkout-item span {
@@ -1416,4 +1441,10 @@ body.mobile-menu-open::before {
     body::before {
         display: none;
     }
+}
+
+/* Remove old styles */
+.view-product-btn,
+.product-name-bold {
+    display: none;
 }
