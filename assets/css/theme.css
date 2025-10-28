@@ -537,22 +537,18 @@ body.mobile-menu-open::before {
 }
 
 
-/* --- Product Grid (FIXED Responsive Grid) --- */
+/* --- Product Grid (FIXED Mobile 2x2 Layout) --- */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
-    gap: 1.5rem;
+    gap: 1rem; /* Reduced gap for mobile */
     margin-top: 1.5rem;
 }
 
-/* FIXED: Bestsellers grid - 3 columns on mobile, 4-5 on desktop */
-.product-grid.bestsellers-grid {
-    grid-template-columns: repeat(3, 1fr); /* 3 columns on mobile */
-}
-
-/* FIXED: Related products grid - same as bestsellers */
+/* FIXED: All product grids now 2 columns on mobile */
+.product-grid.bestsellers-grid,
 .product-grid.related-grid {
-    grid-template-columns: repeat(3, 1fr); /* 3 columns on mobile */
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
 }
 
 @media (min-width: 768px) {
@@ -571,138 +567,140 @@ body.mobile-menu-open::before {
 }
 
 .product-card {
-    background-color: transparent; /* FIX: Remove white background */
-    border: none; /* FIX: Remove border */
-    padding: 0; /* FIX: Remove padding */
-    text-align: left; /* FIX: Align text left */
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    text-align: left;
     transition: transform 0.2s ease-out;
-    display: block; /* Ensure 'a' tag behaves like a block */
+    display: block;
 }
 .product-card:hover {
-    transform: translateY(-3px); /* Subtle hover lift */
+    transform: translateY(-3px);
 }
 
 .product-card img {
     width: 100%;
     height: auto;
-    aspect-ratio: 4 / 5; /* Taller aspect ratio */
+    aspect-ratio: 4 / 5;
     object-fit: cover;
-    margin-bottom: 0.8rem; /* Space below image */
-    background-color: #eee; /* Placeholder bg color while loading */
-    border-radius: 3px; /* Slightly rounded corners */
+    margin-bottom: 0.8rem;
+    background-color: #eee;
+    border-radius: 3px;
 }
 
-.product-info-minimal { /* New class from site.js */
-    padding: 0 0.2rem; /* Small horizontal padding */
+.product-info-minimal {
+    padding: 0 0.2rem;
 }
 
-.product-title { /* New class used in site.js */
-    font-family: var(--font-body); /* Use body font */
-    font-size: 0.95rem; /* Adjust size */
-    font-weight: 600; /* Medium weight */
+.product-title {
+    font-family: var(--font-body);
+    font-size: 0.85rem; /* Smaller for mobile 2-column layout */
+    font-weight: 600;
     margin-bottom: 0.3rem;
     color: var(--text-dark);
-    line-height: 1.4;
-    /* Limit title to 2 lines */
+    line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
-    line-clamp: 2;         /* Add standard property */
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-height: calc(1.4em * 2); /* Reserve space for two lines */
+    min-height: calc(1.3em * 2);
 }
 
-.product-price { /* Re-style price */
-    color: var(--text-dark); /* Match text color */
+.product-price {
+    color: var(--text-dark);
     font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 0; /* Remove extra space */
-    font-family: var(--font-body); /* Use body font */
+    font-size: 0.8rem; /* Smaller for mobile */
+    margin-bottom: 0;
+    font-family: var(--font-body);
 }
 
 /* Remove old button style if it existed */
 .view-product-btn {
     display: none;
 }
-/* Remove old product name style */
 .product-name-bold {
-    /* Styles moved to .product-title */
-    display: none; /* Hide if element still exists */
+    display: none;
 }
 
-/* ------------------ Product Page Filters (FIXED Layout) ------------------ */
+/* ------------------ Product Page Filters (FIXED Mobile Layout) ------------------ */
 
 .filter-controls-group {
     display: flex;
-    flex-direction: column; /* FIXED: Stack vertically on mobile */
-    gap: 1rem; /* FIXED: Consistent spacing */
-    padding: 0;
-    margin-bottom: 1.5rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
     border-bottom: none;
+    background: var(--primary-color);
+    border-radius: 8px;
 }
 
 .filter-item {
     display: flex;
-    flex-direction: column; /* FIXED: Stack label and select vertically */
-    gap: 0.5rem;
-    width: 100%; /* FIXED: Full width on mobile */
+    flex-direction: column;
+    gap: 0.3rem;
+    width: 100%;
 }
 
-/* FIXED: Better label styling */
 .filter-item label {
-    display: block; /* Show labels on mobile */
-    font-size: 0.9rem;
+    display: block;
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-dark);
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
 }
 
 .filter-select {
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background-color: #fff;
-    font-size: 0.9rem;
-    width: 100%; /* FIXED: Full width on mobile */
-    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    font-size: 0.85rem;
+    width: 100%;
+    padding: 0.6rem 2rem 0.6rem 0.75rem;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2712%27%20height%3D%2712%27%20viewBox%3D%270%200%2012%2012%27%3E%3Cpath%20fill%3D%27%23333%27%20d%3D%27M10.293%203.293L6%207.586%201.707%203.293%200.293%204.707%206%2010.414%2011.707%204.707z%27%2F%3E%3C%2Fsvg%3E");
     background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 12px 12px;
+    background-position: right 0.75rem center;
+    background-size: 10px 10px;
 }
 
 @media (min-width: 768px) {
     .filter-controls-group {
-        flex-direction: row; /* Side by side on desktop */
+        flex-direction: row;
         justify-content: space-between;
         align-items: center;
+        gap: 1.5rem;
+        background: transparent;
+        padding: 0;
     }
     
     .filter-item {
-        width: auto; /* Auto width on desktop */
-        flex-direction: row; /* Label and select side by side */
+        width: auto;
+        flex-direction: row;
         align-items: center;
+        margin-bottom: 0;
     }
     
     .filter-select {
-        width: auto; /* Auto width on desktop */
+        width: auto;
+        font-size: 0.9rem;
+        padding: 0.75rem 2.5rem 0.75rem 1rem;
     }
 }
 
 /* ------------------ Single Product Page (FIXED Layout) ------------------ */
 
-/* Main grid for image and info */
 .product-detail-grid-new {
     display: grid;
-    grid-template-columns: 1fr; /* Single column on mobile */
+    grid-template-columns: 1fr;
     gap: 2rem;
     padding: 2rem 0;
 }
 
-/* Image area styling */
 .product-image-area-new {
     width: 100%;
 }
@@ -725,13 +723,11 @@ body.mobile-menu-open::before {
     opacity: 1; border-color: var(--accent-color);
 }
 
-/* Info area styling */
 .product-info-area-new {
     display: flex;
     flex-direction: column;
 }
 
-/* Specific styling for elements in the new order */
 .product-title-main {
     font-size: 1.8rem;
     margin-bottom: 0.1rem;
@@ -754,7 +750,6 @@ body.mobile-menu-open::before {
     font-family: var(--font-body);
 }
 
-/* --- Product Page Action Buttons --- */
 .product-actions-grid {
     display: grid;
     grid-template-columns: 130px 1fr;
@@ -805,7 +800,6 @@ body.mobile-menu-open::before {
 }
 .cart-icon { font-size: 1.1em; margin-right: 8px; color: inherit; }
 
-/* Description & Attributes Styling */
 .section-subtitle {
     font-family: var(--font-body);
     font-size: 1.1rem;
@@ -826,12 +820,10 @@ body.mobile-menu-open::before {
 .attribute-icon { margin-right: 6px; font-size: 1em; }
 .attribute-label { font-weight: 600; margin-right: 4px; }
 
-/* Stock Status Styling */
 .stock-status { font-weight: 600; margin-top: 1.5rem; font-size: 0.9rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
 .stock-status.in-stock { color: #28a745; }
 .stock-status.out-of-stock { color: #dc3545; }
 
-/* Shipping Info Styling */
 .shipping-returns-new {
     margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);
     font-size: 0.9rem; color: #555;
@@ -839,29 +831,24 @@ body.mobile-menu-open::before {
 .shipping-returns-new h3 { font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.8rem; font-family: var(--font-body); font-weight: 600; }
 .shipping-returns-new ul { list-style: disc; padding-left: 20px; }
 
-/* Hide the old spec group and description classes */
 .product-specs-group, .basic-description { display: none !important; }
-
-/* Hide the misplaced related products section */
 .related-products-section:not(#related-products-main) { display: none !important; }
 
-/* Related Products Section at Bottom */
 .related-products-section#related-products-main {
    margin-top: 3rem;
    padding-top: 2rem;
    border-top: 1px solid var(--border-color);
 }
 
-/* FIXED: Single Product Page Desktop Layout */
 @media (min-width: 768px) {
     .product-detail-grid-new {
-        grid-template-columns: 1fr 1fr; /* FIXED: Simple 2-column layout */
+        grid-template-columns: 1fr 1fr;
         gap: 3rem;
         align-items: start;
     }
 }
 
-/* ------------------ Bundle Customization Styles (Reduced Spacing) ------------------ */
+/* ------------------ Bundle Customization Styles ------------------ */
 
 .bundle-customization-section {
     margin: 1rem 0;
@@ -899,7 +886,7 @@ body.mobile-menu-open::before {
     cursor: pointer;
 }
 
-/* ------------------ Cart Page Styles (FIXED Mobile Responsive) ------------------ */
+/* ------------------ Cart Page Styles (FIXED Mobile Sticky Cart) ------------------ */
 .cart-table {
     width: 100%;
     border-collapse: collapse;
@@ -954,6 +941,22 @@ body.mobile-menu-open::before {
         font-weight: bold;
         text-align: left;
         white-space: nowrap;
+    }
+    
+    /* FIXED: Cart summary stays visible when scrolling */
+    .cart-summary-box {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        z-index: 100;
+        box-shadow: 0 -2px 15px rgba(0,0,0,0.1);
+        max-width: none;
     }
 }
 
@@ -1020,14 +1023,8 @@ body.mobile-menu-open::before {
     margin-left: auto;
     padding: 1.5rem;
     border: 1px solid var(--border-color);
-    background-color: var(--background-light);
+    background-color: white;
     border-radius: 4px;
-    /* FIXED: Make cart summary sticky on mobile */
-    position: sticky;
-    bottom: 1rem;
-    background: white;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    z-index: 99;
 }
 
 .cart-summary-box h3 {
@@ -1083,14 +1080,13 @@ body.mobile-menu-open::before {
     .cart-summary-box {
         position: sticky;
         top: 100px;
-        bottom: auto;
-        box-shadow: none;
+        max-width: 400px;
     }
 }
 
-/* ------------------ Checkout Page Styles (FIXED Mobile Layout) ------------------ */
+/* ------------------ Checkout Page Styles ------------------ */
 .checkout-grid {
-    display: block; /* FIXED: Simple stack on mobile */
+    display: block;
     padding: 2rem 0;
 }
 
@@ -1103,7 +1099,6 @@ body.mobile-menu-open::before {
     margin-bottom: 1.5rem;
 }
 
-/* Form Styles */
 .checkout-form label {
     display: block;
     margin-top: 1rem;
@@ -1128,13 +1123,12 @@ body.mobile-menu-open::before {
     min-height: 80px;
 }
 
-/* Order Summary Box */
 .order-summary-box {
     background-color: #fff;
     padding: 1.5rem;
     border-radius: 5px;
     border: 1px solid var(--border-color);
-    margin-top: 2rem; /* FIXED: Space on mobile */
+    margin-top: 2rem;
 }
 
 .order-summary-box h3 {
@@ -1180,7 +1174,6 @@ body.mobile-menu-open::before {
     padding-top: 0.8rem;
 }
 
-/* Payment Options */
 .payment-options label {
     display: flex;
     align-items: center;
@@ -1206,7 +1199,6 @@ body.mobile-menu-open::before {
     border-color: #aaa;
 }
 
-/* Place Order Button */
 #place-order-btn {
     width: 100%;
     margin-top: 1.5rem;
@@ -1230,7 +1222,6 @@ body.mobile-menu-open::before {
     cursor: not-allowed;
 }
 
-/* FIXED: Checkout desktop layout */
 @media (min-width: 768px) {
     .checkout-grid {
         display: grid;
@@ -1292,9 +1283,8 @@ body.mobile-menu-open::before {
     pointer-events: none; 
 }
 
-/* ------------------ Desktop/Tablet Styles (Overrides - FINAL) ------------------ */
+/* ------------------ Desktop/Tablet Styles ------------------ */
 @media (min-width: 768px) {
-    /* --- Navigation --- */
     .logo-siraj {
         font-size: 3.2rem;
     }
@@ -1320,13 +1310,7 @@ body.mobile-menu-open::before {
     }
 }
 
-/* ------------------ Mobile Navigation Menu (FINAL FIX) ------------------ */
-/* This section MUST be OUTSIDE the 768px media query */
-
-/* 1. HIDE THE OLD DESKTOP LINKS ON MOBILE */
-/* .nav-links rule moved to outside media query earlier */
-
-/* 2. STYLE THE HAMBURGER BUTTON (Show it and stop it from squishing) */
+/* ------------------ Mobile Navigation Menu ------------------ */
 .mobile-menu-toggle {
     display: flex;
     flex-direction: column;
@@ -1350,7 +1334,6 @@ body.mobile-menu-open::before {
     transition: all 0.3s ease;
 }
 
-/* 3. STYLE THE 'X' ANIMATION */
 .mobile-menu-toggle.active .icon-bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
 }
@@ -1363,7 +1346,6 @@ body.mobile-menu-open::before {
     transform: translateY(-8px) rotate(-45deg);
 }
 
-/* 4. STYLE THE NEW MENU PANEL (Slide from left) */
 .mobile-nav-menu {
     display: flex;
     flex-direction: column;
@@ -1383,7 +1365,6 @@ body.mobile-menu-open::before {
     transition: transform 0.3s ease-in-out;
 }
 
-/* 5. STYLE THE VISIBLE MENU PANEL */
 .mobile-nav-menu.active {
     transform: translateX(0);
 }
@@ -1395,7 +1376,6 @@ body.mobile-menu-open::before {
     font-weight: 600;
 }
 
-/* 6. ADD THE DARK OVERLAY */
 body::before {
     content: "";
     position: fixed;
@@ -1410,14 +1390,12 @@ body::before {
     transition: opacity 0.3s, visibility 0s 0.3s;
 }
 
-/* Show overlay when menu is open */
 body.mobile-menu-open::before {
     opacity: 1;
     visibility: visible;
     transition: opacity 0.3s;
 }
 
-/* 7. DESKTOP OVERRIDE: Hide hamburger, show old links */
 @media (min-width: 992px) {
     .mobile-menu-toggle {
         display: none;
