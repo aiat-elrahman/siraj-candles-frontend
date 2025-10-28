@@ -647,7 +647,7 @@ body.mobile-menu-open::before {
     padding: 0.5rem 0.5rem; /* Increased padding slightly */
     background-color: #fff;
     font-size: 0.9rem;
-    flex-grow: 1; /* FIX: Allow dropdowns to grow */
+    
     width: 100%; /* Make them flexible */
 }
 
