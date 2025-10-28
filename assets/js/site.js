@@ -6,7 +6,6 @@ const AVAILABLE_SCENTS = []; // Remove hardcoded list
 
 // ====================================
 // 1. DOM & INITIALIZATION
-
 // ====================================
 
 const searchToggle = document.getElementById('search-toggle');
@@ -16,7 +15,6 @@ const cartDropdown = document.getElementById('cart-dropdown');
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
 const closeSearch = document.querySelector('.close-search');
-
 
 document.addEventListener('DOMContentLoaded', () => {
     // ====================================
@@ -125,28 +123,28 @@ function setupEventListeners() {
 // ====================================
 
 async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query = '') {
-    try {
-        // FIX: Corrected API path
-        const fullUrl = `${API_BASE_URL}/api${endpoint}?page=${page}&limit=${limit}${query}`;
-        const response = await fetch(fullUrl);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json(); 
-        
-        // FIX: CRITICAL DATA NORMALIZATION - Use 'results' key from JSON response
-        const items = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
-        
-        return {
-            items: items,
-            // FIX: Calculate totalPages using total and limit keys
-            totalPages: Math.ceil((result.total || limit) / limit), 
-            currentPage: result.page || page
-        };
-    } catch (error) {
-        console.error(`Error fetching data from ${endpoint}:`, error);
-        return { items: [], totalPages: 1, currentPage: 1 };
-    }
+    try {
+        // FIX: Corrected API path
+        const fullUrl = `${API_BASE_URL}/api${endpoint}?page=${page}&limit=${limit}${query}`;
+        const response = await fetch(fullUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const result = await response.json(); 
+        
+        // FIX: CRITICAL DATA NORMALIZATION - Use 'results' key from JSON response
+        const items = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
+        
+        return {
+            items: items,
+            // FIX: Calculate totalPages using total and limit keys
+            totalPages: Math.ceil((result.total || limit) / limit), 
+            currentPage: result.page || page
+        };
+    } catch (error) {
+        console.error(`Error fetching data from ${endpoint}:`, error);
+        return { items: [], totalPages: 1, currentPage: 1 };
+    }
 }
 
 // FIXED: Product grid rendering
@@ -183,49 +181,49 @@ function renderProductGrid(containerId, items, endpointType) {
 }
 
 function renderPagination(controlsId, totalPages, currentPage, pageFile, loadFunction) {
-    const controls = document.getElementById(controlsId);
-    if (!controls || totalPages <= 1) return;
-    controls.innerHTML = '';
+    const controls = document.getElementById(controlsId);
+    if (!controls || totalPages <= 1) return;
+    controls.innerHTML = '';
 
-    const createButton = (text, page) => {
-        const button = document.createElement('button');
-        button.textContent = text;
-        // Class for pagination styling
-        button.classList.add('pagination-button', 'pagination-bold'); 
-        if (page === currentPage) {
-            button.classList.add('active');
-        }
-        button.addEventListener('click', () => {
-            window.history.pushState({}, '', `${pageFile}?page=${page}`);
-            loadFunction(page);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-        return button;
-    };
-    
-    // Previous button
-    if (currentPage > 1) {
-        controls.appendChild(createButton('← Previous', currentPage - 1));
-    }
+    const createButton = (text, page) => {
+        const button = document.createElement('button');
+        button.textContent = text;
+        // Class for pagination styling
+        button.classList.add('pagination-button', 'pagination-bold'); 
+        if (page === currentPage) {
+            button.classList.add('active');
+        }
+        button.addEventListener('click', () => {
+            window.history.pushState({}, '', `${pageFile}?page=${page}`);
+            loadFunction(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        return button;
+    };
+    
+    // Previous button
+    if (currentPage > 1) {
+        controls.appendChild(createButton('← Previous', currentPage - 1));
+    }
 
-    // Page numbers (simple approach)
-    for (let i = 1; i <= totalPages; i++) {
-        controls.appendChild(createButton(i, i));
-    }
+    // Page numbers (simple approach)
+    for (let i = 1; i <= totalPages; i++) {
+        controls.appendChild(createButton(i, i));
+    }
 
-    // Next button
-    if (currentPage < totalPages) {
-        controls.appendChild(createButton('Next →', currentPage + 1));
-    }
+    // Next button
+    if (currentPage < totalPages) {
+        controls.appendChild(createButton('Next →', currentPage + 1));
+    }
 }
 
 function debounce(func, delay) {
-    let timeout;
-    return function(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), delay);
-    };
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+    };
 }
 
 // ====================================
@@ -352,23 +350,24 @@ async function handleSearch() {
         searchResults.innerHTML = '<p class="error-message">Search error. Please try again.</p>';
     }
 }
+
 // ====================================
 // 5. PRODUCTS GRID PAGE LOGIC
 // ====================================
 
 function initProductsPage() {
-    // Setup Filter and Sort Dropdowns/Listeners here
-    const filterSortBar = document.getElementById('filter-sort-bar');
-    if (filterSortBar) {
-        filterSortBar.innerHTML = renderFilterSortBar();
-        // Add listeners for filter and sort changes to trigger loadProducts
-        document.getElementById('sort-by-select').addEventListener('change', () => loadProducts(1));
-        document.getElementById('filter-category-select').addEventListener('change', () => loadProducts(1));
-    }
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialPage = parseInt(urlParams.get('page')) || 1;
-    loadProducts(initialPage);
+    // Setup Filter and Sort Dropdowns/Listeners here
+    const filterSortBar = document.getElementById('filter-sort-bar');
+    if (filterSortBar) {
+        filterSortBar.innerHTML = renderFilterSortBar();
+        // Add listeners for filter and sort changes to trigger loadProducts
+        document.getElementById('sort-by-select').addEventListener('change', () => loadProducts(1));
+        document.getElementById('filter-category-select').addEventListener('change', () => loadProducts(1));
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialPage = parseInt(urlParams.get('page')) || 1;
+    loadProducts(initialPage);
 }
 
 // NEW FUNCTION: Renders the Filter/Sort HTML
@@ -410,59 +409,57 @@ function renderFilterSortBar() {
 
 // MODIFIED TO HANDLE FILTERS/SORTING
 async function loadProducts(page) {
-    const container = document.getElementById('products-container');
-    const paginationControls = document.getElementById('pagination-controls');
+    const container = document.getElementById('products-container');
+    const paginationControls = document.getElementById('pagination-controls');
 
-    const sortBy = document.getElementById('sort-by-select')?.value || '';
-    const filterCategory = new URLSearchParams(window.location.search).get('category') || document.getElementById('filter-category-select')?.value || '';
-    
-    // Build query string based on filters
-    let query = '';
-    if (filterCategory) {
-        query += `&category=${encodeURIComponent(filterCategory)}`;
-    }
-    if (sortBy) {
-        const [sortField, sortOrder] = sortBy.split('_');
-        query += `&sort=${sortField}&order=${sortOrder}`;
-    }
-    
-    container.innerHTML = '<p class="loading-message">Fetching all products...</p>';
-    paginationControls.innerHTML = '';
-    
-    // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
-    const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE, query);
+    const sortBy = document.getElementById('sort-by-select')?.value || '';
+    const filterCategory = new URLSearchParams(window.location.search).get('category') || document.getElementById('filter-category-select')?.value || '';
+    
+    // Build query string based on filters
+    let query = '';
+    if (filterCategory) {
+        query += `&category=${encodeURIComponent(filterCategory)}`;
+    }
+    if (sortBy) {
+        const [sortField, sortOrder] = sortBy.split('_');
+        query += `&sort=${sortField}&order=${sortOrder}`;
+    }
+    
+    container.innerHTML = '<p class="loading-message">Fetching all products...</p>';
+    paginationControls.innerHTML = '';
+    
+    // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
+    const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE, query);
 
-    renderProductGrid('products-container', items, 'products');
-    // Ensure pagination is called correctly
-    renderPagination('pagination-controls', totalPages, currentPage, 'products.html', loadProducts);
+    renderProductGrid('products-container', items, 'products');
+    // Ensure pagination is called correctly
+    renderPagination('pagination-controls', totalPages, currentPage, 'products.html', loadProducts);
 }
 
 // ====================================
 // 6. BUNDLES GRID PAGE LOGIC
-
 // ====================================
 
 function initBundlesPage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialPage = parseInt(urlParams.get('page')) || 1;
-    loadBundles(initialPage);
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialPage = parseInt(urlParams.get('page')) || 1;
+    loadBundles(initialPage);
 }
 
 async function loadBundles(page) {
-    const container = document.getElementById('bundles-container');
-    const paginationControls = document.getElementById('pagination-controls-bundles');
-    
-    container.innerHTML = '<p class="loading-message">Fetching curated bundles...</p>';
-    paginationControls.innerHTML = '';
-        
-    // Using the product endpoint to fetch only bundle types
+    const container = document.getElementById('bundles-container');
+    const paginationControls = document.getElementById('pagination-controls-bundles');
+    
+    container.innerHTML = '<p class="loading-message">Fetching curated bundles...</p>';
+    paginationControls.innerHTML = '';
+        
+    // Using the product endpoint to fetch only bundle types
     const BUNDLE_ITEMS_PER_PAGE = 9; 
-    const { items, totalPages, currentPage } = await fetchGridData('/products', page, BUNDLE_ITEMS_PER_PAGE, '&productType=Bundle');
+    const { items, totalPages, currentPage } = await fetchGridData('/products', page, BUNDLE_ITEMS_PER_PAGE, '&productType=Bundle');
 
-    renderProductGrid('bundles-container', items, 'bundles');
-    renderPagination('pagination-controls-bundles', totalPages, currentPage, 'bundles.html', loadBundles);
+    renderProductGrid('bundles-container', items, 'bundles');
+    renderPagination('pagination-controls-bundles', totalPages, currentPage, 'bundles.html', loadBundles);
 }
-
 
 // ====================================
 // 7. SINGLE PRODUCT/BUNDLE LOGIC (MAJOR OVERHAUL)
@@ -504,6 +501,29 @@ async function loadProductDetails() {
     }
 }
 
+// FIXED: Moved fetchRelatedProducts outside of loadProductDetails
+async function fetchRelatedProducts(category, excludeId) {
+    const container = document.getElementById('related-products-container');
+    if (!container) {
+        console.warn("Related products container not found, skipping fetch.");
+        return;
+    }
+
+    try {
+        const query = `&category=${encodeURIComponent(category)}&limit=4&exclude_id=${excludeId}&status=Active`;
+        const { items } = await fetchGridData('/products', 1, 4, query);
+        
+        // Check again if container still exists before rendering
+        if (document.getElementById('related-products-container')) {
+            renderProductGrid('related-products-container', items, 'related products');
+        }
+    } catch (error) {
+        console.error("Error fetching related products:", error);
+        if (document.getElementById('related-products-container')) {
+            container.innerHTML = '<p class="error-message">Could not load related products.</p>';
+        }
+    }
+}
 
 // --- UPDATED: Poshmark-inspired Product Detail Rendering ---
 function renderProduct(product) {
@@ -571,28 +591,20 @@ function renderProduct(product) {
      const metaDesc = (shortDescription || '').substring(0, 150).replace(/<br>/g, ' ');
      document.querySelector('meta[name="description"]')?.setAttribute('content', metaDesc + (metaDesc.length === 150 ? '...' : ''));
 
-
     // --- Build HTML ---
     container.innerHTML = `
         <div class="product-detail-grid-new"> 
-
-            
             <div class="product-image-area-new">
                 <div class="image-gallery">
                     ${imageGalleryHTML || '<img src="images/placeholder.jpg" alt="Placeholder" class="main-product-image">'}
                 </div>
-                
             </div>
 
-            
             <div class="product-info-area-new">
-
-                
                 <h1 class="product-title-main">${itemName || 'Product Name'}</h1>
                 <p class="product-category-subtle">${itemCategory}</p> 
                 <p class="product-price-main">${itemPrice.toFixed(2)} EGP</p>
 
-            
                 ${!isOutOfStock ? `
                     <div class="product-actions-grid">
                         <div class="quantity-selector-box">
@@ -611,17 +623,14 @@ function renderProduct(product) {
                     <button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>
                 `}
 
-                
                 ${customizationHTML}
 
-                
                 <div class="product-description-section">
                      <h3 class="section-subtitle">Description</h3> 
                      ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
                      ${formattedDescriptionHTML} 
                 </div>
 
-                
                 ${attributes.length > 0 ? `
                     <div class="product-attributes-section"> 
                         <h3 class="section-subtitle">Details</h3> 
@@ -638,7 +647,6 @@ function renderProduct(product) {
                 ` : ''}
                 ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
 
-                 
                  <div class="shipping-returns-new">
                      <h3>Shipping & Returns</h3>
                      <ul>
@@ -647,16 +655,11 @@ function renderProduct(product) {
                          <li>Returns accepted within 7 days for unused items.</li>
                      </ul>
                  </div>
-
             </div> 
         </div> 
 
-        
-        
         <div class="related-products-section" id="related-products-main">
-             
              <div id="related-products-container" class="product-grid related-grid">
-                 
                  <p>Loading related products...</p> 
              </div>
         </div>
@@ -665,12 +668,9 @@ function renderProduct(product) {
     // --- Add Event Listeners AFTER setting innerHTML ---
     attachQuantityButtonListeners(itemStock); // Pass actual stock
     attachAddToCartListener(product);
-    // Attach Buy Now listener if needed
-    // document.querySelector('.buy-it-now-btn')?.addEventListener('click', () => { /* Add Buy Now logic */ });
 }
 
 // --- Helper: Attach Quantity Button Listeners ---
-// (Keep the function definition from the previous step)
 function attachQuantityButtonListeners(maxStock) {
     const quantityInput = document.getElementById('quantity');
     if (!quantityInput) return;
@@ -690,9 +690,7 @@ function attachQuantityButtonListeners(maxStock) {
     });
 }
 
-
 // --- Helper: Attach Add to Cart Listener ---
-// (Keep the function definition from the previous step)
 function attachAddToCartListener(product) {
     const addToCartBtn = document.getElementById('add-to-cart-btn');
     const quantityInput = document.getElementById('quantity');
@@ -729,9 +727,7 @@ function attachAddToCartListener(product) {
     });
 }
 
-
 // --- Helper: Collect Bundle Scents ---
-// (Keep the function definition from the previous step)
 function collectBundleScents(numItems) {
     const scents = [];
     let allSelected = true;
@@ -749,69 +745,6 @@ function collectBundleScents(numItems) {
     return allSelected ? scents : null;
 }
 
-// 7. SINGLE PRODUCT/BUNDLE LOGIC (MAJOR OVERHAUL)
-// ====================================
-
-async function loadProductDetails() {
-    const container = document.getElementById('product-detail-container');
-    if (!container) { console.error("Product detail container not found"); return; }
-    container.innerHTML = '<p class="loading-message">Loading product details...</p>'; // Loading state
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-    if (!id) { container.innerHTML = '<p class="error-message">No product ID found in URL.</p>'; return; }
-
-    const endpoint = `/api/products/${id}`;
-    try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`);
-        if (!response.ok) {
-             const errorData = await response.json(); // Try to get error message from backend
-            throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Not Found'}`);
-        }
-        const product = await response.json();
-        product.isBundle = product.productType === 'Bundle'; // Add helper flag
-
-        renderProduct(product); // Call the updated render function
-
-        // Fetch related products (only if needed by the new layout)
-        const relatedContainer = document.getElementById('related-products-container');
-        if (relatedContainer) {
-            // Use product.category and product._id
-            fetchRelatedProducts(product.category || 'general', product._id);
-        } else {
-             console.warn("Related products container (related-products-container) not found on this page.");
-        }
-
-    } catch (error) {
-        console.error(`Error fetching product details for ID ${id}:`, error);
-        container.innerHTML = `<p class="error-message">Could not load product details. ${error.message}. Please try again later.</p>`;
-    }
-}
-
-// MOVE THIS FUNCTION OUTSIDE loadProductDetails - make it a separate global function
-async function fetchRelatedProducts(category, excludeId) {
-    const container = document.getElementById('related-products-container');
-    if (!container) {
-        console.warn("Related products container not found, skipping fetch.");
-        return;
-    }
-    
-    try {
-        const query = `&category=${encodeURIComponent(category)}&limit=4&exclude_id=${excludeId}&status=Active`;
-        const { items } = await fetchGridData('/products', 1, 4, query);
-
-        // Check again if container still exists before rendering
-        if (document.getElementById('related-products-container')) {
-            renderProductGrid('related-products-container', items, 'related products');
-        }
-
-    } catch (error) {
-        console.error("Error fetching related products:", error);
-        if (document.getElementById('related-products-container')) {
-            container.innerHTML = '<p class="error-message">Could not load related products.</p>';
-        }
-    }
-}
 // ====================================
 // 8. CART MANAGEMENT
 // ====================================
@@ -819,48 +752,48 @@ async function fetchRelatedProducts(category, excludeId) {
 let cart = [];
 
 function loadCartFromStorage() {
-    const cartData = localStorage.getItem('sirajCart');
-    if (cartData) {
-        cart = JSON.parse(cartData);
-    }
-    updateCartUI(); 
+    const cartData = localStorage.getItem('sirajCart');
+    if (cartData) {
+        cart = JSON.parse(cartData);
+    }
+    updateCartUI(); 
 }
 
 function saveCartToStorage() {
-    localStorage.setItem('sirajCart', JSON.stringify(cart));
+    localStorage.setItem('sirajCart', JSON.stringify(cart));
 }
 
 function getCartUniqueId(product) {
-    // Customization makes an item unique even if the base ID is the same
-    if (product.customization) {
-        return `${product._id}_${JSON.stringify(product.customization)}`;
-    }
-    return product._id;
+    // Customization makes an item unique even if the base ID is the same
+    if (product.customization) {
+        return `${product._id}_${JSON.stringify(product.customization)}`;
+    }
+    return product._id;
 }
 
 function addToCart(product) {
-    const uniqueId = getCartUniqueId(product);
-    const existingItem = cart.find(item => getCartUniqueId(item) === uniqueId);
-    
-    if (existingItem) {
-        existingItem.quantity += product.quantity || 1;
-    } else {
-        cart.push({ ...product, cartItemId: uniqueId, quantity: product.quantity || 1 });
-    }
-    saveCartToStorage();
-    updateCartUI();
-    // FIX: Replaced alert() with a console log
-    console.log(`${product.name} (x${product.quantity || 1}) added to cart!`);
+    const uniqueId = getCartUniqueId(product);
+    const existingItem = cart.find(item => getCartUniqueId(item) === uniqueId);
+    
+    if (existingItem) {
+        existingItem.quantity += product.quantity || 1;
+    } else {
+        cart.push({ ...product, cartItemId: uniqueId, quantity: product.quantity || 1 });
+    }
+    saveCartToStorage();
+    updateCartUI();
+    // FIX: Replaced alert() with a console log
+    console.log(`${product.name} (x${product.quantity || 1}) added to cart!`);
 }
 window.addToCart = addToCart; // Expose globally
 
 function removeItemFromCart(id) {
-    cart = cart.filter(item => getCartUniqueId(item) !== id);
-    saveCartToStorage();
-    updateCartUI();
-    if (document.body.getAttribute('data-page') === 'shopcart') {
-        renderShopCartPage();
-    }
+    cart = cart.filter(item => getCartUniqueId(item) !== id);
+    saveCartToStorage();
+    updateCartUI();
+    if (document.body.getAttribute('data-page') === 'shopcart') {
+        renderShopCartPage();
+    }
 }
 window.removeItemFromCart = removeItemFromCart;
 
@@ -884,7 +817,7 @@ function updateItemQuantity(id, quantity) {
 window.updateItemQuantity = updateItemQuantity;
 
 function getCartTotal() {
-    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 }
 
 function updateCartUI() {
@@ -911,19 +844,19 @@ function updateCartUI() {
         if (cart.length === 0) {
             cartListElement.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
         } else {
-            cartListElement.innerHTML = cart.map(item => {
-                const customizationDetail = item.customization ? 
-                    `<br><small>(${item.customization.slice(0, 2).join(', ')}${item.customization.length > 2 ? '...' : ''})</small>` 
-                    : '';
-                return `
-                    <div class="cart-item">
-                        <p>${item.name} x ${item.quantity} ${customizationDetail}</p>
-                        <p>${(item.price * item.quantity).toFixed(2)} EGP</p>
-                    </div>
-                `;
-            }).join('');
-        }
-    }
+            cartListElement.innerHTML = cart.map(item => {
+                const customizationDetail = item.customization ? 
+                    `<br><small>(${item.customization.slice(0, 2).join(', ')}${item.customization.length > 2 ? '...' : ''})</small>` 
+                    : '';
+                return `
+                    <div class="cart-item">
+                        <p>${item.name} x ${item.quantity} ${customizationDetail}</p>
+                        <p>${(item.price * item.quantity).toFixed(2)} EGP</p>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
 }
 
 // ====================================
@@ -996,109 +929,108 @@ function renderShopCartPage() {
 
 // ====================================
 // 10. CHECKOUT PAGE LOGIC
-// (No changes needed here)
 // ====================================
 
 function setupCheckoutPage() {
-    const summaryContainer = document.getElementById('checkout-summary-container');
-    const checkoutForm = document.getElementById('checkout-form');
-    
-    if (cart.length === 0) {
-        summaryContainer.innerHTML = '<p>Your cart is empty. <a href="products.html">Return to shopping.</a></p>';
-        if (checkoutForm) checkoutForm.style.display = 'none';
-        return;
-    }
-    
-    renderCheckoutSummary(summaryContainer);
-    
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', processCheckout);
-    }
+    const summaryContainer = document.getElementById('checkout-summary-container');
+    const checkoutForm = document.getElementById('checkout-form');
+    
+    if (cart.length === 0) {
+        summaryContainer.innerHTML = '<p>Your cart is empty. <a href="products.html">Return to shopping.</a></p>';
+        if (checkoutForm) checkoutForm.style.display = 'none';
+        return;
+    }
+    
+    renderCheckoutSummary(summaryContainer);
+    
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', processCheckout);
+    }
 }
 
 function renderCheckoutSummary(container) {
-    const subtotal = getCartTotal();
-    const shipping = subtotal >= 2000 ? 0.00 : 50.00;
-    const grandTotal = subtotal + shipping;
+    const subtotal = getCartTotal();
+    const shipping = subtotal >= 2000 ? 0.00 : 50.00;
+    const grandTotal = subtotal + shipping;
 
-    container.innerHTML = `
-        <h3>Order Summary</h3>
-        <div class="checkout-item-list">
-            ${cart.map(item => {
-                const customizationDetail = item.customization ? 
-                    `<small> (${item.customization.join(', ')})</small>` : '';
-                return `
-                    <p class="checkout-item">${item.name} x ${item.quantity}${customizationDetail} 
-                    <span>${(item.price * item.quantity).toFixed(2)} EGP</span></p>
-                `;
-            }).join('')}
-        </div>
-        <hr>
-        <p class="checkout-summary-line">Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
-        <p class="checkout-summary-line">Shipping: <span>${shipping.toFixed(2)} EGP</span></p>
-        <p class="checkout-summary-line final-total">Total: <span>${grandTotal.toFixed(2)} EGP</span></p>
-    `;
+    container.innerHTML = `
+        <h3>Order Summary</h3>
+        <div class="checkout-item-list">
+            ${cart.map(item => {
+                const customizationDetail = item.customization ? 
+                    `<small> (${item.customization.join(', ')})</small>` : '';
+                return `
+                    <p class="checkout-item">${item.name} x ${item.quantity}${customizationDetail} 
+                    <span>${(item.price * item.quantity).toFixed(2)} EGP</span></p>
+                `;
+            }).join('')}
+        </div>
+        <hr>
+        <p class="checkout-summary-line">Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
+        <p class="checkout-summary-line">Shipping: <span>${shipping.toFixed(2)} EGP</span></p>
+        <p class="checkout-summary-line final-total">Total: <span>${grandTotal.toFixed(2)} EGP</span></p>
+    `;
 }
 
 async function processCheckout(e) {
-    e.preventDefault();
-    
-    const checkoutForm = e.target;
-    const formData = new FormData(checkoutForm);
-    const totalAmount = getCartTotal();
-    const shippingFee = totalAmount >= 2000 ? 0.00 : 50.00;
+    e.preventDefault();
+    
+    const checkoutForm = e.target;
+    const formData = new FormData(checkoutForm);
+    const totalAmount = getCartTotal();
+    const shippingFee = totalAmount >= 2000 ? 0.00 : 50.00;
 
-    const orderData = {
-        customerInfo: {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            phone: formData.get('phone'),
-            address: formData.get('address'),
-            city: formData.get('city'),
-            notes: formData.get('notes'),
-        },
-        items: cart.map(item => ({
-            productId: item._id, // Base product ID
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            customization: item.customization || null // Include customization details
-        })),
-        totalAmount: totalAmount + shippingFee,
-        subtotal: totalAmount,
-        shippingFee: shippingFee,
-        paymentMethod: formData.get('payment-method'),
-    };
-    
-    const submitBtn = document.getElementById('place-order-btn');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Processing...';
+    const orderData = {
+        customerInfo: {
+            name: formData.get('name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            address: formData.get('address'),
+            city: formData.get('city'),
+            notes: formData.get('notes'),
+        },
+        items: cart.map(item => ({
+            productId: item._id, // Base product ID
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            customization: item.customization || null // Include customization details
+        })),
+        totalAmount: totalAmount + shippingFee,
+        subtotal: totalAmount,
+        shippingFee: shippingFee,
+        paymentMethod: formData.get('payment-method'),
+    };
+    
+    const submitBtn = document.getElementById('place-order-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing...';
 
-    try {
-        // FIX: Corrected API path
-        const response = await fetch(`${API_BASE_URL}/api/orders`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
-        });
+    try {
+        // FIX: Corrected API path
+        const response = await fetch(`${API_BASE_URL}/api/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
 
-        const result = await response.json();
+        const result = await response.json();
 
-        if (response.ok) {
-            // FIX: Replaced alert() with console.log
-            console.log('Order placed successfully! Your Order ID is: ' + result.orderId);
-            cart = []; 
-            saveCartToStorage();
-            updateCartUI();
-            window.location.href = 'index.html'; 
-        } else {
-            throw new Error(result.message || 'Failed to place order.');
-        }
+        if (response.ok) {
+            // FIX: Replaced alert() with console.log
+            console.log('Order placed successfully! Your Order ID is: ' + result.orderId);
+            cart = []; 
+            saveCartToStorage();
+            updateCartUI();
+            window.location.href = 'index.html'; 
+        } else {
+            throw new Error(result.message || 'Failed to place order.');
+        }
 
-    } catch (error) {
-        // FIX: Replaced alert() with console.error
-        console.error('Order failed: ' + error.message);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Place Order';
-    }
+    } catch (error) {
+        // FIX: Replaced alert() with console.error
+        console.error('Order failed: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Place Order';
+    }
 }
