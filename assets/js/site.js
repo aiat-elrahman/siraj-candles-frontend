@@ -465,7 +465,6 @@ async function loadBundles(page) {
 
 
 // ====================================
-
 // 7. SINGLE PRODUCT/BUNDLE LOGIC (MAJOR OVERHAUL)
 // ====================================
 
@@ -505,6 +504,30 @@ async function loadProductDetails() {
     }
 }
 
+// MOVE THIS FUNCTION OUTSIDE loadProductDetails - make it a separate global function
+async function fetchRelatedProducts(category, excludeId) {
+    const container = document.getElementById('related-products-container');
+    if (!container) {
+        console.warn("Related products container not found, skipping fetch.");
+        return;
+    }
+    
+    try {
+        const query = `&category=${encodeURIComponent(category)}&limit=4&exclude_id=${excludeId}&status=Active`;
+        const { items } = await fetchGridData('/products', 1, 4, query);
+
+        // Check again if container still exists before rendering
+        if (document.getElementById('related-products-container')) {
+            renderProductGrid('related-products-container', items, 'related products');
+        }
+
+    } catch (error) {
+        console.error("Error fetching related products:", error);
+        if (document.getElementById('related-products-container')) {
+            container.innerHTML = '<p class="error-message">Could not load related products.</p>';
+        }
+    }
+}
 // --- UPDATED: Poshmark-inspired Product Detail Rendering ---
 function renderProduct(product) {
     const container = document.getElementById('product-detail-container');
