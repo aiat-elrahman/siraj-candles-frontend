@@ -504,30 +504,7 @@ async function loadProductDetails() {
     }
 }
 
-// MOVE THIS FUNCTION OUTSIDE loadProductDetails - make it a separate global function
-async function fetchRelatedProducts(category, excludeId) {
-    const container = document.getElementById('related-products-container');
-    if (!container) {
-        console.warn("Related products container not found, skipping fetch.");
-        return;
-    }
-    
-    try {
-        const query = `&category=${encodeURIComponent(category)}&limit=4&exclude_id=${excludeId}&status=Active`;
-        const { items } = await fetchGridData('/products', 1, 4, query);
 
-        // Check again if container still exists before rendering
-        if (document.getElementById('related-products-container')) {
-            renderProductGrid('related-products-container', items, 'related products');
-        }
-
-    } catch (error) {
-        console.error("Error fetching related products:", error);
-        if (document.getElementById('related-products-container')) {
-            container.innerHTML = '<p class="error-message">Could not load related products.</p>';
-        }
-    }
-}
 // --- UPDATED: Poshmark-inspired Product Detail Rendering ---
 function renderProduct(product) {
     const container = document.getElementById('product-detail-container');
@@ -772,30 +749,67 @@ function collectBundleScents(numItems) {
     return allSelected ? scents : null;
 }
 
-// --- Fetch Related Products ---
-// (Keep the function definition from the previous step, ensure query includes status=Active)
+// 7. SINGLE PRODUCT/BUNDLE LOGIC (MAJOR OVERHAUL)
+// ====================================
+
+async function loadProductDetails() {
+    const container = document.getElementById('product-detail-container');
+    if (!container) { console.error("Product detail container not found"); return; }
+    container.innerHTML = '<p class="loading-message">Loading product details...</p>'; // Loading state
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    if (!id) { container.innerHTML = '<p class="error-message">No product ID found in URL.</p>'; return; }
+
+    const endpoint = `/api/products/${id}`;
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`);
+        if (!response.ok) {
+             const errorData = await response.json(); // Try to get error message from backend
+            throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Not Found'}`);
+        }
+        const product = await response.json();
+        product.isBundle = product.productType === 'Bundle'; // Add helper flag
+
+        renderProduct(product); // Call the updated render function
+
+        // Fetch related products (only if needed by the new layout)
+        const relatedContainer = document.getElementById('related-products-container');
+        if (relatedContainer) {
+            // Use product.category and product._id
+            fetchRelatedProducts(product.category || 'general', product._id);
+        } else {
+             console.warn("Related products container (related-products-container) not found on this page.");
+        }
+
+    } catch (error) {
+        console.error(`Error fetching product details for ID ${id}:`, error);
+        container.innerHTML = `<p class="error-message">Could not load product details. ${error.message}. Please try again later.</p>`;
+    }
+}
+
+// MOVE THIS FUNCTION OUTSIDE loadProductDetails - make it a separate global function
 async function fetchRelatedProducts(category, excludeId) {
     const container = document.getElementById('related-products-container');
-    // Check if container exists before proceeding
     if (!container) {
         console.warn("Related products container not found, skipping fetch.");
         return;
     }
-    container.innerHTML = '<p>Loading related products...</p>'; // Keep loading text
+    
     try {
-        const query = `&category=${encodeURIComponent(category)}&limit=4&exclude_id=${excludeId}&status=Active`; // Fetch active products
+        const query = `&category=${encodeURIComponent(category)}&limit=4&exclude_id=${excludeId}&status=Active`;
         const { items } = await fetchGridData('/products', 1, 4, query);
 
         // Check again if container still exists before rendering
         if (document.getElementById('related-products-container')) {
-             renderProductGrid('related-products-container', items, 'related products');
+            renderProductGrid('related-products-container', items, 'related products');
         }
 
     } catch (error) {
         console.error("Error fetching related products:", error);
-         if (document.getElementById('related-products-container')) {
+        if (document.getElementById('related-products-container')) {
             container.innerHTML = '<p class="error-message">Could not load related products.</p>';
-         }
+        }
     }
 }
 // ====================================
