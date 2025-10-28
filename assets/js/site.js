@@ -19,37 +19,47 @@ const closeSearch = document.querySelector('.close-search');
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Universal Setup (Nav, Search, Cart)
-    setupEventListeners();
-    loadCartFromStorage();
+    // ====================================
+    // SAFETY CHECK: Error Handling for Missing Elements
+    // ====================================
+    const requiredElements = ['search-toggle', 'cart-toggle', 'mobile-menu-toggle'];
+    requiredElements.forEach(id => {
+        if (!document.getElementById(id)) {
+            console.warn(`Required element #${id} not found`);
+        }
+    });
 
-    // Page-Specific Initialization based on body attribute
-    const pageName = document.body.getAttribute('data-page');
+    // Universal Setup (Nav, Search, Cart)
+    setupEventListeners();
+    loadCartFromStorage();
 
-    switch (pageName) {
-        case 'home':
-            fetchAndrenderCategories(); 
-            fetchBestsellers();
-            break;
-        case 'products':
-            initProductsPage();
-            break;
-        case 'bundles':
-            initBundlesPage();
-            break;
-        case 'product-detail':
-            loadProductDetails();
-            break;
-        case 'shopcart':
-            renderShopCartPage();
-            break;
-        case 'checkout':
-            setupCheckoutPage();
-            break;
-        default:
-            // Optional: handle default or error state
-            break;
-    }
+    // Page-Specific Initialization based on body attribute
+    const pageName = document.body.getAttribute('data-page');
+
+    switch (pageName) {
+        case 'home':
+            fetchAndrenderCategories(); 
+            fetchBestsellers();
+            break;
+        case 'products':
+            initProductsPage();
+            break;
+        case 'bundles':
+            initBundlesPage();
+            break;
+        case 'product-detail':
+            loadProductDetails();
+            break;
+        case 'shopcart':
+            renderShopCartPage();
+            break;
+        case 'checkout':
+            setupCheckoutPage();
+            break;
+        default:
+            // Optional: handle default or error state
+            break;
+    }
 });
 
 function setupEventListeners() {
@@ -72,7 +82,7 @@ function setupEventListeners() {
             e.stopPropagation();
             cartDropdown.style.display = cartDropdown.style.display === 'block' ? 'none' : 'block';
         });
-    } // <-- This was the brace you fixed
+    } 
 
     // --- Mobile Menu Toggle Logic ---
     const menuToggle = document.getElementById('mobile-menu-toggle');
@@ -139,37 +149,37 @@ async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query =
     }
 }
 
+// FIXED: Product grid rendering
 function renderProductGrid(containerId, items, endpointType) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
-    if (items.length === 0) {
-        container.innerHTML = `<p>No ${endpointType} found at this time.</p>`;
-        return;
-    }
+    if (items.length === 0) {
+        container.innerHTML = `<p class="no-products-message">No ${endpointType} found at this time.</p>`;
+        return;
+    }
 
-    container.innerHTML = items.map(item => {
-        // Determine if it is a bundle (using the new schema key for products)
-        const isBundle = item.productType === 'Bundle' || item.bundleItems;
-        const typeParam = isBundle ? '&type=bundle' : '';
-        
-        // FIX: Use correct Casing and Key names from the new Admin payload/Mongoose schema
-        const itemName = item.name_en || item.bundleName || item['Name (English)'] || 'Unknown Product';
-        const itemPrice = item.price_egp || item['Price (EGP)'] || 0;
-        // Use the first image from the imagePaths array, or fallback
-        const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
-        
-        return `
-            <a href="product.html?id=${item._id}" class="product-card">
+    // Ensure container has the correct grid class
+    if (!container.classList.contains('product-grid')) {
+        container.classList.add('product-grid');
+    }
+
+    container.innerHTML = items.map(item => {
+        const isBundle = item.productType === 'Bundle' || item.bundleItems;
+        const itemName = item.name_en || item.bundleName || item['Name (English)'] || 'Unknown Product';
+        const itemPrice = item.price_egp || item['Price (EGP)'] || 0;
+        const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
+        
+        return `
+            <a href="product.html?id=${item._id}" class="product-card">
                 <img src="${itemImage}" alt="${itemName}" loading="lazy"> 
                 <div class="product-info-minimal">
                     <p class="product-title">${itemName}</p>
-                    <p class="product-price">${(itemPrice).toFixed(2)} EGP</p>
-                    
+                    <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
                 </div>
             </a>
-        `;
-    }).join('');
+        `;
+    }).join('');
 }
 
 function renderPagination(controlsId, totalPages, currentPage, pageFile, loadFunction) {
@@ -362,38 +372,40 @@ function initProductsPage() {
 }
 
 // NEW FUNCTION: Renders the Filter/Sort HTML
+// FIXED: Filter rendering function
 function renderFilterSortBar() {
-    // Note: Fetching dynamic categories for the filter dropdown is complex
-    // and would require an additional fetch call or passing data from the server.
-    // For now, we use placeholders as requested, and will build the filtering logic.
-    
-    // Get current filter/sort settings from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentSort = urlParams.get('sort') || 'name_asc';
-    const currentCategory = urlParams.get('category') || '';
-    
-    return `
-        <div class="filter-controls-group">
-            <div class="filter-item">
-                <label for="filter-category-select">Category:</label>
-                <select id="filter-category-select" class="filter-select" value="${currentCategory}">
-                    <option value="">All Categories</option>
-                    <option value="Candles">Candles</option>
-                    <option value="Freshener">Freshener</option>
-                    </select>
-            </div>
-            
-            <div class="filter-item">
-                <label for="sort-by-select">Sort By:</label>
-                <select id="sort-by-select" class="filter-select" value="${currentSort}">
-                    <option value="name_asc" ${currentSort === 'name_asc' ? 'selected' : ''}>Name (A-Z)</option>
-                    <option value="price_asc" ${currentSort === 'price_asc' ? 'selected' : ''}>Price (Low to High)</option>
-                    <option value="price_desc" ${currentSort === 'price_desc' ? 'selected' : ''}>Price (High to Low)</option>
-                    <option value="newest" ${currentSort === 'newest' ? 'selected' : ''}>Newest</option>
-                </select>
-            </div>
-        </div>
-    `;
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSort = urlParams.get('sort') || 'name_asc';
+    const currentCategory = urlParams.get('category') || '';
+    
+    return `
+        <div class="filter-controls-group">
+            <div class="filter-row">
+                <div class="filter-item">
+                    <label for="filter-category-select">Category:</label>
+                    <select id="filter-category-select" class="filter-select">
+                        <option value="">All Categories</option>
+                        <option value="Candles" ${currentCategory === 'Candles' ? 'selected' : ''}>Candles</option>
+                        <option value="Diffusers" ${currentCategory === 'Diffusers' ? 'selected' : ''}>Diffusers</option>
+                        <option value="Soaps" ${currentCategory === 'Soaps' ? 'selected' : ''}>Soaps</option>
+                        <option value="Bundles" ${currentCategory === 'Bundles' ? 'selected' : ''}>Bundles</option>
+                        <option value="Body care" ${currentCategory === 'Body care' ? 'selected' : ''}>Body care</option>
+                        <option value="Freshener" ${currentCategory === 'Freshener' ? 'selected' : ''}>Freshener</option>
+                    </select>
+                </div>
+                
+                <div class="filter-item">
+                    <label for="sort-by-select">Sort By:</label>
+                    <select id="sort-by-select" class="filter-select">
+                        <option value="name_asc" ${currentSort === 'name_asc' ? 'selected' : ''}>Name (A-Z)</option>
+                        <option value="price_asc" ${currentSort === 'price_asc' ? 'selected' : ''}>Price (Low to High)</option>
+                        <option value="price_desc" ${currentSort === 'price_desc' ? 'selected' : ''}>Price (High to Low)</option>
+                        <option value="newest" ${currentSort === 'newest' ? 'selected' : ''}>Newest</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 // MODIFIED TO HANDLE FILTERS/SORTING
@@ -815,22 +827,22 @@ function removeItemFromCart(id) {
 }
 window.removeItemFromCart = removeItemFromCart;
 
+// FIXED: Cart quantity update
 function updateItemQuantity(id, quantity) {
-    const item = cart.find(item => getCartUniqueId(item) === id);
-    if (item) {
-        const newQuantity = parseInt(quantity);
-        if (newQuantity > 0) {
-            item.quantity = newQuantity;
-        } else {
-            removeItemFromCart(id);
-            return;
-        }
-    }
-    saveCartToStorage();
-    updateCartUI();
-    if (document.body.getAttribute('data-page') === 'shopcart') {
-        renderShopCartPage();
-    }
+    const item = cart.find(item => getCartUniqueId(item) === id);
+    if (item) {
+        const newQuantity = parseInt(quantity);
+        if (newQuantity > 0 && !isNaN(newQuantity)) {
+            item.quantity = newQuantity;
+            saveCartToStorage();
+            updateCartUI();
+            if (document.body.getAttribute('data-page') === 'shopcart') {
+                renderShopCartPage();
+            }
+        } else if (newQuantity <= 0) {
+            removeItemFromCart(id);
+        }
+    }
 }
 window.updateItemQuantity = updateItemQuantity;
 
@@ -881,67 +893,69 @@ function updateCartUI() {
 // 9. SHOP CART PAGE LOGIC
 // ====================================
 
+// FIXED: Cart page rendering
 function renderShopCartPage() {
-    const itemsContainer = document.getElementById('cart-items-table');
-    const summaryContainer = document.getElementById('cart-summary');
-    
-    if (!itemsContainer || !summaryContainer) return;
+    const itemsContainer = document.getElementById('cart-items-table');
+    const summaryContainer = document.getElementById('cart-summary');
+    
+    if (!itemsContainer || !summaryContainer) return;
 
-    if (cart.length === 0) {
-        itemsContainer.innerHTML = '<tr><td colspan="5" class="empty-cart-message-full">Your cart is empty. <a href="products.html">Start Shopping!</a></td></tr>';
-        summaryContainer.innerHTML = '';
-        document.getElementById('checkout-link-bottom').style.display = 'none';
-        return;
-    }
+    if (cart.length === 0) {
+        itemsContainer.innerHTML = '<tr><td colspan="5" class="empty-cart-message-full">Your cart is empty. <a href="products.html">Start Shopping!</a></td></tr>';
+        summaryContainer.innerHTML = '';
+        const checkoutLink = document.getElementById('checkout-link-bottom');
+        if (checkoutLink) checkoutLink.style.display = 'none';
+        return;
+    }
 
-    // Render Items Table
-    itemsContainer.innerHTML = cart.map(item => {
-        const uniqueId = getCartUniqueId(item);
-        const customizationDetail = item.customization ? 
-            `<div class="cart-customization-detail"><small>Scents: ${item.customization.join(', ')}</small></div>` 
-            : '';
-        // Use item.imageUrl which we added to cart item
+    // Render Items Table with proper data attributes
+    itemsContainer.innerHTML = cart.map(item => {
+        const uniqueId = getCartUniqueId(item);
+        const customizationDetail = item.customization ? 
+            `<div class="cart-customization-detail"><small>Scents: ${item.customization.join(', ')}</small></div>` 
+            : '';
         const itemImage = item.imageUrl || 'images/placeholder.jpg';
 
-        return `
-            <tr data-id="${uniqueId}">
-                <td class="cart-product-col" data-label="Product">
-                    <img src="${itemImage}" alt="${item.name}" class="cart-item-img">
-                    <div>
-                        <a href="product.html?id=${item._id}">${item.name}</a>
-                        ${customizationDetail}
-                    </div>
-                </td>
-                <td data-label="Price">${item.price.toFixed(2)} EGP</td>
-                <td data-label="Quantity">
-                    <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
-                           onchange="updateItemQuantity('${uniqueId}', this.value)" 
-                           onkeyup="updateItemQuantity('${uniqueId}', this.value)">
-                </td>
-                <td data-label="Total">${(item.price * item.quantity).toFixed(2)} EGP</td>
-                <td data-label="Remove">
-                    <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')"><i class="fas fa-times"></i></button>
-                </td>
-            </tr>
-        `;
-    }).join('');
+        return `
+            <tr data-id="${uniqueId}">
+                <td class="cart-product-col" data-label="Product">
+                    <img src="${itemImage}" alt="${item.name}" class="cart-item-img">
+                    <div>
+                        <a href="product.html?id=${item._id}">${item.name}</a>
+                        ${customizationDetail}
+                    </div>
+                </td>
+                <td data-label="Price">${item.price.toFixed(2)} EGP</td>
+                <td data-label="Quantity">
+                    <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
+                           onchange="updateItemQuantity('${uniqueId}', this.value)">
+                </td>
+                <td data-label="Total">${(item.price * item.quantity).toFixed(2)} EGP</td>
+                <td data-label="Remove">
+                    <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 
-    const subtotal = getCartTotal();
-    const shipping = subtotal >= 2000 ? 0.00 : 50.00;
-    const grandTotal = subtotal + shipping;
+    const subtotal = getCartTotal();
+    const shipping = subtotal >= 2000 ? 0.00 : 50.00;
+    const grandTotal = subtotal + shipping;
 
-    // Render Summary
-    summaryContainer.innerHTML = `
-        <h3>Cart Summary</h3>
-        <p>Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
-        <p>Shipping (Egypt): <span>${shipping.toFixed(2)} EGP</span></p>
-        <p class="cart-total-final">Grand Total: <span>${grandTotal.toFixed(2)} EGP</span></p>
-        <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
-    `;
-    
-    document.getElementById('checkout-link-bottom').style.display = 'block';
+    // Render Summary
+    summaryContainer.innerHTML = `
+        <h3>Cart Summary</h3>
+        <p>Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
+        <p>Shipping (Egypt): <span>${shipping.toFixed(2)} EGP</span></p>
+        <p class="cart-total-final">Grand Total: <span>${grandTotal.toFixed(2)} EGP</span></p>
+        <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
+    `;
+    
+    const checkoutLink = document.getElementById('checkout-link-bottom');
+    if (checkoutLink) checkoutLink.style.display = 'block';
 }
-
 
 // ====================================
 // 10. CHECKOUT PAGE LOGIC
