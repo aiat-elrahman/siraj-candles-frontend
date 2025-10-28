@@ -726,6 +726,7 @@ body.mobile-menu-open::before {
 .product-info-area-new {
     display: flex;
     flex-direction: column;
+     gap: 1.5rem;
 }
 
 .product-title-main {
@@ -850,12 +851,18 @@ body.mobile-menu-open::before {
 
 /* ------------------ Bundle Customization Styles ------------------ */
 
+/* ------------------ Bundle Customization Styles (FIXED Mobile Layout) ------------------ */
+
 .bundle-customization-section {
     margin: 1rem 0;
     padding: 1rem;
     border: 1px dashed var(--accent-color);
     background-color: var(--primary-color);
     border-radius: 5px;
+    /* FIX: Prevent overflow on mobile */
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .customization-prompt {
@@ -863,18 +870,26 @@ body.mobile-menu-open::before {
     margin-bottom: 0.75rem;
     font-size: 1rem;
     color: var(--text-dark);
+    /* FIX: Ensure text doesn't overflow */
+    word-wrap: break-word;
 }
 
 .bundle-selector-group {
     display: flex;
     flex-direction: column;
     margin-bottom: 0.5rem;
+    /* FIX: Full width and proper spacing */
+    width: 100%;
+    gap: 0.3rem;
 }
 
 .bundle-selector-group label {
     font-weight: 600;
     margin-bottom: 0.2rem;
     font-size: 0.9rem;
+    /* FIX: Prevent label overflow */
+    word-wrap: break-word;
+    line-height: 1.3;
 }
 
 .scent-selector {
@@ -884,8 +899,49 @@ body.mobile-menu-open::before {
     background-color: white;
     font-size: 0.95rem;
     cursor: pointer;
+    /* FIX: Full width and proper mobile sizing */
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
+/* FIX: Mobile-specific bundle layout */
+@media (max-width: 767px) {
+    .bundle-customization-section {
+        padding: 0.8rem;
+        margin: 0.8rem 0;
+    }
+    
+    .bundle-selector-group {
+        margin-bottom: 0.8rem;
+    }
+    
+    .bundle-selector-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .scent-selector {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    /* FIX: Ensure bundle section doesn't break product layout */
+    .product-info-area-new .bundle-customization-section {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+}
+
+/* FIX: Desktop bundle layout */
+@media (min-width: 768px) {
+    .bundle-customization-section {
+        padding: 1.2rem;
+    }
+    
+    .bundle-selector-group {
+        margin-bottom: 0.8rem;
+    }
+}
 /* ------------------ Cart Page Styles (FIXED Mobile Sticky Cart) ------------------ */
 .cart-table {
     width: 100%;
