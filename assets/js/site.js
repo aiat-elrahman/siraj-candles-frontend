@@ -537,15 +537,7 @@ function renderProduct(product) {
 }
 
 function renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock) {
-    // Attributes for main product display
-    const attributes = [];
-    if (!isBundle) {
-        if (product.scents) attributes.push({ label: 'Scent', value: product.scents ?? 'N/A', icon: '🌸' });
-        if (product.size) attributes.push({ label: 'Size', value: product.size ?? 'N/A', icon: '📏' });
-        // Removed detailed specs - they'll be in the specifications section
-    }
-
-    // Descriptions
+    // Enhanced product details with the layout you want
     const shortDescription = isBundle ? product.bundleDescription : product.description_en;
     const formattedDescriptionHTML = product.formattedDescription
         ? `<div class="formatted-description-box">${product.formattedDescription.replace(/\r?\n/g, '<br>')}</div>`
@@ -571,7 +563,26 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
             </div>
 
             <div class="product-info-area-new">
+                <!-- ENHANCED: Add product headers and details like in your original design -->
                 <h1 class="product-title-main">${itemName || 'Product Name'}</h1>
+                
+                ${product.subtitle ? `<h2 class="product-subtitle">${product.subtitle}</h2>` : ''}
+                
+                ${product.features ? `
+                    <div class="product-features">
+                        ${product.features.split('\n').map(feature => `<p>${feature}</p>`).join('')}
+                    </div>
+                ` : ''}
+
+                ${product.includes ? `
+                    <div class="product-includes">
+                        <h4>Includes:</h4>
+                        <ul>
+                            ${product.includes.split('\n').map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+
                 <p class="product-category-subtle">${itemCategory}</p> 
                 <p class="product-price-main">${itemPrice.toFixed(2)} EGP</p>
 
@@ -598,28 +609,14 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
                      ${formattedDescriptionHTML} 
                 </div>
 
-                ${attributes.length > 0 ? `
-                    <div class="product-attributes-section"> 
-                        <h3 class="section-subtitle">Quick Details</h3> 
-                        <div class="product-attributes-grid">
-                            ${attributes.map(attr => `
-                                <div class="attribute-chip">
-                                    <span class="attribute-icon" aria-hidden="true">${attr.icon || '🔹'}</span>
-                                    <span class="attribute-label">${attr.label}:</span>
-                                    <span class="attribute-value">${attr.value}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
                 ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
 
                  <div class="shipping-returns-new">
                      <h3>Shipping & Returns</h3>
                      <ul>
                          <li>Orders processed within 1–2 business days.</li>
-                         <li>Delivery across Egypt within 2–5 days.</li>
-                         <li>Returns accepted within 7 days for unused items.</li>
+                         <li>Delivery across Egypt within 5-7 days.</li>
+                         <li>Due to the handmade nature of our products, returns and exchanges are not accepted,.</li>
                      </ul>
                  </div>
             </div> 
