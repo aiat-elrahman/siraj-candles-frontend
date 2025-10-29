@@ -7,8 +7,7 @@
     <meta name="description" content="Review and manage the items in your Siraj Candles shopping cart.">
     <link rel="stylesheet" href="assets/css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    </head>
+</head>
 <body data-page="shopcart">
 
     <div class="announcement-ribbon"><p>🎉 Free delivery on orders over 2000 EGP. </p></div>
@@ -56,11 +55,13 @@
         <a href="checkout.html" class="checkout-btn">Go to Checkout</a>
     </div>
 
-    <div id="search-modal" class="search-modal"><div class="search-content">
-        <button class="close-search">&times;</button>
-        <input type="text" id="search-input" placeholder="Search for product name or category...">
-        <div id="search-results" class="search-results"></div>
-    </div></div>
+    <div id="search-modal" class="search-modal">
+        <div class="search-content">
+            <button class="close-search">&times;</button>
+            <input type="text" id="search-input" placeholder="Search for product name or category...">
+            <div id="search-results" class="search-results"></div>
+        </div>
+    </div>
 
     <main class="cart-page-main container">
         <h1 class="page-title">Shopping Cart</h1>
@@ -72,9 +73,9 @@
                         <tr>
                             <th style="width: 45%;">Product</th>
                             <th style="width: 15%;">Price</th>
-                            <th style="width: 15%;">Quantity</th>
+                            <th style="width: 20%;">Quantity</th>
                             <th style="width: 15%;">Total</th>
-                            <th style="width: 10%;"></th>
+                            <th style="width: 5%;"></th>
                         </tr>
                     </thead>
                     <tbody id="cart-items-table">
@@ -87,14 +88,12 @@
             <div class="cart-summary-box" id="cart-summary">
                 <p class="loading-message">Loading summary...</p>
             </div>
-            
-            <a href="checkout.html" id="checkout-link-bottom" class="checkout-btn" style="display: none; margin-top: 1rem;">Go to Checkout</a>
         </div>
 
     </main>
     
     <footer class="footer">
-        <p>Email us for **bulk orders** and **customized gifts**: <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a></p>
+        <p>Email us for <strong>bulk orders</strong> and <strong>customized gifts</strong>: <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a></p>
         <p>&copy; 2025 Siraj Candles. All rights reserved.</p>
         <div class="social-links">
              <a href="https://www.instagram.com/siraj_candles_eg" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
@@ -104,6 +103,6 @@
         <p>From our Home to Yours ❤️</p>
     </footer>
 
-    <script type="module" src="assets/js/site.js"></script>
+    <script src="assets/js/site.js"></script>
 </body>
 </html>
