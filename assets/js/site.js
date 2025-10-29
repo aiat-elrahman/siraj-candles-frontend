@@ -701,7 +701,7 @@ function collectBundleScents(numItems) {
 }
 
 // ====================================
-// 8. CART MANAGEMENT
+// 8. CART MANAGEMENT (FIXED)
 // ====================================
 
 let cart = [];
@@ -736,7 +736,9 @@ function addToCart(product) {
     }
     saveCartToStorage();
     updateCartUI();
-    console.log(`${product.name} (x${product.quantity || 1}) added to cart!`);
+    
+    // Show success message
+    showCartMessage(`${product.name} (x${product.quantity || 1}) added to cart!`);
 }
 window.addToCart = addToCart;
 
@@ -747,6 +749,9 @@ function removeItemFromCart(id) {
     if (document.body.getAttribute('data-page') === 'shopcart') {
         renderShopCartPage();
     }
+    
+    // Show removal message
+    showCartMessage('Item removed from cart');
 }
 window.removeItemFromCart = removeItemFromCart;
 
@@ -782,6 +787,7 @@ function updateCartUI() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = getCartTotal();
     
+    // Update cart counter
     if (totalItems === 0) {
         cartCountElement.style.visibility = 'hidden'; 
         cartCountElement.style.opacity = 0;
@@ -791,6 +797,10 @@ function updateCartUI() {
         cartCountElement.textContent = totalItems;
     }
     
+    // Update cart total in dropdown
+    cartTotalElement.textContent = `${totalPrice.toFixed(2)} EGP`;
+    
+    // Update cart items list in dropdown
     if (cartListElement) {
         if (cart.length === 0) {
             cartListElement.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
@@ -799,10 +809,13 @@ function updateCartUI() {
                 const customizationDetail = item.customization ? 
                     `<br><small>(${item.customization.slice(0, 2).join(', ')}${item.customization.length > 2 ? '...' : ''})</small>` 
                     : '';
+                const itemTotal = (item.price * item.quantity).toFixed(2);
                 return `
                     <div class="cart-item">
-                        <p>${item.name} x ${item.quantity} ${customizationDetail}</p>
-                        <p>${(item.price * item.quantity).toFixed(2)} EGP</p>
+                        <div class="cart-item-details">
+                            <p class="cart-item-name">${item.name} x ${item.quantity} ${customizationDetail}</p>
+                            <p class="cart-item-total">${itemTotal} EGP</p>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -810,8 +823,81 @@ function updateCartUI() {
     }
 }
 
+// FIXED: Cart message function
+function showCartMessage(message) {
+    // Remove existing message if any
+    const existingMessage = document.querySelector('.cart-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // Create new message
+    const messageElement = document.createElement('div');
+    messageElement.className = 'cart-message';
+    messageElement.textContent = message;
+    messageElement.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: var(--accent-color);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(messageElement);
+    
+    // Remove message after 3 seconds
+    setTimeout(() => {
+        messageElement.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => {
+            if (messageElement.parentNode) {
+                messageElement.remove();
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Add CSS animations for cart messages
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .cart-item-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+    }
+    
+    .cart-item-name {
+        flex: 1;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    .cart-item-total {
+        margin: 0;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--accent-color);
+    }
+`;
+document.head.appendChild(style);
+
 // ====================================
-// 9. SHOP CART PAGE LOGIC
+// 9. SHOP CART PAGE LOGIC (FIXED)
 // ====================================
 
 function renderShopCartPage() {
@@ -847,8 +933,12 @@ function renderShopCartPage() {
                 </td>
                 <td data-label="Price">${item.price.toFixed(2)} EGP</td>
                 <td data-label="Quantity">
-                    <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
-                           onchange="updateItemQuantity('${uniqueId}', this.value)">
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity - 1})">-</button>
+                        <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
+                               onchange="updateItemQuantity('${uniqueId}', this.value)">
+                        <button class="quantity-btn plus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity + 1})">+</button>
+                    </div>
                 </td>
                 <td data-label="Total">${(item.price * item.quantity).toFixed(2)} EGP</td>
                 <td data-label="Remove">
