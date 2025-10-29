@@ -848,36 +848,39 @@ function renderBundleItems(product) {
 }
 
 // NEW: Buy Now Button Functionality
+// NEW: Buy Now Button Functionality
 function setupBuyNowButton(product) {
-    const buyNowBtn = document.querySelector('.buy-it-now-btn');
-    if (!buyNowBtn) return;
+    const buyNowBtn = document.querySelector('.buy-it-now-btn');
+    if (!buyNowBtn) return;
 
-    buyNowBtn.addEventListener('click', (e) => {
-        const quantity = parseInt(document.getElementById('quantity')?.value || 1);
-        const customization = collectAllSelections(product);
+    buyNowBtn.addEventListener('click', (e) => {
+        const quantity = parseInt(document.getElementById('quantity')?.value || 1);
+        const customization = collectAllSelections(product);
 
-        if (customization === null) return; // Validation failed
+        // This check is now correct because collectAllSelections handles validation
+        if (customization === null) return; // Validation failed
 
-        const itemName = product.isBundle ? product.bundleName : product.name_en;
-        const itemPrice = product.price_egp || product.price || 0;
+        const itemName = product.isBundle ? product.bundleName : product.name_en;
+      const itemPrice = product.price_egp || product.price || 0;
 
-        const item = {
-            _id: product._id,
-            name: itemName || product.name || 'Product',
-            price: itemPrice,
-            quantity: quantity,
-            customization: customization,
-            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
-        };
+        const item = {
+            _id: product._id,
+            name: itemName || product.name || 'Product',
+            price: itemPrice,
+            quantity: quantity,
+            // *** THIS IS THE FIX ***
+            // Only add customization if the array has items.
+            customization: customization.length > 0 ? customization : null,
+            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
+        };
 
-        // ADD the item to cart (don't clear existing items)
-        addToCart(item);
-        
-        // Redirect to checkout
-        window.location.href = 'checkout.html';
-    });
+        // ADD the item to cart (don't clear existing items)
+        addToCart(item);
+        
+        // Redirect to checkout
+        window.location.href = 'checkout.html';
+    });
 }
-
 function attachQuantityButtonListeners(maxStock) {
     const quantityInput = document.getElementById('quantity');
     if (!quantityInput) return;
@@ -898,72 +901,90 @@ function attachQuantityButtonListeners(maxStock) {
 }
 
 function attachAddToCartListener(product) {
-    const addToCartBtn = document.getElementById('add-to-cart-btn');
-    const quantityInput = document.getElementById('quantity');
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const quantityInput = document.getElementById('quantity');
 
-    if (!addToCartBtn || !quantityInput) {
-        return;
-    }
+    if (!addToCartBtn || !quantityInput) {
+        return;
+    }
 
-    addToCartBtn.addEventListener('click', (e) => {
-        const quantity = parseInt(quantityInput.value);
-        const customization = collectAllSelections(product);
+    addToCartBtn.addEventListener('click', (e) => {
+        const quantity = parseInt(quantityInput.value);
+        const customization = collectAllSelections(product);
 
-        if (customization === null) return; // Validation failed
+        // This check is now correct because collectAllSelections handles validation
+        if (customization === null) return; // Validation failed
 
-        const itemName = product.isBundle ? product.bundleName : product.name_en;
-        const itemPrice = product.price_egp || product.price || 0;
+        const itemName = product.isBundle ? product.bundleName : product.name_en;
+        const itemPrice = product.price_egp || product.price || 0;
 
-        const item = {
-            _id: product._id,
-            name: itemName || product.name || 'Product',
-            price: itemPrice,
-            quantity: quantity,
-            customization: customization,
-            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
-        };
-        addToCart(item);
-    });
+        const item = {
+            _id: product._id,
+            name: itemName || product.name || 'Product',
+            price: itemPrice,
+            quantity: quantity,
+            // *** THIS IS THE FIX ***
+            // Only add customization if the array has items.
+            customization: customization.length > 0 ? customization : null,
+            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
+        };
+        addToCart(item);
+    });
 }
 
 // NEW: Collect all selections from options and bundle items
+// NEW: Collect all selections from options and bundle items
 function collectAllSelections(product) {
-    const selections = [];
+    const selections = [];
+    let validationFailed = false; // Add a flag
 
-    // Collect from product options
-    const optionSelectors = [
-        'scent-option', 'size-option', 'weight-option', 'type-option', 'shape-option'
-    ];
+    // Collect from product options
+    const optionSelectors = [
+        'scent-option', 'size-option', 'weight-option', 'type-option', 'shape-option'
+    ];
 
-    optionSelectors.forEach(selectorId => {
-        const selector = document.getElementById(selectorId);
-        if (selector && selector.value) {
-            selections.push(`${selectorId.replace('-option', '')}: ${selector.value}`);
+    optionSelectors.forEach(selectorId => {
+        const selector = document.getElementById(selectorId);
+        if (selector) {
+            // Check if it's required AND has no value
+            if (selector.required && !selector.value) {
+                console.error(`Please select a value for ${selectorId}`);
+                selector.focus(); // Highlight the missing field
+                validationFailed = true;
+            } else if (selector.value) {
+                selections.push(`${selectorId.replace('-option', '')}: ${selector.value}`);
+            }
         }
-    });
+    });
 
-    // Collect from bundle items if it's a bundle
-    if (product.isBundle) {
-        const bundleItems = product.bundleItems || [];
-        const bundleSelections = [];
-        let allSelected = true;
+    // If any required option failed, return null
+    if (validationFailed) return null;
 
-        for (let i = 0; i < bundleItems.length; i++) {
-            const selector = document.getElementById(`bundle-scent-${i}`);
-            if (!selector || !selector.value) {
-                console.error(`Please choose a scent for Item ${i + 1}.`);
-                selector?.focus();
-                allSelected = false;
-                break;
-            }
-            bundleSelections.push(selector.value);
-        }
+    // Collect from bundle items if it's a bundle
+    if (product.isBundle) {
+        const bundleItems = product.bundleItems || [];
+        const bundleSelections = [];
+        let allSelected = true;
 
-        if (!allSelected) return null;
-        selections.push(...bundleSelections);
-    }
+        for (let i = 0; i < bundleItems.length; i++) {
+            const selector = document.getElementById(`bundle-scent-${i}`);
+            if (!selector || !selector.value) {
+         console.error(`Please choose a scent for Item ${i + 1}.`);
+                selector?.focus(); // Highlight the missing field
+                allSelected = false;
+                break;
+            }
+            bundleSelections.push(selector.value);
+        }
 
-    return selections.length > 0 ? selections : null;
+        if (!allSelected) return null;
+        selections.push(...bundleSelections);
+    }
+
+    // *** THIS IS THE FIX ***
+    // Always return the array, even if it's empty.
+    // The validation checks above will return null if something is missing.
+    return selections;
 }
 
 // ====================================
