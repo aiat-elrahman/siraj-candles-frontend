@@ -534,6 +534,13 @@ function renderProduct(product) {
 
     attachQuantityButtonListeners(itemStock);
     attachAddToCartListener(product);
+     // ADD THIS LINE: Setup Buy Now button
+    setupBuyNowButton(product); // <-- ADD THIS
+
+    // Fetch related products
+    const relatedContainer = document.getElementById('related-products-container');
+    if (relatedContainer) {
+        fetchRelatedProducts(product.category || 'general', product._id);}
 }
 
 function renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock) {
@@ -872,7 +879,9 @@ function attachAddToCartListener(product) {
         const quantity = parseInt(quantityInput.value);
         const customization = collectAllSelections(product);
 
-        if (customization === null) return; // Validation failed
+        // Allow adding to cart even if customization is null (no options selected)
+        // Only prevent if validation explicitly failed (returned null due to required fields)
+        if (customization === null) return;
 
         const itemName = product.isBundle ? product.bundleName : product.name_en;
         const itemPrice = product.price_egp || product.price || 0;
@@ -882,14 +891,15 @@ function attachAddToCartListener(product) {
             name: itemName || product.name || 'Product',
             price: itemPrice,
             quantity: quantity,
-            customization: customization,
+            customization: customization || [], // Use empty array if no customizations
             imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
         };
         addToCart(item);
     });
 }
 
-// NEW: Collect all selections from options and bundle items
+
+// FIXED: Better validation for product options
 function collectAllSelections(product) {
     const selections = [];
 
@@ -913,20 +923,33 @@ function collectAllSelections(product) {
 
         for (let i = 0; i < bundleItems.length; i++) {
             const selector = document.getElementById(`bundle-scent-${i}`);
-            if (!selector || !selector.value) {
-                console.error(`Please choose a scent for Item ${i + 1}.`);
-                selector?.focus();
+            if (selector && !selector.value) {
+                alert(`Please choose a scent for Item ${i + 1}.`);
+                selector.focus();
                 allSelected = false;
                 break;
             }
-            bundleSelections.push(selector.value);
+            if (selector && selector.value) {
+                bundleSelections.push(selector.value);
+            }
         }
 
         if (!allSelected) return null;
         selections.push(...bundleSelections);
     }
 
-    return selections.length > 0 ? selections : null;
+    // If no selections but selectors exist and are required, show error
+    const hasRequiredSelectors = optionSelectors.some(selectorId => {
+        const selector = document.getElementById(selectorId);
+        return selector && selector.required;
+    });
+
+    if (hasRequiredSelectors && selections.length === 0) {
+        alert('Please select all required options.');
+        return null;
+    }
+
+    return selections.length > 0 ? selections : [];
 }
 
 // ====================================
@@ -980,6 +1003,43 @@ function addToCart(product) {
 }
 // Make addToCart globally available
 window.addToCart = addToCart;
+
+// ====================================
+// NEW: Buy It Now Functionality
+// ====================================
+
+function setupBuyNowButton(product) {
+    const buyNowBtn = document.querySelector('.buy-it-now-btn');
+    if (!buyNowBtn) return;
+
+    buyNowBtn.addEventListener('click', (e) => {
+        const quantity = parseInt(document.getElementById('quantity')?.value || 1);
+        const customization = collectAllSelections(product);
+
+        if (customization === null) return; // Validation failed
+
+        const itemName = product.isBundle ? product.bundleName : product.name_en;
+        const itemPrice = product.price_egp || product.price || 0;
+
+        const item = {
+            _id: product._id,
+            name: itemName || product.name || 'Product',
+            price: itemPrice,
+            quantity: quantity,
+            customization: customization,
+            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
+        };
+
+        // Clear cart and add only this item
+        cart = [item];
+        saveCartToStorage();
+        updateCartUI();
+        
+        // Redirect to checkout
+        window.location.href = 'checkout.html';
+    });
+}
+
 
 // FIXED: Remove item function with proper ID handling
 function removeItemFromCart(id) {
