@@ -815,21 +815,35 @@ function updateCartUI() {
     // Update cart total in dropdown
     cartTotalElement.textContent = `${totalPrice.toFixed(2)} EGP`;
     
-    // Update cart items list in dropdown
+    // Update cart items list in dropdown WITH QUANTITY CONTROLS
     if (cartListElement) {
         if (cart.length === 0) {
             cartListElement.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
         } else {
             cartListElement.innerHTML = cart.map(item => {
+                const uniqueId = getCartUniqueId(item);
                 const customizationDetail = item.customization ? 
-                    `<br><small>(${item.customization.slice(0, 2).join(', ')}${item.customization.length > 2 ? '...' : ''})</small>` 
+                    `<div class="cart-customization-detail">${item.customization.slice(0, 2).join(', ')}${item.customization.length > 2 ? '...' : ''}</div>` 
                     : '';
                 const itemTotal = (item.price * item.quantity).toFixed(2);
+                
                 return `
-                    <div class="cart-item">
+                    <div class="cart-item" data-id="${uniqueId}">
                         <div class="cart-item-details">
-                            <p class="cart-item-name">${item.name} x ${item.quantity} ${customizationDetail}</p>
+                            <p class="cart-item-name">${item.name}</p>
                             <p class="cart-item-total">${itemTotal} EGP</p>
+                        </div>
+                        ${customizationDetail}
+                        <div class="cart-item-controls">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn minus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity - 1})">-</button>
+                                <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
+                                       onchange="updateItemQuantity('${uniqueId}', this.value)">
+                                <button class="quantity-btn plus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity + 1})">+</button>
+                            </div>
+                            <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')" aria-label="Remove item">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     </div>
                 `;
