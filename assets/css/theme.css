@@ -1793,3 +1793,125 @@ body.mobile-menu-open::before {
     color: #666;
     font-style: italic;
 }
+/* ------------------ Cart Dropdown Quantity Controls ------------------ */
+.cart-dropdown .cart-item {
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 0.5rem;
+}
+
+.cart-dropdown .cart-item-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.cart-dropdown .cart-item-name {
+    flex: 1;
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    font-weight: 500;
+}
+
+.cart-dropdown .cart-item-total {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent-color);
+    white-space: nowrap;
+    margin-left: 10px;
+}
+
+.cart-dropdown .cart-item-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0.5rem;
+}
+
+.cart-dropdown .quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: flex-start;
+}
+
+.cart-dropdown .quantity-btn {
+    background: var(--primary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+    transition: all 0.2s;
+    color: var(--text-dark);
+    padding: 0;
+}
+
+.cart-dropdown .quantity-btn:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.cart-dropdown .item-quantity-input {
+    width: 40px !important;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 0.25rem;
+    font-size: 0.8rem;
+    background: white;
+    height: 24px;
+}
+
+.cart-dropdown .remove-item-btn {
+    background: none;
+    border: none;
+    color: #CC0000;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px;
+    border-radius: 3px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.cart-dropdown .remove-item-btn:hover {
+    background-color: #ffebee;
+    color: #a00000;
+}
+
+.cart-dropdown .cart-customization-detail {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.2rem;
+    font-style: italic;
+}
+
+/* Ensure cart dropdown has enough width for controls */
+.cart-dropdown {
+    min-width: 280px;
+    max-width: 350px;
+}
+
+.cart-dropdown .dropdown-header {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
