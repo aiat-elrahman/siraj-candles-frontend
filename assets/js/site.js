@@ -522,7 +522,7 @@ function renderProduct(product) {
     renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock);
 
     // Render dynamic specifications based on category (FIXED: Original table layout)
-
+    
 
     // Render selectable options if available
     renderProductOptions(product);
@@ -540,132 +540,94 @@ function renderProduct(product) {
 }
 
 function renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock) {
-    // Attributes for main product display
-    const attributes = [];
-    const category = product.category;
-
-    // NEW: Add all specs as chips
+    // Attributes for main product display
+    const attributes = [];
     if (!isBundle) {
-        // Universal Specs
-        if (product.scents && !product.scentOptions) attributes.push({ label: 'Scent', value: product.scents, icon: '🌸' });
-        if (product.size) attributes.push({ label: 'Size', value: product.size, icon: '📏' });
-
-        // Category-Specific Specs
-        switch (category) {
-            case 'Candles':
-            case 'Pottery Collection':
-                if (product.burnTime) attributes.push({ label: 'Burn Time', value: product.burnTime, icon: '🔥' });
-                if (product.wickType) attributes.push({ label: 'Wick', value: product.wickType, icon: '🕯️' });
-                if (product.coverageSpace) attributes.push({ label: 'Coverage', value: product.coverageSpace, icon: '🏠' });
-                break;
-            case 'Deodorant':
-                if (product.skinType) attributes.push({ label: 'Skin Type', value: product.skinType, icon: '✨' });
-                if (product.keyIngredients) attributes.push({ label: 'Ingredients', value: product.keyIngredients, icon: '🌿' });
-                break;
-            case 'Soap':
-                if (product.soapWeight) attributes.push({ label: 'Weight', value: product.soapWeight, icon: '⚖️' });
-                if (product.featureBenefit) attributes.push({ label: 'Feature', value: product.featureBenefit, icon: '✨' });
-                if (product.keyIngredients) attributes.push({ label: 'Ingredients', value: product.keyIngredients, icon: '🌿' });
-                break;
-            case 'Body Splash':
-                // Already handled by universal 'scents'
-                break;
-            case 'Shimmering Body Oil':
-                if (product.color) attributes.push({ label: 'Color', value: product.color, icon: '🎨' });
-                if (product.oilWeight) attributes.push({ label: 'Size', value: product.oilWeight, icon: '💧' });
-                break;
-            case 'Massage Candles':
-                if (product.massageWeight) attributes.push({ label: 'Weight', value: product.massageWeight, icon: '⚖️' });
-                break;
-            case 'Wax Burners':
-                if (product.dimensions) attributes.push({ label: 'Dimensions', value: product.dimensions, icon: '📏' });
-                break;
-            case 'Fizzy Salts':
-                if (product.fizzySpecs) attributes.push({ label: 'Specs', value: product.fizzySpecs, icon: '🛁' });
-                break;
-        }
+        if (product.scents) attributes.push({ label: 'Scent', value: product.scents ?? 'N/A', icon: '🌸' });
+        if (product.size) attributes.push({ label: 'Size', value: product.size ?? 'N/A', icon: '📏' });
+        // Removed detailed specs - they'll be in the specifications section
     }
 
-    // Descriptions
-    const shortDescription = isBundle ? product.bundleDescription : product.description_en;
-    const formattedDescriptionHTML = product.formattedDescription
-        ? `<div class="formatted-description-box">${product.formattedDescription.replace(/\r?\n/g, '<br>')}</div>`
-        : '';
+    // Descriptions
+    const shortDescription = isBundle ? product.bundleDescription : product.description_en;
+    const formattedDescriptionHTML = product.formattedDescription
+        ? `<div class="formatted-description-box">${product.formattedDescription.replace(/\r?\n/g, '<br>')}</div>`
+        : '';
 
-    // Image Gallery
-    const imagePaths = product.imagePaths || product.images || [];
-    const imageGalleryHTML = imagePaths
-        .map((path, index) => `<img src="${path}" alt="${itemName || 'Product'} image ${index + 1}" class="${index === 0 ? 'main-product-image' : 'thumbnail-image'}" loading="lazy">`)
-        .join('');
+    // Image Gallery
+    const imagePaths = product.imagePaths || product.images || [];
+    const imageGalleryHTML = imagePaths
+        .map((path, index) => `<img src="${path}" alt="${itemName || 'Product'} image ${index + 1}" class="${index === 0 ? 'main-product-image' : 'thumbnail-image'}" loading="lazy">`)
+        .join('');
 
-    // Update Meta Description & Title
-    document.title = `${itemName || 'Product'} | Siraj Candles`;
-    const metaDesc = (shortDescription || '').substring(0, 150).replace(/<br>/g, ' ');
-    document.querySelector('meta[name="description"]')?.setAttribute('content', metaDesc + (metaDesc.length === 150 ? '...' : ''));
+    // Update Meta Description & Title
+    document.title = `${itemName || 'Product'} | Siraj Candles`;
+    const metaDesc = (shortDescription || '').substring(0, 150).replace(/<br>/g, ' ');
+    document.querySelector('meta[name="description"]')?.setAttribute('content', metaDesc + (metaDesc.length === 150 ? '...' : ''));
 
-    container.innerHTML = `
-        <div class="product-detail-grid-new"> 
-            <div class="product-image-area-new">
-                <div class="image-gallery">
-                    ${imageGalleryHTML || '<img src="images/placeholder.jpg" alt="Placeholder" class="main-product-image">'}
-                </div>
-            </div>
+    container.innerHTML = `
+        <div class="product-detail-grid-new"> 
+            <div class="product-image-area-new">
+                <div class="image-gallery">
+                    ${imageGalleryHTML || '<img src="images/placeholder.jpg" alt="Placeholder" class="main-product-image">'}
+                </div>
+            </div>
 
-            <div class="product-info-area-new">
-                <h1 class="product-title-main">${itemName || 'Product Name'}</h1>
-                <p class="product-category-subtle">${itemCategory}</p> 
-                <p class="product-price-main">${itemPrice.toFixed(2)} EGP</p>
+            <div class="product-info-area-new">
+                <h1 class="product-title-main">${itemName || 'Product Name'}</h1>
+                <p class="product-category-subtle">${itemCategory}</p> 
+                <p class="product-price-main">${itemPrice.toFixed(2)} EGP</p>
 
-                ${!isOutOfStock ? `
-                    <div class="product-actions-grid">
-                        <div class="quantity-selector-box">
-                            <button class="quantity-minus action-btn" data-action="minus" aria-label="Decrease quantity">-</button>
-                            <input type="number" id="quantity" value="1" min="1" max="${itemStock || 10}" readonly class="quantity-input-box" aria-label="Quantity">
-                            <button class="quantity-plus action-btn" data-action="plus" aria-label="Increase quantity">+</button>
-                    </div>
-                        <button id="add-to-cart-btn" class="action-add-to-cart-btn">
-                            <span class="cart-icon" aria-hidden="true">🛒</span> Add to Cart
-                        </button>
-                        <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
-                    </div>
-           ` : `
-                 <p class="stock-status out-of-stock">Out of Stock</p>
-                    <button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>
-                `}
+                ${!isOutOfStock ? `
+                    <div class="product-actions-grid">
+                        <div class="quantity-selector-box">
+                            <button class="quantity-minus action-btn" data-action="minus" aria-label="Decrease quantity">-</button>
+                            <input type="number" id="quantity" value="1" min="1" max="${itemStock || 10}" readonly class="quantity-input-box" aria-label="Quantity">
+                            <button class="quantity-plus action-btn" data-action="plus" aria-label="Increase quantity">+</button>
+                        </div>
+                        <button id="add-to-cart-btn" class="action-add-to-cart-btn">
+                            <span class="cart-icon" aria-hidden="true">🛒</span> Add to Cart
+                        </button>
+                        <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
+                    </div>
+                ` : `
+                    <p class="stock-status out-of-stock">Out of Stock</p>
+                    <button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>
+                `}
 
-                <div class="product-description-section">
-                     <h3 class="section-subtitle">Description</h3> 
-                     ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
-            ${formattedDescriptionHTML} 
-                </div>
+                <div class="product-description-section">
+                     <h3 class="section-subtitle">Description</h3> 
+                     ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
+                     ${formattedDescriptionHTML} 
+                </div>
 
-                ${attributes.length > 0 ? `
-                    <div class="product-attributes-section"> 
-                        <h3 class="section-subtitle"> Details</h3> 
-                        <div class="product-attributes-grid">
-                            ${attributes.map(attr => `
-                                <div class="attribute-chip">
-                                    <span class="attribute-icon" aria-hidden="true">${attr.icon || '🔹'}</span>
-                                    <span class="attribute-label">${attr.label}:</span>
-                                    <span class="attribute-value">${attr.value}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                </div>
-                ` : ''}
-                ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
+                ${attributes.length > 0 ? `
+                    <div class="product-attributes-section"> 
+                        <h3 class="section-subtitle">Details</h3> 
+                        <div class="product-attributes-grid">
+                            ${attributes.map(attr => `
+                                <div class="attribute-chip">
+                                    <span class="attribute-icon" aria-hidden="true">${attr.icon || '🔹'}</span>
+                                    <span class="attribute-label">${attr.label}:</span>
+                                    <span class="attribute-value">${attr.value}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
 
-                 <div class="shipping-returns-new">
-                     <h3>Shipping & Returns</h3>
-                     <ul>
-                         <li>Orders processed within 1–2 business days.</li>
-        <li>Delivery across Egypt within 2–5 days.</li>
-                         <li>Returns accepted within 7 days for unused items.</li>
-                     </ul>
- </div>
-            </div> 
-        </div>
-    `;
+                 <div class="shipping-returns-new">
+                     <h3>Shipping & Returns</h3>
+                     <ul>
+                         <li>Orders processed within 1–2 business days.</li>
+                         <li>Delivery across Egypt within 2–5 days.</li>
+                         <li>Returns accepted within 7 days for unused items.</li>
+                     </ul>
+                 </div>
+            </div> 
+        </div>
+    `;
 }
 
 // FIXED: Render product specifications with original table layout
