@@ -219,6 +219,93 @@ body.scrolled .navbar {
     visibility: hidden; /* Start hidden */
     opacity: 0;
 }
+/* ------------------ Cart Quantity Controls ------------------ */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.quantity-btn {
+    background: var(--primary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.quantity-btn:hover {
+    background: var(--accent-color);
+    color: white;
+}
+
+.quantity-btn:active {
+    transform: scale(0.95);
+}
+
+.item-quantity-input {
+    width: 50px !important;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.3rem;
+}
+
+/* ------------------ Cart Message Styles ------------------ */
+.cart-message {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    background: var(--accent-color);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 5px;
+    z-index: 10000;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+/* ------------------ Improved Cart Item Display ------------------ */
+.cart-item-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.cart-item-name {
+    flex: 1;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.3;
+}
+
+.cart-item-total {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--accent-color);
+    white-space: nowrap;
+    margin-left: 10px;
+}
 
 /* --- Mobile Menu (Hamburger) --- */
 .mobile-menu-toggle {
