@@ -746,8 +746,18 @@ function removeItemFromCart(id) {
     cart = cart.filter(item => getCartUniqueId(item) !== id);
     saveCartToStorage();
     updateCartUI();
-    if (document.body.getAttribute('data-page') === 'shopcart') {
+    
+    const page = document.body.getAttribute('data-page');
+    if (page === 'shopcart') {
         renderShopCartPage();
+    } else if (page === 'checkout') {
+        renderCheckoutSummary(document.getElementById('checkout-summary-container'));
+        renderCheckoutCartItems();
+        // Hide form if cart becomes empty
+        if (cart.length === 0) {
+            const checkoutForm = document.getElementById('checkout-form');
+            if (checkoutForm) checkoutForm.style.display = 'none';
+        }
     }
     
     // Show removal message
@@ -763,8 +773,13 @@ function updateItemQuantity(id, quantity) {
             item.quantity = newQuantity;
             saveCartToStorage();
             updateCartUI();
+            
+            // Update both shopcart and checkout pages if they're active
             if (document.body.getAttribute('data-page') === 'shopcart') {
                 renderShopCartPage();
+            } else if (document.body.getAttribute('data-page') === 'checkout') {
+                renderCheckoutSummary(document.getElementById('checkout-summary-container'));
+                renderCheckoutCartItems();
             }
         } else if (newQuantity <= 0) {
             removeItemFromCart(id);
@@ -862,40 +877,6 @@ function showCartMessage(message) {
     }, 3000);
 }
 
-// Add CSS animations for cart messages
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-    
-    .cart-item-details {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        width: 100%;
-    }
-    
-    .cart-item-name {
-        flex: 1;
-        margin: 0;
-        font-size: 0.9rem;
-    }
-    
-    .cart-item-total {
-        margin: 0;
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: var(--accent-color);
-    }
-`;
-document.head.appendChild(style);
-
 // ====================================
 // 9. SHOP CART PAGE LOGIC (FIXED)
 // ====================================
@@ -942,7 +923,7 @@ function renderShopCartPage() {
                 </td>
                 <td data-label="Total">${(item.price * item.quantity).toFixed(2)} EGP</td>
                 <td data-label="Remove">
-                    <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')">
+                    <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')" aria-label="Remove item">
                         <i class="fas fa-times"></i>
                     </button>
                 </td>
@@ -958,7 +939,7 @@ function renderShopCartPage() {
     summaryContainer.innerHTML = `
         <h3>Cart Summary</h3>
         <p>Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
-        <p>Shipping (Egypt): <span>${shipping.toFixed(2)} EGP</span></p>
+        <p>Shipping (Egypt): <span>${shipping === 0 ? 'FREE' : shipping.toFixed(2) + ' EGP'}</span></p>
         <p class="cart-total-final">Grand Total: <span>${grandTotal.toFixed(2)} EGP</span></p>
         <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
     `;
@@ -968,20 +949,23 @@ function renderShopCartPage() {
 }
 
 // ====================================
-// 10. CHECKOUT PAGE LOGIC
+// 10. CHECKOUT PAGE LOGIC (FIXED)
 // ====================================
 
 function setupCheckoutPage() {
     const summaryContainer = document.getElementById('checkout-summary-container');
     const checkoutForm = document.getElementById('checkout-form');
+    const cartItemsContainer = document.getElementById('checkout-cart-items');
     
     if (cart.length === 0) {
         summaryContainer.innerHTML = '<p>Your cart is empty. <a href="products.html">Return to shopping.</a></p>';
         if (checkoutForm) checkoutForm.style.display = 'none';
+        if (cartItemsContainer) cartItemsContainer.innerHTML = '<p class="empty-message">Your cart is empty.</p>';
         return;
     }
     
     renderCheckoutSummary(summaryContainer);
+    renderCheckoutCartItems();
     
     if (checkoutForm) {
         checkoutForm.addEventListener('submit', processCheckout);
@@ -1010,6 +994,50 @@ function renderCheckoutSummary(container) {
         <p class="checkout-summary-line">Shipping: <span>${shipping.toFixed(2)} EGP</span></p>
         <p class="checkout-summary-line final-total">Total: <span>${grandTotal.toFixed(2)} EGP</span></p>
     `;
+}
+
+function renderCheckoutCartItems() {
+    const container = document.getElementById('checkout-cart-items');
+    if (!container) return;
+
+    if (cart.length === 0) {
+        container.innerHTML = '<p class="empty-message">Your cart is empty.</p>';
+        return;
+    }
+
+    container.innerHTML = cart.map(item => {
+        const uniqueId = getCartUniqueId(item);
+        const customizationDetail = item.customization ? 
+            `<div class="cart-customization-detail"><small>Scents: ${item.customization.join(', ')}</small></div>` 
+            : '';
+        const itemImage = item.imageUrl || 'images/placeholder.jpg';
+        const itemTotal = (item.price * item.quantity).toFixed(2);
+
+        return `
+            <div class="checkout-cart-item" data-id="${uniqueId}">
+                <div class="checkout-item-image">
+                    <img src="${itemImage}" alt="${item.name}" loading="lazy">
+                </div>
+                <div class="checkout-item-details">
+                    <h4>${item.name}</h4>
+                    ${customizationDetail}
+                    <div class="checkout-item-price">${item.price.toFixed(2)} EGP each</div>
+                </div>
+                <div class="checkout-item-controls">
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity - 1})">-</button>
+                        <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
+                               onchange="updateItemQuantity('${uniqueId}', this.value)">
+                        <button class="quantity-btn plus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity + 1})">+</button>
+                    </div>
+                    <div class="checkout-item-total">${itemTotal} EGP</div>
+                    <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')" aria-label="Remove item">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 async function processCheckout(e) {
