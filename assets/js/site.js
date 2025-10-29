@@ -542,10 +542,48 @@ function renderProduct(product) {
 function renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock) {
     // Attributes for main product display
     const attributes = [];
+    const category = product.category;
+
+    // NEW: Add all specs as chips
     if (!isBundle) {
-        if (product.scents) attributes.push({ label: 'Scent', value: product.scents ?? 'N/A', icon: '🌸' });
-        if (product.size) attributes.push({ label: 'Size', value: product.size ?? 'N/A', icon: '📏' });
-        // Removed detailed specs - they'll be in the specifications section
+        // Universal Specs
+        if (product.scents && !product.scentOptions) attributes.push({ label: 'Scent', value: product.scents, icon: '🌸' });
+        if (product.size) attributes.push({ label: 'Size', value: product.size, icon: '📏' });
+
+        // Category-Specific Specs
+        switch (category) {
+            case 'Candles':
+            case 'Pottery Collection':
+                if (product.burnTime) attributes.push({ label: 'Burn Time', value: product.burnTime, icon: '🔥' });
+                if (product.wickType) attributes.push({ label: 'Wick', value: product.wickType, icon: '🕯️' });
+                if (product.coverageSpace) attributes.push({ label: 'Coverage', value: product.coverageSpace, icon: '🏠' });
+                break;
+            case 'Deodorant':
+                if (product.skinType) attributes.push({ label: 'Skin Type', value: product.skinType, icon: '✨' });
+                if (product.keyIngredients) attributes.push({ label: 'Ingredients', value: product.keyIngredients, icon: '🌿' });
+                break;
+            case 'Soap':
+                if (product.soapWeight) attributes.push({ label: 'Weight', value: product.soapWeight, icon: '⚖️' });
+                if (product.featureBenefit) attributes.push({ label: 'Feature', value: product.featureBenefit, icon: '✨' });
+                if (product.keyIngredients) attributes.push({ label: 'Ingredients', value: product.keyIngredients, icon: '🌿' });
+                break;
+            case 'Body Splash':
+                // Already handled by universal 'scents'
+                break;
+            case 'Shimmering Body Oil':
+                if (product.color) attributes.push({ label: 'Color', value: product.color, icon: '🎨' });
+                if (product.oilWeight) attributes.push({ label: 'Size', value: product.oilWeight, icon: '💧' });
+                break;
+            case 'Massage Candles':
+                if (product.massageWeight) attributes.push({ label: 'Weight', value: product.massageWeight, icon: '⚖️' });
+                break;
+            case 'Wax Burners':
+                if (product.dimensions) attributes.push({ label: 'Dimensions', value: product.dimensions, icon: '📏' });
+                break;
+            case 'Fizzy Salts':
+                if (product.fizzySpecs) attributes.push({ label: 'Specs', value: product.fizzySpecs, icon: '🛁' });
+                break;
+        }
     }
 
     // Descriptions
@@ -596,14 +634,14 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
                 `}
 
                 <div class="product-description-section">
-                     <h3 class="section-subtitle">Description</h3> 
-                     ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
-                     ${formattedDescriptionHTML} 
+                    <h3 class="section-subtitle">Description</h3> 
+                    ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
+                    ${formattedDescriptionHTML} 
                 </div>
 
                 ${attributes.length > 0 ? `
                     <div class="product-attributes-section"> 
-                        <h3 class="section-subtitle">Details</h3> 
+                        <h3 class="section-subtitle">Quick Details</h3> 
                         <div class="product-attributes-grid">
                             ${attributes.map(attr => `
                                 <div class="attribute-chip">
@@ -615,16 +653,17 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
                         </div>
                     </div>
                 ` : ''}
+                
                 ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
 
-                 <div class="shipping-returns-new">
-                     <h3>Shipping & Returns</h3>
-                     <ul>
-                         <li>Orders processed within 1–2 business days.</li>
-                         <li>Delivery across Egypt within 2–5 days.</li>
-                         <li>Returns accepted within 7 days for unused items.</li>
-                     </ul>
-                 </div>
+                <div class="shipping-returns-new">
+                    <h3>Shipping & Returns</h3>
+                    <ul>
+                        <li>Orders processed within 1–2 business days.</li>
+                        <li>Delivery across Egypt within 2–5 days.</li>
+                        <li>Returns accepted within 7 days for unused items.</li>
+                    </ul>
+                </div>
             </div> 
         </div>
     `;
