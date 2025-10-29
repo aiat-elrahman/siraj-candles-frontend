@@ -91,11 +91,9 @@ function setupEventListeners() {
             // Toggle 'active' class on both button and menu
             menuToggle.classList.toggle('active');
             mobileMenu.classList.toggle('active');
-            // --- ADD THIS LINE ---
-            document.body.classList.toggle('mobile-menu-open'); // For the overlay
+            document.body.classList.toggle('mobile-menu-open');
         });
     }
-    // --- END OF NEW BLOCK ---
 
     // This body click listener handles closing popups
     document.body.addEventListener('click', (e) => {
@@ -109,7 +107,7 @@ function setupEventListeners() {
         if (mobileMenu && mobileMenu.classList.contains('active') && !mobileMenu.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
             menuToggle.classList.remove('active');
             mobileMenu.classList.remove('active');
-            document.body.classList.remove('mobile-menu-open'); // Also remove overlay
+            document.body.classList.remove('mobile-menu-open');
         }
     });
 
@@ -124,7 +122,6 @@ function setupEventListeners() {
 
 async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query = '') {
     try {
-        // FIX: Corrected API path
         const fullUrl = `${API_BASE_URL}/api${endpoint}?page=${page}&limit=${limit}${query}`;
         const response = await fetch(fullUrl);
         if (!response.ok) {
@@ -132,12 +129,10 @@ async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query =
         }
         const result = await response.json(); 
         
-        // FIX: CRITICAL DATA NORMALIZATION - Use 'results' key from JSON response
         const items = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
         
         return {
             items: items,
-            // FIX: Calculate totalPages using total and limit keys
             totalPages: Math.ceil((result.total || limit) / limit), 
             currentPage: result.page || page
         };
@@ -188,7 +183,6 @@ function renderPagination(controlsId, totalPages, currentPage, pageFile, loadFun
     const createButton = (text, page) => {
         const button = document.createElement('button');
         button.textContent = text;
-        // Class for pagination styling
         button.classList.add('pagination-button', 'pagination-bold'); 
         if (page === currentPage) {
             button.classList.add('active');
@@ -230,7 +224,7 @@ function debounce(func, delay) {
 // 3. HOMEPAGE LOGIC (UPDATED)
 // ====================================
 
-// FIX: Dynamic CATEGORIES LOGIC (Fetches fewer products, simplified HTML)
+// FIX: Dynamic CATEGORIES LOGIC
 async function fetchAndrenderCategories() {
     const container = document.getElementById('categories-container');
     if (!container) return;
@@ -238,17 +232,15 @@ async function fetchAndrenderCategories() {
     container.innerHTML = '<p class="loading-message">Loading categories...</p>';
 
     try {
-        // Fetch fewer products (e.g., 100) just to extract category names
-        const { items } = await fetchGridData('/products', 1, 100); // Reduced limit
+        const { items } = await fetchGridData('/products', 1, 100);
 
-        if (!items || items.length === 0) { // Added !items check
+        if (!items || items.length === 0) {
             container.innerHTML = '<p class="no-products-message">No products available to determine categories.</p>';
             return;
         }
 
         const uniqueCategories = new Set();
         items.forEach(item => {
-            // Use category field primarily
             const categoryName = item.category;
             if (categoryName) {
                 uniqueCategories.add(categoryName);
@@ -262,15 +254,10 @@ async function fetchAndrenderCategories() {
             return;
         }
 
-        // Render categories with simplified structure (ready for images later)
+        // Render categories with simplified structure
         container.innerHTML = categoriesArray.map(name => {
-            
-            // --- FIX: Re-added the imageSrc variable definition ---
-            // Simple placeholder image logic
             const imageSrc = name.toLowerCase().includes('candle') ? 'images/placeholder-candle.jpg' : 'images/placeholder-freshener.jpg';
-            // --- END FIX ---
 
-            // --- FIX: Corrected the HTML structure ---
             return `
                 <a href="products.html?category=${encodeURIComponent(name)}" class="category-card-item">
                     <div class="category-image-wrapper">
@@ -282,7 +269,6 @@ async function fetchAndrenderCategories() {
                     </div>
                 </a>
             `;
-            // --- END FIX ---
         }).join('');
 
     } catch (error) {
@@ -290,7 +276,6 @@ async function fetchAndrenderCategories() {
         container.innerHTML = '<p class="error-message">Could not load categories. Please try again later.</p>';
     }
 }
-// END OF CATEGORIES LOGIC
 
 async function fetchBestsellers() {
     const container = document.getElementById('bestsellers-container');
@@ -299,42 +284,36 @@ async function fetchBestsellers() {
     container.innerHTML = '<p class="loading-message">Loading bestsellers...</p>';
 
     try {
-        // FIX: Fetch using 'featured=true' query parameter
         const { items } = await fetchGridData('/products', 1, 6, '&featured=true');
-        // Render using the updated minimalist product card function
         renderProductGrid('bestsellers-container', items, 'bestsellers');
 
     } catch (error) {
-        console.error("Error fetching bestsellers:", error); // Log error
+        console.error("Error fetching bestsellers:", error);
         container.innerHTML = '<p class="error-message">Could not load bestsellers. Please try again later.</p>';
     }
 }
 
 // ====================================
-// 4. SEARCH LOGIC (No changes needed, but included for completeness)
+// 4. SEARCH LOGIC
 // ====================================
 
 async function handleSearch() {
     const query = searchInput.value.trim();
     if (query.length < 2) {
         searchResults.innerHTML = '<p>Enter at least 2 characters to search.</p>';
-        // Optionally hide results after a delay if input is cleared
         return;
     }
 
     searchResults.innerHTML = '<p>Searching...</p>';
-    searchResults.style.display = 'block'; // Ensure results are visible
+    searchResults.style.display = 'block';
 
     try {
-        // Fetch products matching the search query
         const { items } = await fetchGridData('/products', 1, 5, `&search=${encodeURIComponent(query)}`);
 
-        if (!items || items.length === 0) { // Check for items array
+        if (!items || items.length === 0) {
             searchResults.innerHTML = `<p>No results found for "${query}".</p>`;
         } else {
-            // Render search results as links
             searchResults.innerHTML = items.map(product => {
-                // Use appropriate name field
                 const productName = product.name_en || product.bundleName || product.name || 'Product';
                 const productPrice = product.price_egp || product.price || 0;
                  return `
@@ -346,7 +325,7 @@ async function handleSearch() {
             }).join('');
         }
     } catch (error) {
-        console.error("Search error:", error); // Log error
+        console.error("Search error:", error);
         searchResults.innerHTML = '<p class="error-message">Search error. Please try again.</p>';
     }
 }
@@ -356,11 +335,9 @@ async function handleSearch() {
 // ====================================
 
 function initProductsPage() {
-    // Setup Filter and Sort Dropdowns/Listeners here
     const filterSortBar = document.getElementById('filter-sort-bar');
     if (filterSortBar) {
         filterSortBar.innerHTML = renderFilterSortBar();
-        // Add listeners for filter and sort changes to trigger loadProducts
         document.getElementById('sort-by-select').addEventListener('change', () => loadProducts(1));
         document.getElementById('filter-category-select').addEventListener('change', () => loadProducts(1));
     }
@@ -370,8 +347,6 @@ function initProductsPage() {
     loadProducts(initialPage);
 }
 
-// NEW FUNCTION: Renders the Filter/Sort HTML
-// FIXED: Filter rendering function
 function renderFilterSortBar() {
     const urlParams = new URLSearchParams(window.location.search);
     const currentSort = urlParams.get('sort') || 'name_asc';
@@ -407,7 +382,6 @@ function renderFilterSortBar() {
     `;
 }
 
-// MODIFIED TO HANDLE FILTERS/SORTING
 async function loadProducts(page) {
     const container = document.getElementById('products-container');
     const paginationControls = document.getElementById('pagination-controls');
@@ -415,7 +389,6 @@ async function loadProducts(page) {
     const sortBy = document.getElementById('sort-by-select')?.value || '';
     const filterCategory = new URLSearchParams(window.location.search).get('category') || document.getElementById('filter-category-select')?.value || '';
     
-    // Build query string based on filters
     let query = '';
     if (filterCategory) {
         query += `&category=${encodeURIComponent(filterCategory)}`;
@@ -428,11 +401,9 @@ async function loadProducts(page) {
     container.innerHTML = '<p class="loading-message">Fetching all products...</p>';
     paginationControls.innerHTML = '';
     
-    // Endpoint is '/products' but fetchGridData now adds '/api' and uses 'results' key
     const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE, query);
 
     renderProductGrid('products-container', items, 'products');
-    // Ensure pagination is called correctly
     renderPagination('pagination-controls', totalPages, currentPage, 'products.html', loadProducts);
 }
 
@@ -453,7 +424,6 @@ async function loadBundles(page) {
     container.innerHTML = '<p class="loading-message">Fetching curated bundles...</p>';
     paginationControls.innerHTML = '';
         
-    // Using the product endpoint to fetch only bundle types
     const BUNDLE_ITEMS_PER_PAGE = 9; 
     const { items, totalPages, currentPage } = await fetchGridData('/products', page, BUNDLE_ITEMS_PER_PAGE, '&productType=Bundle');
 
@@ -462,37 +432,40 @@ async function loadBundles(page) {
 }
 
 // ====================================
-// 7. SINGLE PRODUCT/BUNDLE LOGIC (MAJOR OVERHAUL)
+// 7. SINGLE PRODUCT/BUNDLE LOGIC (FIXED)
 // ====================================
 
 async function loadProductDetails() {
     const container = document.getElementById('product-detail-container');
-    if (!container) { console.error("Product detail container not found"); return; }
-    container.innerHTML = '<p class="loading-message">Loading product details...</p>'; // Loading state
+    if (!container) { 
+        console.error("Product detail container not found"); 
+        return; 
+    }
+    container.innerHTML = '<p class="loading-message">Loading product details...</p>';
 
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
-    if (!id) { container.innerHTML = '<p class="error-message">No product ID found in URL.</p>'; return; }
+    if (!id) { 
+        container.innerHTML = '<p class="error-message">No product ID found in URL.</p>'; 
+        return; 
+    }
 
-    const endpoint = `/api/products/${id}`;
+    const endpoint = `/products/${id}`;
     try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`);
+        const response = await fetch(`${API_BASE_URL}/api${endpoint}`);
         if (!response.ok) {
-             const errorData = await response.json(); // Try to get error message from backend
+            const errorData = await response.json();
             throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Not Found'}`);
         }
         const product = await response.json();
-        product.isBundle = product.productType === 'Bundle'; // Add helper flag
+        product.isBundle = product.productType === 'Bundle';
 
-        renderProduct(product); // Call the updated render function
+        renderProduct(product);
 
-        // Fetch related products (only if needed by the new layout)
+        // Fetch related products
         const relatedContainer = document.getElementById('related-products-container');
         if (relatedContainer) {
-            // Use product.category and product._id
             fetchRelatedProducts(product.category || 'general', product._id);
-        } else {
-             console.warn("Related products container (related-products-container) not found on this page.");
         }
 
     } catch (error) {
@@ -501,7 +474,7 @@ async function loadProductDetails() {
     }
 }
 
-// FIXED: Moved fetchRelatedProducts outside of loadProductDetails
+// FIXED: Related products function moved to proper scope
 async function fetchRelatedProducts(category, excludeId) {
     const container = document.getElementById('related-products-container');
     if (!container) {
@@ -513,7 +486,6 @@ async function fetchRelatedProducts(category, excludeId) {
         const query = `&category=${encodeURIComponent(category)}&limit=4&exclude_id=${excludeId}&status=Active`;
         const { items } = await fetchGridData('/products', 1, 4, query);
         
-        // Check again if container still exists before rendering
         if (document.getElementById('related-products-container')) {
             renderProductGrid('related-products-container', items, 'related products');
         }
@@ -525,30 +497,26 @@ async function fetchRelatedProducts(category, excludeId) {
     }
 }
 
-// --- UPDATED: Poshmark-inspired Product Detail Rendering ---
+// FIXED: Product rendering function (removed related products from this function)
 function renderProduct(product) {
     const container = document.getElementById('product-detail-container');
     if (!container) return;
 
-    // --- Extract Data ---
     const isBundle = product.isBundle;
-    // Use the specific names from the product data
     const itemName = isBundle ? product.bundleName : product.name_en;
     const itemPrice = product.price_egp || product.price || 0;
     const itemCategory = product.category || 'N/A';
     const itemStock = product.stock || 0;
     const isOutOfStock = itemStock <= 0;
 
-    // Attributes (Prepare data for icon display)
+    // Attributes
     const attributes = [];
     if (!isBundle) {
-        // Use ?? 'N/A' to provide fallbacks directly
         if (product.scents) attributes.push({ label: 'Scent', value: product.scents ?? 'N/A', icon: '🌸' });
         if (product.size) attributes.push({ label: 'Size', value: product.size ?? 'N/A', icon: '📏' });
         if (product.burnTime) attributes.push({ label: 'Burn Time', value: product.burnTime ?? 'N/A', icon: '🔥' });
         if (product.wickType) attributes.push({ label: 'Wick', value: product.wickType ?? 'N/A', icon: '🧵' });
         if (product.coverageSpace) attributes.push({ label: 'Coverage', value: product.coverageSpace ?? 'N/A', icon: '🏠' });
-        // Add more attributes if they exist in your product data
     }
 
     // Descriptions
@@ -558,21 +526,21 @@ function renderProduct(product) {
         : '';
 
     // Image Gallery
-    const imagePaths = product.imagePaths || product.images || []; // Use imagePaths first
+    const imagePaths = product.imagePaths || product.images || [];
     const imageGalleryHTML = imagePaths
         .map((path, index) => `<img src="${path}" alt="${itemName || 'Product'} image ${index + 1}" class="${index === 0 ? 'main-product-image' : 'thumbnail-image'}" loading="lazy">`)
         .join('');
 
-    // Bundle Customization (Keep existing logic, ensure it targets correct IDs if needed)
+    // Bundle Customization
     let customizationHTML = '';
-    const bundleItems = product.bundleItems || []; // Ensure bundleItems is an array
-    const numItemsInBundle = bundleItems.length; // Get length safely
+    const bundleItems = product.bundleItems || [];
+    const numItemsInBundle = bundleItems.length;
     if (isBundle && numItemsInBundle > 0) {
-        let bundleSelectors = `<p class="customization-prompt product-name-bold">Choose your scents for each item:</p>`; // Moved prompt inside
+        let bundleSelectors = `<p class="customization-prompt product-name-bold">Choose your scents for each item:</p>`;
         bundleItems.forEach((item, i) => {
             const scentOptionsArray = (item.allowedScents || '').split(',').map(s => s.trim()).filter(Boolean);
             const scentOptions = scentOptionsArray.map(scent => `<option value="${scent}">${scent}</option>`).join('');
-            const bundleItemName = `${item.subProductName || 'Item'} (${item.size || 'Size N/A'})`; // Add fallbacks
+            const bundleItemName = `${item.subProductName || 'Item'} (${item.size || 'Size N/A'})`;
             bundleSelectors += `
                 <div class="bundle-selector-group">
                     <label for="scent-${i}">${bundleItemName}:</label>
@@ -583,15 +551,15 @@ function renderProduct(product) {
                 </div>
             `;
         });
-        customizationHTML = `<div class="bundle-customization-section">${bundleSelectors}</div>`; // Wrap generated selectors
+        customizationHTML = `<div class="bundle-customization-section">${bundleSelectors}</div>`;
     }
 
     // Update Meta Description & Title
-     document.title = `${itemName || 'Product'} | Siraj Candles`;
-     const metaDesc = (shortDescription || '').substring(0, 150).replace(/<br>/g, ' ');
-     document.querySelector('meta[name="description"]')?.setAttribute('content', metaDesc + (metaDesc.length === 150 ? '...' : ''));
+    document.title = `${itemName || 'Product'} | Siraj Candles`;
+    const metaDesc = (shortDescription || '').substring(0, 150).replace(/<br>/g, ' ');
+    document.querySelector('meta[name="description"]')?.setAttribute('content', metaDesc + (metaDesc.length === 150 ? '...' : ''));
 
-    // --- Build HTML ---
+    // FIXED: Only render main product details, NOT related products
     container.innerHTML = `
         <div class="product-detail-grid-new"> 
             <div class="product-image-area-new">
@@ -656,21 +624,13 @@ function renderProduct(product) {
                      </ul>
                  </div>
             </div> 
-        </div> 
-
-        <div class="related-products-section" id="related-products-main">
-             <div id="related-products-container" class="product-grid related-grid">
-                 <p>Loading related products...</p> 
-             </div>
         </div>
     `;
 
-    // --- Add Event Listeners AFTER setting innerHTML ---
-    attachQuantityButtonListeners(itemStock); // Pass actual stock
+    attachQuantityButtonListeners(itemStock);
     attachAddToCartListener(product);
 }
 
-// --- Helper: Attach Quantity Button Listeners ---
 function attachQuantityButtonListeners(maxStock) {
     const quantityInput = document.getElementById('quantity');
     if (!quantityInput) return;
@@ -684,19 +644,17 @@ function attachQuantityButtonListeners(maxStock) {
 
     document.querySelector('.quantity-plus')?.addEventListener('click', () => {
         let currentVal = parseInt(quantityInput.value);
-        if (currentVal < (maxStock || 10)) { // Use actual max stock
+        if (currentVal < (maxStock || 10)) {
             quantityInput.value = currentVal + 1;
         }
     });
 }
 
-// --- Helper: Attach Add to Cart Listener ---
 function attachAddToCartListener(product) {
     const addToCartBtn = document.getElementById('add-to-cart-btn');
     const quantityInput = document.getElementById('quantity');
 
     if (!addToCartBtn || !quantityInput) {
-        // Don't add listener if elements aren't found (e.g., out of stock)
         return;
     }
 
@@ -708,7 +666,7 @@ function attachAddToCartListener(product) {
         let customization = null;
         if (isBundleBtn && numItemsInBundle > 0) {
             customization = collectBundleScents(numItemsInBundle);
-            if (!customization) return; // Stop if scents not selected
+            if (!customization) return;
         }
 
         const itemName = isBundleBtn ? product.bundleName : product.name_en;
@@ -716,27 +674,24 @@ function attachAddToCartListener(product) {
 
         const item = {
             _id: product._id,
-            name: itemName || product.name || 'Product', // Add fallback
+            name: itemName || product.name || 'Product',
             price: itemPrice,
             quantity: quantity,
             customization: customization,
-            // Use imagePaths first
             imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
         };
-        addToCart(item); // Call global addToCart function
+        addToCart(item);
     });
 }
 
-// --- Helper: Collect Bundle Scents ---
 function collectBundleScents(numItems) {
     const scents = [];
     let allSelected = true;
     for (let i = 0; i < numItems; i++) {
         const selector = document.getElementById(`scent-${i}`);
-        if (!selector || !selector.value) { // Check for empty value
+        if (!selector || !selector.value) {
             console.error(`Please choose a scent for Item ${i + 1}.`);
-             // Optionally add visual feedback (e.g., border color)
-             selector?.focus();
+            selector?.focus();
             allSelected = false;
             break;
         }
@@ -764,7 +719,6 @@ function saveCartToStorage() {
 }
 
 function getCartUniqueId(product) {
-    // Customization makes an item unique even if the base ID is the same
     if (product.customization) {
         return `${product._id}_${JSON.stringify(product.customization)}`;
     }
@@ -782,10 +736,9 @@ function addToCart(product) {
     }
     saveCartToStorage();
     updateCartUI();
-    // FIX: Replaced alert() with a console log
     console.log(`${product.name} (x${product.quantity || 1}) added to cart!`);
 }
-window.addToCart = addToCart; // Expose globally
+window.addToCart = addToCart;
 
 function removeItemFromCart(id) {
     cart = cart.filter(item => getCartUniqueId(item) !== id);
@@ -797,7 +750,6 @@ function removeItemFromCart(id) {
 }
 window.removeItemFromCart = removeItemFromCart;
 
-// FIXED: Cart quantity update
 function updateItemQuantity(id, quantity) {
     const item = cart.find(item => getCartUniqueId(item) === id);
     if (item) {
@@ -830,7 +782,6 @@ function updateCartUI() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = getCartTotal();
     
-    // FIX: Hide the counter element if totalItems is 0
     if (totalItems === 0) {
         cartCountElement.style.visibility = 'hidden'; 
         cartCountElement.style.opacity = 0;
@@ -863,7 +814,6 @@ function updateCartUI() {
 // 9. SHOP CART PAGE LOGIC
 // ====================================
 
-// FIXED: Cart page rendering
 function renderShopCartPage() {
     const itemsContainer = document.getElementById('cart-items-table');
     const summaryContainer = document.getElementById('cart-summary');
@@ -990,11 +940,11 @@ async function processCheckout(e) {
             notes: formData.get('notes'),
         },
         items: cart.map(item => ({
-            productId: item._id, // Base product ID
+            productId: item._id,
             name: item.name,
             quantity: item.quantity,
             price: item.price,
-            customization: item.customization || null // Include customization details
+            customization: item.customization || null
         })),
         totalAmount: totalAmount + shippingFee,
         subtotal: totalAmount,
@@ -1007,7 +957,6 @@ async function processCheckout(e) {
     submitBtn.textContent = 'Processing...';
 
     try {
-        // FIX: Corrected API path
         const response = await fetch(`${API_BASE_URL}/api/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1017,7 +966,6 @@ async function processCheckout(e) {
         const result = await response.json();
 
         if (response.ok) {
-            // FIX: Replaced alert() with console.log
             console.log('Order placed successfully! Your Order ID is: ' + result.orderId);
             cart = []; 
             saveCartToStorage();
@@ -1028,7 +976,6 @@ async function processCheckout(e) {
         }
 
     } catch (error) {
-        // FIX: Replaced alert() with console.error
         console.error('Order failed: ' + error.message);
         submitBtn.disabled = false;
         submitBtn.textContent = 'Place Order';
