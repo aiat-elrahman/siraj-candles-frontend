@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Universal Setup (Nav, Search, Cart)
     setupEventListeners();
     loadCartFromStorage();
-
+    setupGridBuyNowButtons();
     // Page-Specific Initialization based on body attribute
     const pageName = document.body.getAttribute('data-page');
 
@@ -164,15 +164,28 @@ function renderProductGrid(containerId, items, endpointType) {
         const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
         
         return `
-            <a href="product.html?id=${item._id}" class="product-card">
-                <img src="${itemImage}" alt="${itemName}" loading="lazy"> 
-                <div class="product-info-minimal">
-                    <p class="product-title">${itemName}</p>
-                    <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
+            <div class="product-card-wrapper">
+                <a href="product.html?id=${item._id}" class="product-card">
+                    <img src="${itemImage}" alt="${itemName}" loading="lazy"> 
+                    <div class="product-info-minimal">
+                        <p class="product-title">${itemName}</p>
+                        <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
+                    </div>
+                </a>
+                <div class="product-grid-actions">
+                    <button class="add-to-cart-grid-btn" data-product-id="${item._id}">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </button>
+                    <button class="buy-now-btn" data-product-id="${item._id}">
+                        <i class="fas fa-bolt"></i> Buy Now
+                    </button>
                 </div>
-            </a>
+            </div>
         `;
     }).join('');
+
+    // Add event listeners for grid buttons
+    setupGridButtonListeners();
 }
 
 function renderPagination(controlsId, totalPages, currentPage, pageFile, loadFunction) {
@@ -454,6 +467,12 @@ async function loadProductDetails() {
 
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
+    const buyNowProductId = sessionStorage.getItem('buyNowProductId');
+    if (buyNowProductId && buyNowProductId === id) {
+        // Remove the flag so it doesn't affect future visits
+        sessionStorage.removeItem('buyNowProductId');
+        // You could auto-populate quantity or show a "Buy Now" focused UI here
+    }
     if (!id) { 
         container.innerHTML = '<p class="error-message">No product ID found in URL.</p>'; 
         return; 
@@ -1008,6 +1027,10 @@ window.addToCart = addToCart;
 // NEW: Buy It Now Functionality
 // ====================================
 
+// ====================================
+// NEW: Buy It Now Functionality
+// ====================================
+
 function setupBuyNowButton(product) {
     const buyNowBtn = document.querySelector('.buy-it-now-btn');
     if (!buyNowBtn) return;
@@ -1030,17 +1053,39 @@ function setupBuyNowButton(product) {
             imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
         };
 
-        // Clear cart and add only this item
-        cart = [item];
-        saveCartToStorage();
-        updateCartUI();
+        // ADD the item to cart (don't clear existing items)
+        addToCart(item);
         
         // Redirect to checkout
         window.location.href = 'checkout.html';
     });
 }
 
+// ====================================
+// NEW: Buy Now for Product Grid Items
+// ====================================
 
+function setupGridBuyNowButtons() {
+    // This will be called for product grid pages (products.html, bundles.html)
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('buy-now-btn') || e.target.closest('.buy-now-btn')) {
+            e.preventDefault();
+            const productCard = e.target.closest('.product-card');
+            if (productCard && productCard.href) {
+                // Extract product ID from href
+                const url = new URL(productCard.href);
+                const productId = url.searchParams.get('id');
+                
+                if (productId) {
+                    // Store the product ID for buy now flow
+                    sessionStorage.setItem('buyNowProductId', productId);
+                    // Redirect to product page first to handle customization
+                    window.location.href = productCard.href;
+                }
+            }
+        }
+    });
+}
 // FIXED: Remove item function with proper ID handling
 function removeItemFromCart(id) {
     cart = cart.filter(item => getCartUniqueId(item) !== id);
