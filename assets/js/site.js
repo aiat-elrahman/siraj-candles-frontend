@@ -521,7 +521,7 @@ function renderProduct(product) {
     // Render main product details first
     renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock);
 
-    // Render dynamic specifications based on category
+    // Render dynamic specifications based on category (FIXED: Original table layout)
     renderProductSpecifications(product);
 
     // Render selectable options if available
@@ -627,7 +627,7 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
     `;
 }
 
-// NEW: Render product specifications based on category
+// FIXED: Render product specifications with original table layout
 function renderProductSpecifications(product) {
     const section = document.getElementById('product-specifications-section');
     const container = document.getElementById('specifications-container');
@@ -641,60 +641,78 @@ function renderProductSpecifications(product) {
     switch (category) {
         case 'Candles':
         case 'Pottery Collection':
-            if (product.burnTime) specs.push({ label: 'Burn Time', value: product.burnTime, icon: '⏱️' });
-            if (product.wickType) specs.push({ label: 'Wick Type', value: product.wickType, icon: '🕯️' });
-            if (product.coverageSpace) specs.push({ label: 'Coverage Space', value: product.coverageSpace, icon: '🏠' });
-            if (product.scents && !product.scentOptions) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
+            if (product.burnTime) specs.push({ label: 'BURN TIME', value: product.burnTime });
+            if (product.wickType) specs.push({ label: 'WICK TYPE', value: product.wickType });
+            if (product.coverageSpace) specs.push({ label: 'COVERAGE SPACE', value: product.coverageSpace });
+            if (product.scents && !product.scentOptions) specs.push({ label: 'SCENT', value: product.scents });
             break;
             
         case 'Deodorant':
-            if (product.scents) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
-            if (product.skinType) specs.push({ label: 'Skin Type', value: product.skinType, icon: '👤' });
-            if (product.keyIngredients) specs.push({ label: 'Key Ingredients', value: product.keyIngredients, icon: '🌿' });
+            if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
+            if (product.skinType) specs.push({ label: 'SKIN TYPE', value: product.skinType });
+            if (product.keyIngredients) specs.push({ label: 'KEY INGREDIENTS', value: product.keyIngredients });
             break;
             
         case 'Soap':
-            if (product.scents) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
-            if (product.soapWeight) specs.push({ label: 'Weight', value: product.soapWeight, icon: '⚖️' });
-            if (product.featureBenefit) specs.push({ label: 'Feature', value: product.featureBenefit, icon: '⭐' });
-            if (product.keyIngredients) specs.push({ label: 'Key Ingredients', value: product.keyIngredients, icon: '🌿' });
+            if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
+            if (product.soapWeight) specs.push({ label: 'WEIGHT', value: product.soapWeight });
+            if (product.featureBenefit) specs.push({ label: 'FEATURE', value: product.featureBenefit });
+            if (product.keyIngredients) specs.push({ label: 'KEY INGREDIENTS', value: product.keyIngredients });
             break;
             
         case 'Body Splash':
-            if (product.scents) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
+            if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
             break;
             
         case 'Shimmering Body Oil':
-            if (product.color) specs.push({ label: 'Color', value: product.color, icon: '🎨' });
-            if (product.scents) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
-            if (product.oilWeight) specs.push({ label: 'Size', value: product.oilWeight, icon: '🧴' });
+            if (product.color) specs.push({ label: 'COLOR', value: product.color });
+            if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
+            if (product.oilWeight) specs.push({ label: 'SIZE', value: product.oilWeight });
             break;
             
         case 'Massage Candles':
-            if (product.scents) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
-            if (product.massageWeight) specs.push({ label: 'Weight', value: product.massageWeight, icon: '⚖️' });
+            if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
+            if (product.massageWeight) specs.push({ label: 'WEIGHT', value: product.massageWeight });
             break;
             
         case 'Wax Burners':
-            if (product.dimensions) specs.push({ label: 'Dimensions', value: product.dimensions, icon: '📐' });
+            if (product.dimensions) specs.push({ label: 'DIMENSIONS', value: product.dimensions });
             break;
             
         case 'Fizzy Salts':
-            if (product.fizzySpecs) specs.push({ label: 'Specifications', value: product.fizzySpecs, icon: '🧼' });
+            if (product.fizzySpecs) specs.push({ label: 'SPECIFICATIONS', value: product.fizzySpecs });
             break;
     }
 
     if (specs.length > 0) {
         section.style.display = 'block';
-        container.innerHTML = specs.map(spec => `
-            <div class="specification-item">
-                <span class="spec-icon">${spec.icon}</span>
-                <div class="spec-details">
-                    <span class="spec-label">${spec.label}</span>
-                    <span class="spec-value">${spec.value}</span>
-                </div>
-            </div>
-        `).join('');
+        
+        // Create table rows with 4 columns per row
+        let tableHTML = '<table class="specifications-table">';
+        tableHTML += '<tr>';
+        
+        specs.forEach((spec, index) => {
+            tableHTML += `
+                <th>${spec.label}</th>
+                <td>${spec.value}</td>
+            `;
+            
+            // Start new row after every 2 specs (4 cells)
+            if ((index + 1) % 2 === 0 && index !== specs.length - 1) {
+                tableHTML += '</tr><tr>';
+            }
+        });
+        
+        // Fill remaining cells if needed
+        const remainingCells = 4 - (specs.length * 2 % 4);
+        if (remainingCells > 0 && remainingCells < 4) {
+            for (let i = 0; i < remainingCells; i++) {
+                tableHTML += '<td></td>';
+            }
+        }
+        
+        tableHTML += '</tr></table>';
+        container.innerHTML = tableHTML;
     } else {
         section.style.display = 'none';
     }
@@ -915,7 +933,7 @@ function collectAllSelections(product) {
 }
 
 // ====================================
-// 8. CART MANAGEMENT (FIXED)
+// 8. CART MANAGEMENT (FIXED - ALL ISSUES RESOLVED)
 // ====================================
 
 let cart = [];
@@ -932,9 +950,14 @@ function saveCartToStorage() {
     localStorage.setItem('sirajCart', JSON.stringify(cart));
 }
 
+// FIXED: Improved cart ID generation for bundles
 function getCartUniqueId(product) {
-    if (product.customization) {
-        return `${product._id}_${JSON.stringify(product.customization)}`;
+    if (product.customization && product.customization.length > 0) {
+        // For bundles, include all customization options in the ID
+        const customizationString = Array.isArray(product.customization) 
+            ? product.customization.sort().join('|')
+            : product.customization;
+        return `${product._id}_${customizationString}`;
     }
     return product._id;
 }
@@ -946,7 +969,11 @@ function addToCart(product) {
     if (existingItem) {
         existingItem.quantity += product.quantity || 1;
     } else {
-        cart.push({ ...product, cartItemId: uniqueId, quantity: product.quantity || 1 });
+        cart.push({ 
+            ...product, 
+            cartItemId: uniqueId, 
+            quantity: product.quantity || 1 
+        });
     }
     saveCartToStorage();
     updateCartUI();
@@ -954,8 +981,10 @@ function addToCart(product) {
     // Show success message
     showCartMessage(`${product.name} (x${product.quantity || 1}) added to cart!`);
 }
+// Make addToCart globally available
 window.addToCart = addToCart;
 
+// FIXED: Remove item function with proper ID handling
 function removeItemFromCart(id) {
     cart = cart.filter(item => getCartUniqueId(item) !== id);
     saveCartToStorage();
@@ -977,8 +1006,10 @@ function removeItemFromCart(id) {
     // Show removal message
     showCartMessage('Item removed from cart');
 }
+// Make removeItemFromCart globally available
 window.removeItemFromCart = removeItemFromCart;
 
+// FIXED: Update item quantity with proper validation
 function updateItemQuantity(id, quantity) {
     const item = cart.find(item => getCartUniqueId(item) === id);
     if (item) {
@@ -1000,12 +1031,14 @@ function updateItemQuantity(id, quantity) {
         }
     }
 }
+// Make updateItemQuantity globally available
 window.updateItemQuantity = updateItemQuantity;
 
 function getCartTotal() {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 }
 
+// FIXED: Update cart UI with proper event delegation
 function updateCartUI() {
     const cartCountElement = document.querySelector('.cart-count');
     const cartListElement = document.querySelector('.cart-items-list');
@@ -1224,6 +1257,7 @@ function renderCheckoutSummary(container) {
     `;
 }
 
+// FIXED: Checkout cart items with working quantity controls
 function renderCheckoutCartItems() {
     const container = document.getElementById('checkout-cart-items');
     if (!container) return;
