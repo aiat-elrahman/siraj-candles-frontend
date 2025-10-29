@@ -360,11 +360,20 @@ function renderFilterSortBar() {
                     <select id="filter-category-select" class="filter-select">
                         <option value="">All Categories</option>
                         <option value="Candles" ${currentCategory === 'Candles' ? 'selected' : ''}>Candles</option>
-                        <option value="Diffusers" ${currentCategory === 'Diffusers' ? 'selected' : ''}>Diffusers</option>
-                        <option value="Soaps" ${currentCategory === 'Soaps' ? 'selected' : ''}>Soaps</option>
+                        <option value="Pottery Collection" ${currentCategory === 'Pottery Collection' ? 'selected' : ''}>Pottery Collection</option>
+                        <option value="Wax Burners" ${currentCategory === 'Wax Burners' ? 'selected' : ''}>Wax Burners</option>
+                        <option value="Fresheners" ${currentCategory === 'Fresheners' ? 'selected' : ''}>Fresheners</option>
+                        <option value="Wax Melts" ${currentCategory === 'Wax Melts' ? 'selected' : ''}>Wax Melts</option>
+                        <option value="Car Diffusers" ${currentCategory === 'Car Diffusers' ? 'selected' : ''}>Car Diffusers</option>
+                        <option value="Reed Diffusers" ${currentCategory === 'Reed Diffusers' ? 'selected' : ''}>Reed Diffusers</option>
+                        <option value="Deodorant" ${currentCategory === 'Deodorant' ? 'selected' : ''}>Deodorant</option>
+                        <option value="Soap" ${currentCategory === 'Soap' ? 'selected' : ''}>Soap</option>
+                        <option value="Body Splash" ${currentCategory === 'Body Splash' ? 'selected' : ''}>Body Splash</option>
+                        <option value="Shimmering Body Oil" ${currentCategory === 'Shimmering Body Oil' ? 'selected' : ''}>Shimmering Body Oil</option>
+                        <option value="Massage Candles" ${currentCategory === 'Massage Candles' ? 'selected' : ''}>Massage Candles</option>
+                        <option value="Fizzy Salts" ${currentCategory === 'Fizzy Salts' ? 'selected' : ''}>Fizzy Salts</option>
+                        <option value="Sets" ${currentCategory === 'Sets' ? 'selected' : ''}>Sets</option>
                         <option value="Bundles" ${currentCategory === 'Bundles' ? 'selected' : ''}>Bundles</option>
-                        <option value="Body care" ${currentCategory === 'Body care' ? 'selected' : ''}>Body care</option>
-                        <option value="Freshener" ${currentCategory === 'Freshener' ? 'selected' : ''}>Freshener</option>
                     </select>
                 </div>
                 
@@ -432,7 +441,7 @@ async function loadBundles(page) {
 }
 
 // ====================================
-// 7. SINGLE PRODUCT/BUNDLE LOGIC (FIXED)
+// 7. SINGLE PRODUCT/BUNDLE LOGIC (ENHANCED)
 // ====================================
 
 async function loadProductDetails() {
@@ -497,7 +506,7 @@ async function fetchRelatedProducts(category, excludeId) {
     }
 }
 
-// FIXED: Product rendering function (removed related products from this function)
+// ENHANCED: Product rendering function with new specifications and options
 function renderProduct(product) {
     const container = document.getElementById('product-detail-container');
     if (!container) return;
@@ -509,14 +518,31 @@ function renderProduct(product) {
     const itemStock = product.stock || 0;
     const isOutOfStock = itemStock <= 0;
 
-    // Attributes
+    // Render main product details first
+    renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock);
+
+    // Render dynamic specifications based on category
+    renderProductSpecifications(product);
+
+    // Render selectable options if available
+    renderProductOptions(product);
+
+    // Render bundle items if it's a bundle
+    if (isBundle) {
+        renderBundleItems(product);
+    }
+
+    attachQuantityButtonListeners(itemStock);
+    attachAddToCartListener(product);
+}
+
+function renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock) {
+    // Attributes for main product display
     const attributes = [];
     if (!isBundle) {
         if (product.scents) attributes.push({ label: 'Scent', value: product.scents ?? 'N/A', icon: '🌸' });
         if (product.size) attributes.push({ label: 'Size', value: product.size ?? 'N/A', icon: '📏' });
-        if (product.burnTime) attributes.push({ label: 'Burn Time', value: product.burnTime ?? 'N/A', icon: '🔥' });
-        if (product.wickType) attributes.push({ label: 'Wick', value: product.wickType ?? 'N/A', icon: '🧵' });
-        if (product.coverageSpace) attributes.push({ label: 'Coverage', value: product.coverageSpace ?? 'N/A', icon: '🏠' });
+        // Removed detailed specs - they'll be in the specifications section
     }
 
     // Descriptions
@@ -531,35 +557,11 @@ function renderProduct(product) {
         .map((path, index) => `<img src="${path}" alt="${itemName || 'Product'} image ${index + 1}" class="${index === 0 ? 'main-product-image' : 'thumbnail-image'}" loading="lazy">`)
         .join('');
 
-    // Bundle Customization
-    let customizationHTML = '';
-    const bundleItems = product.bundleItems || [];
-    const numItemsInBundle = bundleItems.length;
-    if (isBundle && numItemsInBundle > 0) {
-        let bundleSelectors = `<p class="customization-prompt product-name-bold">Choose your scents for each item:</p>`;
-        bundleItems.forEach((item, i) => {
-            const scentOptionsArray = (item.allowedScents || '').split(',').map(s => s.trim()).filter(Boolean);
-            const scentOptions = scentOptionsArray.map(scent => `<option value="${scent}">${scent}</option>`).join('');
-            const bundleItemName = `${item.subProductName || 'Item'} (${item.size || 'Size N/A'})`;
-            bundleSelectors += `
-                <div class="bundle-selector-group">
-                    <label for="scent-${i}">${bundleItemName}:</label>
-                    <select id="scent-${i}" class="scent-selector" required>
-                        <option value="">-- Select a scent --</option>
-                        ${scentOptions}
-                    </select>
-                </div>
-            `;
-        });
-        customizationHTML = `<div class="bundle-customization-section">${bundleSelectors}</div>`;
-    }
-
     // Update Meta Description & Title
     document.title = `${itemName || 'Product'} | Siraj Candles`;
     const metaDesc = (shortDescription || '').substring(0, 150).replace(/<br>/g, ' ');
     document.querySelector('meta[name="description"]')?.setAttribute('content', metaDesc + (metaDesc.length === 150 ? '...' : ''));
 
-    // FIXED: Only render main product details, NOT related products
     container.innerHTML = `
         <div class="product-detail-grid-new"> 
             <div class="product-image-area-new">
@@ -580,8 +582,7 @@ function renderProduct(product) {
                             <input type="number" id="quantity" value="1" min="1" max="${itemStock || 10}" readonly class="quantity-input-box" aria-label="Quantity">
                             <button class="quantity-plus action-btn" data-action="plus" aria-label="Increase quantity">+</button>
                         </div>
-                        <button id="add-to-cart-btn" class="action-add-to-cart-btn"
-                                data-is-bundle="${isBundle}" data-bundle-items="${numItemsInBundle}">
+                        <button id="add-to-cart-btn" class="action-add-to-cart-btn">
                             <span class="cart-icon" aria-hidden="true">🛒</span> Add to Cart
                         </button>
                         <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
@@ -591,8 +592,6 @@ function renderProduct(product) {
                     <button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>
                 `}
 
-                ${customizationHTML}
-
                 <div class="product-description-section">
                      <h3 class="section-subtitle">Description</h3> 
                      ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
@@ -601,7 +600,7 @@ function renderProduct(product) {
 
                 ${attributes.length > 0 ? `
                     <div class="product-attributes-section"> 
-                        <h3 class="section-subtitle">Details</h3> 
+                        <h3 class="section-subtitle">Quick Details</h3> 
                         <div class="product-attributes-grid">
                             ${attributes.map(attr => `
                                 <div class="attribute-chip">
@@ -626,9 +625,205 @@ function renderProduct(product) {
             </div> 
         </div>
     `;
+}
 
-    attachQuantityButtonListeners(itemStock);
-    attachAddToCartListener(product);
+// NEW: Render product specifications based on category
+function renderProductSpecifications(product) {
+    const section = document.getElementById('product-specifications-section');
+    const container = document.getElementById('specifications-container');
+    
+    if (!section || !container) return;
+
+    const specs = [];
+    const category = product.category;
+
+    // Define specifications for each category
+    switch (category) {
+        case 'Candles':
+        case 'Pottery Collection':
+            if (product.burnTime) specs.push({ label: 'Burn Time', value: product.burnTime, icon: '⏱️' });
+            if (product.wickType) specs.push({ label: 'Wick Type', value: product.wickType, icon: '🕯️' });
+            if (product.coverageSpace) specs.push({ label: 'Coverage Space', value: product.coverageSpace, icon: '🏠' });
+            if (product.scents && !product.scentOptions) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
+            break;
+            
+        case 'Deodorant':
+            if (product.scents) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
+            if (product.skinType) specs.push({ label: 'Skin Type', value: product.skinType, icon: '👤' });
+            if (product.keyIngredients) specs.push({ label: 'Key Ingredients', value: product.keyIngredients, icon: '🌿' });
+            break;
+            
+        case 'Soap':
+            if (product.scents) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
+            if (product.soapWeight) specs.push({ label: 'Weight', value: product.soapWeight, icon: '⚖️' });
+            if (product.featureBenefit) specs.push({ label: 'Feature', value: product.featureBenefit, icon: '⭐' });
+            if (product.keyIngredients) specs.push({ label: 'Key Ingredients', value: product.keyIngredients, icon: '🌿' });
+            break;
+            
+        case 'Body Splash':
+            if (product.scents) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
+            break;
+            
+        case 'Shimmering Body Oil':
+            if (product.color) specs.push({ label: 'Color', value: product.color, icon: '🎨' });
+            if (product.scents) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
+            if (product.oilWeight) specs.push({ label: 'Size', value: product.oilWeight, icon: '🧴' });
+            break;
+            
+        case 'Massage Candles':
+            if (product.scents) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
+            if (product.massageWeight) specs.push({ label: 'Weight', value: product.massageWeight, icon: '⚖️' });
+            break;
+            
+        case 'Wax Burners':
+            if (product.dimensions) specs.push({ label: 'Dimensions', value: product.dimensions, icon: '📐' });
+            break;
+            
+        case 'Fizzy Salts':
+            if (product.fizzySpecs) specs.push({ label: 'Specifications', value: product.fizzySpecs, icon: '🧼' });
+            break;
+    }
+
+    if (specs.length > 0) {
+        section.style.display = 'block';
+        container.innerHTML = specs.map(spec => `
+            <div class="specification-item">
+                <span class="spec-icon">${spec.icon}</span>
+                <div class="spec-details">
+                    <span class="spec-label">${spec.label}</span>
+                    <span class="spec-value">${spec.value}</span>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        section.style.display = 'none';
+    }
+}
+
+// NEW: Render selectable options
+function renderProductOptions(product) {
+    const section = document.getElementById('product-options-section');
+    const container = document.getElementById('options-container');
+    
+    if (!section || !container) return;
+
+    const options = [];
+    const category = product.category;
+
+    // Define options for each category
+    if (product.scentOptions) {
+        const scents = product.scentOptions.split(',').map(s => s.trim()).filter(Boolean);
+        if (scents.length > 0) {
+            options.push({
+                type: 'select',
+                id: 'scent-option',
+                label: 'Choose Scent',
+                options: scents,
+                required: true
+            });
+        }
+    }
+
+    if (product.sizeOptions) {
+        const sizes = product.sizeOptions.split(',').map(s => s.trim()).filter(Boolean);
+        if (sizes.length > 0) {
+            options.push({
+                type: 'select',
+                id: 'size-option',
+                label: 'Choose Size',
+                options: sizes,
+                required: true
+            });
+        }
+    }
+
+    if (product.weightOptions) {
+        const weights = product.weightOptions.split(',').map(s => s.trim()).filter(Boolean);
+        if (weights.length > 0) {
+            options.push({
+                type: 'select',
+                id: 'weight-option',
+                label: 'Choose Weight',
+                options: weights,
+                required: true
+            });
+        }
+    }
+
+    if (product.typeOptions) {
+        const types = product.typeOptions.split(',').map(s => s.trim()).filter(Boolean);
+        if (types.length > 0) {
+            options.push({
+                type: 'select',
+                id: 'type-option',
+                label: 'Choose Type',
+                options: types,
+                required: true
+            });
+        }
+    }
+
+    if (product.shapeOptions) {
+        const shapes = product.shapeOptions.split(',').map(s => s.trim()).filter(Boolean);
+        if (shapes.length > 0) {
+            options.push({
+                type: 'select',
+                id: 'shape-option',
+                label: 'Choose Shape',
+                options: shapes,
+                required: true
+            });
+        }
+    }
+
+    if (options.length > 0) {
+        section.style.display = 'block';
+        container.innerHTML = options.map(option => `
+            <div class="option-group">
+                <label for="${option.id}">${option.label}:</label>
+                <select id="${option.id}" class="option-selector" ${option.required ? 'required' : ''}>
+                    <option value="">-- Select ${option.label} --</option>
+                    ${option.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                </select>
+            </div>
+        `).join('');
+    } else {
+        section.style.display = 'none';
+    }
+}
+
+// NEW: Render bundle items
+function renderBundleItems(product) {
+    const section = document.getElementById('bundle-items-section');
+    const container = document.getElementById('bundle-items-container');
+    
+    if (!section || !container) return;
+
+    const bundleItems = product.bundleItems || [];
+    
+    if (bundleItems.length > 0) {
+        section.style.display = 'block';
+        container.innerHTML = `
+            <p class="customization-prompt product-name-bold">Choose your scents for each item:</p>
+            ${bundleItems.map((item, i) => {
+                const scentOptionsArray = (item.allowedScents || '').split(',').map(s => s.trim()).filter(Boolean);
+                const scentOptions = scentOptionsArray.map(scent => `<option value="${scent}">${scent}</option>`).join('');
+                const bundleItemName = `${item.subProductName || 'Item'} (${item.size || 'Size N/A'})`;
+                
+                return `
+                    <div class="bundle-selector-group">
+                        <label for="bundle-scent-${i}">${bundleItemName}:</label>
+                        <select id="bundle-scent-${i}" class="scent-selector" required>
+                            <option value="">-- Select a scent --</option>
+                            ${scentOptions}
+                        </select>
+                    </div>
+                `;
+            }).join('')}
+        `;
+    } else {
+        section.style.display = 'none';
+    }
 }
 
 function attachQuantityButtonListeners(maxStock) {
@@ -659,17 +854,12 @@ function attachAddToCartListener(product) {
     }
 
     addToCartBtn.addEventListener('click', (e) => {
-        const isBundleBtn = e.currentTarget.getAttribute('data-is-bundle') === 'true';
-        const numItemsInBundle = parseInt(e.currentTarget.getAttribute('data-bundle-items') || '0');
         const quantity = parseInt(quantityInput.value);
+        const customization = collectAllSelections(product);
 
-        let customization = null;
-        if (isBundleBtn && numItemsInBundle > 0) {
-            customization = collectBundleScents(numItemsInBundle);
-            if (!customization) return;
-        }
+        if (customization === null) return; // Validation failed
 
-        const itemName = isBundleBtn ? product.bundleName : product.name_en;
+        const itemName = product.isBundle ? product.bundleName : product.name_en;
         const itemPrice = product.price_egp || product.price || 0;
 
         const item = {
@@ -684,20 +874,44 @@ function attachAddToCartListener(product) {
     });
 }
 
-function collectBundleScents(numItems) {
-    const scents = [];
-    let allSelected = true;
-    for (let i = 0; i < numItems; i++) {
-        const selector = document.getElementById(`scent-${i}`);
-        if (!selector || !selector.value) {
-            console.error(`Please choose a scent for Item ${i + 1}.`);
-            selector?.focus();
-            allSelected = false;
-            break;
+// NEW: Collect all selections from options and bundle items
+function collectAllSelections(product) {
+    const selections = [];
+
+    // Collect from product options
+    const optionSelectors = [
+        'scent-option', 'size-option', 'weight-option', 'type-option', 'shape-option'
+    ];
+
+    optionSelectors.forEach(selectorId => {
+        const selector = document.getElementById(selectorId);
+        if (selector && selector.value) {
+            selections.push(`${selectorId.replace('-option', '')}: ${selector.value}`);
         }
-        scents.push(selector.value);
+    });
+
+    // Collect from bundle items if it's a bundle
+    if (product.isBundle) {
+        const bundleItems = product.bundleItems || [];
+        const bundleSelections = [];
+        let allSelected = true;
+
+        for (let i = 0; i < bundleItems.length; i++) {
+            const selector = document.getElementById(`bundle-scent-${i}`);
+            if (!selector || !selector.value) {
+                console.error(`Please choose a scent for Item ${i + 1}.`);
+                selector?.focus();
+                allSelected = false;
+                break;
+            }
+            bundleSelections.push(selector.value);
+        }
+
+        if (!allSelected) return null;
+        selections.push(...bundleSelections);
     }
-    return allSelected ? scents : null;
+
+    return selections.length > 0 ? selections : null;
 }
 
 // ====================================
@@ -913,7 +1127,7 @@ function renderShopCartPage() {
     itemsContainer.innerHTML = cart.map(item => {
         const uniqueId = getCartUniqueId(item);
         const customizationDetail = item.customization ? 
-            `<div class="cart-customization-detail"><small>Scents: ${item.customization.join(', ')}</small></div>` 
+            `<div class="cart-customization-detail"><small>Options: ${item.customization.join(', ')}</small></div>` 
             : '';
         const itemImage = item.imageUrl || 'images/placeholder.jpg';
 
@@ -1022,7 +1236,7 @@ function renderCheckoutCartItems() {
     container.innerHTML = cart.map(item => {
         const uniqueId = getCartUniqueId(item);
         const customizationDetail = item.customization ? 
-            `<div class="cart-customization-detail"><small>Scents: ${item.customization.join(', ')}</small></div>` 
+            `<div class="cart-customization-detail"><small>Options: ${item.customization.join(', ')}</small></div>` 
             : '';
         const itemImage = item.imageUrl || 'images/placeholder.jpg';
         const itemTotal = (item.price * item.quantity).toFixed(2);
