@@ -660,8 +660,8 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
                     <h3>Shipping & Returns</h3>
                     <ul>
                         <li>Orders processed within 1–2 business days.</li>
-                        <li>Delivery across Egypt within 2–5 days.</li>
-                        <li>Returns accepted within 7 days for unused items.</li>
+                        <li>Delivery across Egypt within 5-7 days.</li>
+                        <li>Due to the handmade nature of our products, returns and exchanges are not accepted</li>
                     </ul>
                 </div>
             </div> 
