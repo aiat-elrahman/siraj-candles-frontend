@@ -861,8 +861,8 @@ function setupBuyNowButton(product) {
         const itemName = product.isBundle ? product.bundleName : product.name_en;
         const itemPrice = product.price_egp || product.price || 0;
 
-        const item = {
-      _     _id: product._id,
+        const item = { 
+    _id: product._id,
             name: itemName || product.name || 'Product',
             price: itemPrice,
             quantity: quantity,
@@ -1070,7 +1070,7 @@ function updateItemQuantity(id, quantity) {
             updateCartUI();
             
             // Update both shopcart and checkout pages if they're active
-          _ if (document.body.getAttribute('data-page') === 'shopcart') {
+           if (document.body.getAttribute('data-page') === 'shopcart') {
                 renderShopCartPage();
             } else if (document.body.getAttribute('data-page') === 'checkout') {
                 renderCheckoutSummary(document.getElementById('checkout-summary-container'));
