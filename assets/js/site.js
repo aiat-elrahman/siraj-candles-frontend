@@ -622,26 +622,26 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
                             <button class="quantity-minus action-btn" data-action="minus" aria-label="Decrease quantity">-</button>
                             <input type="number" id="quantity" value="1" min="1" max="${itemStock || 10}" readonly class="quantity-input-box" aria-label="Quantity">
                             <button class="quantity-plus action-btn" data-action="plus" aria-label="Increase quantity">+</button>
-                  _   </div>
+                    </div>
                         <button id="add-to-cart-btn" class="action-add-to-cart-btn">
                             <span class="cart-icon" aria-hidden="true">🛒</span> Add to Cart
                         </button>
                         <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
                     </div>
-    _         ` : `
-                    <p class="stock-status out-of-stock">Out of Stock</p>
+           ` : `
+                 <p class="stock-status out-of-stock">Out of Stock</p>
                     <button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>
                 `}
 
                 <div class="product-description-section">
                      <h3 class="section-subtitle">Description</h3> 
                      ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
-s                    ${formattedDescriptionHTML} 
+            ${formattedDescriptionHTML} 
                 </div>
 
                 ${attributes.length > 0 ? `
                     <div class="product-attributes-section"> 
-                        <h3 class="section-subtitle">Quick Details</h3> 
+                        <h3 class="section-subtitle"> Details</h3> 
                         <div class="product-attributes-grid">
                             ${attributes.map(attr => `
                                 <div class="attribute-chip">
@@ -651,7 +651,7 @@ s                    ${formattedDescriptionHTML}
                                 </div>
                             `).join('')}
                         </div>
-              _   </div>
+                </div>
                 ` : ''}
                 ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
 
@@ -659,10 +659,10 @@ s                    ${formattedDescriptionHTML}
                      <h3>Shipping & Returns</h3>
                      <ul>
                          <li>Orders processed within 1–2 business days.</li>
-DOM                      <li>Delivery across Egypt within 2–5 days.</li>
+        <li>Delivery across Egypt within 2–5 days.</li>
                          <li>Returns accepted within 7 days for unused items.</li>
                      </ul>
-            _   </div>
+ </div>
             </div> 
         </div>
     `;
