@@ -666,7 +666,63 @@ body.mobile-menu-open::before {
     gap: 1rem; /* Reduced gap for mobile */
     margin-top: 1.5rem;
 }
+/* Product grid buttons */
+.product-card-wrapper {
+    position: relative;
+}
 
+.product-grid-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.add-to-cart-grid-btn,
+.buy-now-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.add-to-cart-grid-btn {
+    background-color: var(--accent-color);
+    color: var(--text-light);
+}
+
+.buy-now-btn {
+    background-color: var(--primary-color);
+    color: var(--text-dark);
+    border: 1px solid var(--accent-color);
+}
+
+.add-to-cart-grid-btn:hover {
+    background-color: #8C756B;
+}
+
+.buy-now-btn:hover {
+    background-color: #D6CCC5;
+}
+
+/* Mobile responsiveness for grid buttons */
+@media (max-width: 768px) {
+    .product-grid-actions {
+        flex-direction: row;
+        gap: 5px;
+    }
+    
+    .add-to-cart-grid-btn,
+    .buy-now-btn {
+        flex: 1;
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+}
 /* FIXED: All product grids now 2 columns on mobile */
 .product-grid.bestsellers-grid,
 .product-grid.related-grid {
