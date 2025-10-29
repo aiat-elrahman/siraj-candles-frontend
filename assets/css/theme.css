@@ -22,6 +22,8 @@
     --font-logo: var(--font-logo-display);
     --font-body: 'Montserrat', sans-serif;
     --border-color: #DCDCDC; /* Added light gray for borders */
+    --success-color: #28a745;
+    --error-color: #dc3545;
 }
 
 /* Base Resets & Defaults */
@@ -966,6 +968,262 @@ body.mobile-menu-open::before {
         grid-template-columns: 1fr 1fr;
         gap: 3rem;
         align-items: start;
+    }
+}
+
+/* ------------------ NEW: Product Specifications Section ------------------ */
+.product-specifications-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background-color: var(--primary-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.product-specifications-section h3 {
+    font-family: var(--font-body);
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-dark);
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 0.5rem;
+}
+
+.specifications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.specification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.specification-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.spec-icon {
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.spec-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.spec-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.spec-value {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.4;
+}
+
+/* Mobile responsiveness for specifications */
+@media (max-width: 767px) {
+    .product-specifications-section {
+        margin: 1.5rem 0;
+        padding: 1rem;
+    }
+    
+    .specifications-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .specification-item {
+        padding: 1rem;
+    }
+}
+
+/* ------------------ NEW: Product Options Section ------------------ */
+.product-options-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.product-options-section h3 {
+    font-family: var(--font-body);
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-dark);
+}
+
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.option-group label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.option-selector {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    background-color: white;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    max-width: 300px;
+}
+
+.option-selector:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(169, 142, 130, 0.1);
+}
+
+.option-selector:hover {
+    border-color: var(--accent-color);
+}
+
+.option-selector:required:invalid {
+    border-color: var(--error-color);
+}
+
+.option-selector option {
+    padding: 0.5rem;
+}
+
+/* Mobile responsiveness for options */
+@media (max-width: 767px) {
+    .product-options-section {
+        margin: 1.5rem 0;
+        padding: 1rem;
+    }
+    
+    .options-container {
+        gap: 1rem;
+    }
+    
+    .option-selector {
+        max-width: 100%;
+    }
+}
+
+/* ------------------ NEW: Bundle Items Section ------------------ */
+.bundle-items-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background-color: var(--primary-color);
+    border-radius: 8px;
+    border: 1px solid var(--accent-color);
+}
+
+.bundle-items-section h3 {
+    font-family: var(--font-body);
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-dark);
+}
+
+.bundle-items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.bundle-selector-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease;
+}
+
+.bundle-selector-group:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.bundle-selector-group label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.scent-selector {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    background-color: white;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.scent-selector:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(169, 142, 130, 0.1);
+}
+
+.scent-selector:hover {
+    border-color: var(--accent-color);
+}
+
+.scent-selector:required:invalid {
+    border-color: var(--error-color);
+}
+
+/* Mobile responsiveness for bundle items */
+@media (max-width: 767px) {
+    .bundle-items-section {
+        margin: 1.5rem 0;
+        padding: 1rem;
+    }
+    
+    .bundle-items-container {
+        gap: 1rem;
+    }
+    
+    .bundle-selector-group {
+        padding: 0.75rem;
     }
 }
 
@@ -1914,4 +2172,97 @@ body.mobile-menu-open::before {
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border-color);
+}
+
+/* ------------------ NEW: Enhanced Responsive Design ------------------ */
+@media (max-width: 480px) {
+    .product-specifications-section,
+    .product-options-section,
+    .bundle-items-section {
+        margin: 1rem 0;
+        padding: 0.75rem;
+    }
+    
+    .specification-item {
+        padding: 0.75rem;
+    }
+    
+    .option-selector,
+    .scent-selector {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* ------------------ NEW: Loading and Error States ------------------ */
+.loading-message {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-style: italic;
+}
+
+.error-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--error-color);
+    background-color: #ffe6e6;
+    border: 1px solid var(--error-color);
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.no-products-message {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #666;
+    font-style: italic;
+    grid-column: 1 / -1;
+}
+
+/* ------------------ NEW: Utility Classes ------------------ */
+.text-center {
+    text-align: center;
+}
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+/* ------------------ NEW: Focus States for Accessibility ------------------ */
+button:focus-visible,
+.option-selector:focus-visible,
+.scent-selector:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+/* ------------------ NEW: Print Styles ------------------ */
+@media print {
+    .navbar,
+    .footer,
+    .cart-dropdown,
+    .search-modal,
+    .mobile-menu-toggle {
+        display: none !important;
+    }
+    
+    .product-specifications-section,
+    .product-options-section,
+    .bundle-items-section {
+        break-inside: avoid;
+    }
 }
