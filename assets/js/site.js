@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Universal Setup (Nav, Search, Cart)
     setupEventListeners();
     loadCartFromStorage();
-    setupGridBuyNowButtons();
+
     // Page-Specific Initialization based on body attribute
     const pageName = document.body.getAttribute('data-page');
 
@@ -164,28 +164,15 @@ function renderProductGrid(containerId, items, endpointType) {
         const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
         
         return `
-            <div class="product-card-wrapper">
-                <a href="product.html?id=${item._id}" class="product-card">
-                    <img src="${itemImage}" alt="${itemName}" loading="lazy"> 
-                    <div class="product-info-minimal">
-                        <p class="product-title">${itemName}</p>
-                        <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
-                    </div>
-                </a>
-                <div class="product-grid-actions">
-                    <button class="add-to-cart-grid-btn" data-product-id="${item._id}">
-                        <i class="fas fa-cart-plus"></i> Add to Cart
-                    </button>
-                    <button class="buy-now-btn" data-product-id="${item._id}">
-                        <i class="fas fa-bolt"></i> Buy Now
-                    </button>
+            <a href="product.html?id=${item._id}" class="product-card">
+                <img src="${itemImage}" alt="${itemName}" loading="lazy"> 
+                <div class="product-info-minimal">
+                    <p class="product-title">${itemName}</p>
+                    <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
                 </div>
-            </div>
+            </a>
         `;
     }).join('');
-
-    // Add event listeners for grid buttons
-    setupGridButtonListeners();
 }
 
 function renderPagination(controlsId, totalPages, currentPage, pageFile, loadFunction) {
@@ -467,12 +454,6 @@ async function loadProductDetails() {
 
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
-    const buyNowProductId = sessionStorage.getItem('buyNowProductId');
-    if (buyNowProductId && buyNowProductId === id) {
-        // Remove the flag so it doesn't affect future visits
-        sessionStorage.removeItem('buyNowProductId');
-        // You could auto-populate quantity or show a "Buy Now" focused UI here
-    }
     if (!id) { 
         container.innerHTML = '<p class="error-message">No product ID found in URL.</p>'; 
         return; 
@@ -553,17 +534,21 @@ function renderProduct(product) {
 
     attachQuantityButtonListeners(itemStock);
     attachAddToCartListener(product);
-     // ADD THIS LINE: Setup Buy Now button
-    setupBuyNowButton(product); // <-- ADD THIS
-
-    // Fetch related products
-    const relatedContainer = document.getElementById('related-products-container');
-    if (relatedContainer) {
-        fetchRelatedProducts(product.category || 'general', product._id);}
+    
+    // NEW: Setup Buy Now button
+    setupBuyNowButton(product);
 }
 
 function renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock) {
-    // Enhanced product details with the layout you want
+    // Attributes for main product display
+    const attributes = [];
+    if (!isBundle) {
+        if (product.scents) attributes.push({ label: 'Scent', value: product.scents ?? 'N/A', icon: '🌸' });
+        if (product.size) attributes.push({ label: 'Size', value: product.size ?? 'N/A', icon: '📏' });
+        // Removed detailed specs - they'll be in the specifications section
+    }
+
+    // Descriptions
     const shortDescription = isBundle ? product.bundleDescription : product.description_en;
     const formattedDescriptionHTML = product.formattedDescription
         ? `<div class="formatted-description-box">${product.formattedDescription.replace(/\r?\n/g, '<br>')}</div>`
@@ -589,26 +574,7 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
             </div>
 
             <div class="product-info-area-new">
-                <!-- ENHANCED: Add product headers and details like in your original design -->
                 <h1 class="product-title-main">${itemName || 'Product Name'}</h1>
-                
-                ${product.subtitle ? `<h2 class="product-subtitle">${product.subtitle}</h2>` : ''}
-                
-                ${product.features ? `
-                    <div class="product-features">
-                        ${product.features.split('\n').map(feature => `<p>${feature}</p>`).join('')}
-                    </div>
-                ` : ''}
-
-                ${product.includes ? `
-                    <div class="product-includes">
-                        <h4>Includes:</h4>
-                        <ul>
-                            ${product.includes.split('\n').map(item => `<li>${item}</li>`).join('')}
-                        </ul>
-                    </div>
-                ` : ''}
-
                 <p class="product-category-subtle">${itemCategory}</p> 
                 <p class="product-price-main">${itemPrice.toFixed(2)} EGP</p>
 
@@ -635,14 +601,28 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
                      ${formattedDescriptionHTML} 
                 </div>
 
+                ${attributes.length > 0 ? `
+                    <div class="product-attributes-section"> 
+                        <h3 class="section-subtitle">Quick Details</h3> 
+                        <div class="product-attributes-grid">
+                            ${attributes.map(attr => `
+                                <div class="attribute-chip">
+                                    <span class="attribute-icon" aria-hidden="true">${attr.icon || '🔹'}</span>
+                                    <span class="attribute-label">${attr.label}:</span>
+                                    <span class="attribute-value">${attr.value}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
                 ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
 
                  <div class="shipping-returns-new">
                      <h3>Shipping & Returns</h3>
                      <ul>
                          <li>Orders processed within 1–2 business days.</li>
-                         <li>Delivery across Egypt within 5-7 days.</li>
-                         <li>Due to the handmade nature of our products, returns and exchanges are not accepted,.</li>
+                         <li>Delivery across Egypt within 2–5 days.</li>
+                         <li>Returns accepted within 7 days for unused items.</li>
                      </ul>
                  </div>
             </div> 
@@ -867,6 +847,37 @@ function renderBundleItems(product) {
     }
 }
 
+// NEW: Buy Now Button Functionality
+function setupBuyNowButton(product) {
+    const buyNowBtn = document.querySelector('.buy-it-now-btn');
+    if (!buyNowBtn) return;
+
+    buyNowBtn.addEventListener('click', (e) => {
+        const quantity = parseInt(document.getElementById('quantity')?.value || 1);
+        const customization = collectAllSelections(product);
+
+        if (customization === null) return; // Validation failed
+
+        const itemName = product.isBundle ? product.bundleName : product.name_en;
+        const itemPrice = product.price_egp || product.price || 0;
+
+        const item = {
+            _id: product._id,
+            name: itemName || product.name || 'Product',
+            price: itemPrice,
+            quantity: quantity,
+            customization: customization,
+            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
+        };
+
+        // ADD the item to cart (don't clear existing items)
+        addToCart(item);
+        
+        // Redirect to checkout
+        window.location.href = 'checkout.html';
+    });
+}
+
 function attachQuantityButtonListeners(maxStock) {
     const quantityInput = document.getElementById('quantity');
     if (!quantityInput) return;
@@ -898,9 +909,7 @@ function attachAddToCartListener(product) {
         const quantity = parseInt(quantityInput.value);
         const customization = collectAllSelections(product);
 
-        // Allow adding to cart even if customization is null (no options selected)
-        // Only prevent if validation explicitly failed (returned null due to required fields)
-        if (customization === null) return;
+        if (customization === null) return; // Validation failed
 
         const itemName = product.isBundle ? product.bundleName : product.name_en;
         const itemPrice = product.price_egp || product.price || 0;
@@ -910,15 +919,14 @@ function attachAddToCartListener(product) {
             name: itemName || product.name || 'Product',
             price: itemPrice,
             quantity: quantity,
-            customization: customization || [], // Use empty array if no customizations
+            customization: customization,
             imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
         };
         addToCart(item);
     });
 }
 
-
-// FIXED: Better validation for product options
+// NEW: Collect all selections from options and bundle items
 function collectAllSelections(product) {
     const selections = [];
 
@@ -942,33 +950,20 @@ function collectAllSelections(product) {
 
         for (let i = 0; i < bundleItems.length; i++) {
             const selector = document.getElementById(`bundle-scent-${i}`);
-            if (selector && !selector.value) {
-                alert(`Please choose a scent for Item ${i + 1}.`);
-                selector.focus();
+            if (!selector || !selector.value) {
+                console.error(`Please choose a scent for Item ${i + 1}.`);
+                selector?.focus();
                 allSelected = false;
                 break;
             }
-            if (selector && selector.value) {
-                bundleSelections.push(selector.value);
-            }
+            bundleSelections.push(selector.value);
         }
 
         if (!allSelected) return null;
         selections.push(...bundleSelections);
     }
 
-    // If no selections but selectors exist and are required, show error
-    const hasRequiredSelectors = optionSelectors.some(selectorId => {
-        const selector = document.getElementById(selectorId);
-        return selector && selector.required;
-    });
-
-    if (hasRequiredSelectors && selections.length === 0) {
-        alert('Please select all required options.');
-        return null;
-    }
-
-    return selections.length > 0 ? selections : [];
+    return selections.length > 0 ? selections : null;
 }
 
 // ====================================
@@ -1023,69 +1018,6 @@ function addToCart(product) {
 // Make addToCart globally available
 window.addToCart = addToCart;
 
-// ====================================
-// NEW: Buy It Now Functionality
-// ====================================
-
-// ====================================
-// NEW: Buy It Now Functionality
-// ====================================
-
-function setupBuyNowButton(product) {
-    const buyNowBtn = document.querySelector('.buy-it-now-btn');
-    if (!buyNowBtn) return;
-
-    buyNowBtn.addEventListener('click', (e) => {
-        const quantity = parseInt(document.getElementById('quantity')?.value || 1);
-        const customization = collectAllSelections(product);
-
-        if (customization === null) return; // Validation failed
-
-        const itemName = product.isBundle ? product.bundleName : product.name_en;
-        const itemPrice = product.price_egp || product.price || 0;
-
-        const item = {
-            _id: product._id,
-            name: itemName || product.name || 'Product',
-            price: itemPrice,
-            quantity: quantity,
-            customization: customization,
-            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
-        };
-
-        // ADD the item to cart (don't clear existing items)
-        addToCart(item);
-        
-        // Redirect to checkout
-        window.location.href = 'checkout.html';
-    });
-}
-
-// ====================================
-// NEW: Buy Now for Product Grid Items
-// ====================================
-
-function setupGridBuyNowButtons() {
-    // This will be called for product grid pages (products.html, bundles.html)
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('buy-now-btn') || e.target.closest('.buy-now-btn')) {
-            e.preventDefault();
-            const productCard = e.target.closest('.product-card');
-            if (productCard && productCard.href) {
-                // Extract product ID from href
-                const url = new URL(productCard.href);
-                const productId = url.searchParams.get('id');
-                
-                if (productId) {
-                    // Store the product ID for buy now flow
-                    sessionStorage.setItem('buyNowProductId', productId);
-                    // Redirect to product page first to handle customization
-                    window.location.href = productCard.href;
-                }
-            }
-        }
-    });
-}
 // FIXED: Remove item function with proper ID handling
 function removeItemFromCart(id) {
     cart = cart.filter(item => getCartUniqueId(item) !== id);
