@@ -527,50 +527,44 @@ body.mobile-menu-open::before {
     margin-left: 10px;
 }
 
-/* ------------------ Hero Section (Updated with Background Image) ------------------ */
-
-/* ------------------ Hero Section (FIXED) ------------------ */
+/* ------------------ Hero Section (NEW 2-COLUMN LAYOUT) ------------------ */
 
 .hero-section {
-background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jpg');
-background-size: cover; /* 'cover' is now safe to use */
-background-position: center center;
-background-repeat: no-repeat;
-/* This is the fix: Make the section's shape match the image's shape */
-/* We get this from your image's dimensions (1080 wide / 430 tall) */
-aspect-ratio: 1080 / 430;
-/* This removes the old padding that caused the empty space */
-padding: 0; 
-/* This re-centers your text vertically and horizontally */
-display: flex;
-align-items: center;
-justify-content: center;
-
-/* Your original styles */
-text-align: center;
-position: relative;
-color: var(--text-light);
-overflow: hidden;
+display: grid;
+grid-template-columns: 1fr 1fr; /* Two equal columns */
+align-items: center; /* Vertically center the content */
+gap: 2rem; /* Space between image and text */
+padding: 2rem 0; /* Add some padding to the top and bottom */
 }
 
-/* This is your existing rule for the overlay */
-.hero-section::before {
-content: "";
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-bottom: 0;
-background-color: rgba(0, 0, 0, 0.3); 
-z-index: 1; 
+.hero-image-container img {
+ width: 100%;
+height: auto;
+border-radius: 8px; /* Optional: adds nice rounded corners */
+}
 
-
-/* ADD THIS NEW RULE */
+/* We must make the text dark again so it's readable on the light background */
 .hero-content {
-    position: relative;
-    z-index: 2; /* This ensures text is on top of the overlay (z-index: 1) */
+text-align: left; /* Align text to the left */
+}
+.hero-content h1 {
+color: var(--text-dark);
+}
+.hero-content p {
+color: var(--text-dark);
+}
+
+/* Mobile Responsive (Stacking the columns) */
+@media (max-width: 768px) {
+    .hero-section {
+grid-template-columns: 1fr; /* One column on mobile */
+}
+    .hero-content {
+text-align: center; /* Center the text on mobile */
 }
 }
+
+
 
 /* Ensure Text/Button elements inside hero are above overlay */
 .hero-section h1,
