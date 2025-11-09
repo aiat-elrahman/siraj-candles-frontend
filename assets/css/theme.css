@@ -530,7 +530,7 @@ body.mobile-menu-open::before {
 /* ------------------ Hero Section (Updated with Background Image) ------------------ */
 
 .hero-section {
-    background-image: url('../images/hero-background.jpg'); /* ADJUST PATH AS NEEDED */
+    background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.heic'); /* ADJUST PATH AS NEEDED */
     background-size: cover;
     background-position: center center; /* More specific centering */
     background-repeat: no-repeat;
