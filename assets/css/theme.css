@@ -529,16 +529,28 @@ body.mobile-menu-open::before {
 
 /* ------------------ Hero Section (Updated with Background Image) ------------------ */
 
+/* ------------------ Hero Section (FIXED) ------------------ */
+
 .hero-section {
-    background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jpg');
-    background-size: contain;
-    background-position: center center; /* More specific centering */
-    background-repeat: no-repeat;
-    padding: 5rem 1rem; /* Increased padding for better image display */
-    text-align: center;
-    position: relative; /* For overlay positioning */
-    color: var(--text-light); /* Make default text white */
-    overflow: hidden; /* Prevent potential overlay bleed */
+background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jpg');
+background-size: cover; /* 'cover' is now safe to use */
+background-position: center center;
+background-repeat: no-repeat;
+/* This is the fix: Make the section's shape match the image's shape */
+/* We get this from your image's dimensions (1080 wide / 430 tall) */
+aspect-ratio: 1080 / 430;
+/* This removes the old padding that caused the empty space */
+padding: 0; 
+/* This re-centers your text vertically and horizontally */
+display: flex;
+align-items: center;
+justify-content: center;
+
+/* Your original styles */
+text-align: center;
+position: relative;
+color: var(--text-light);
+overflow: hidden;
 }
 
 /* Overlay */
