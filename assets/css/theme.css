@@ -532,7 +532,7 @@ body.mobile-menu-open::before {
 /* ------------------ Hero Section (Updated with Background Image) ------------------ */
 
 .hero-section {
-background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1762656271/20250814_185836_1_zgtfjn.jpg'); /* This points to a local file */
+background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.heic'); /* This points to a local file */
 background-size: contain;
  background-position: center center;
 background-repeat: no-repeat;
