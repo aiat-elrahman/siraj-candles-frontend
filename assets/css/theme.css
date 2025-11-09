@@ -527,33 +527,41 @@ body.mobile-menu-open::before {
     margin-left: 10px;
 }
 
-/* ------------------ Hero Section (NEW 2-COLUMN LAYOUT) ------------------ */
+/*-----------hero section*/
+
+/* ------------------ Hero Section (Updated with Background Image) ------------------ */
 
 .hero-section {
-display: grid;
-grid-template-columns: 1fr 1fr; /* Two equal columns */
-align-items: center; /* Vertically center the content */
-gap: 2rem; /* Space between image and text */
-padding: 2rem 0; /* Add some padding to the top and bottom */
+background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1762655461/20250814_185836_yzzfke.jpg'); /* This points to a local file */
+background-size: cover;
+ background-position: center center;
+background-repeat: no-repeat;
+padding: 5rem 1rem; /* This is the original padding */
+text-align: center;
+position: relative;
+color: var(--text-light);
+overflow: hidden;
 }
 
-.hero-image-container img {
- width: 100%;
-height: auto;
-border-radius: 8px; /* Optional: adds nice rounded corners */
+/* Overlay */
+.hero-section::before {
+content: "";
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: rgba(0, 0, 0, 0.3); /* Dark overlay */
+z-index: 1; /* Place overlay behind text */
 }
 
-/* We must make the text dark again so it's readable on the light background */
-.hero-content {
-text-align: left; /* Align text to the left */
+/* Ensure Text/Button elements inside hero are above overlay */
+.hero-section h1,
+.hero-section p,
+.hero-section .shop-now-btn {
+position: relative;
+ z-index: 2; /* This ensures text is above the overlay */
 }
-.hero-content h1 {
-color: var(--text-dark);
-}
-.hero-content p {
-color: var(--text-dark);
-}
-
 /* Mobile Responsive (Stacking the columns) */
 @media (max-width: 768px) {
     .hero-section {
