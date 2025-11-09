@@ -531,7 +531,7 @@ body.mobile-menu-open::before {
 
 .hero-section {
     background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jpg');
-    background-size: cover;
+    background-size: contain;
     background-position: center center; /* More specific centering */
     background-repeat: no-repeat;
     padding: 5rem 1rem; /* Increased padding for better image display */
