@@ -533,7 +533,7 @@ body.mobile-menu-open::before {
 
 .hero-section {
 background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1762655461/20250814_185836_yzzfke.jpg'); /* This points to a local file */
-background-size: cover;
+background-size: contain;
  background-position: center center;
 background-repeat: no-repeat;
 padding: 5rem 1rem; /* This is the original padding */
