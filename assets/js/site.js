@@ -231,17 +231,9 @@ async function fetchAndrenderCategories() {
 // ADD THIS NEW BLOCK OF CODE
         const categoryImageMap = {
             "CANDLES": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jbg",
-            "Pottery Collection": "PASTE_YOUR_CLOUDINARY_URL_FOR_POTTERY_HERE",
             "FRESHNERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1761781119/siraj-ecommerce-products/qlmsue0yxdm1hfknlsm6.jpg",
-            "DEODARANT": "PASTE_YOUR_CLOUDINARY_URL_FOR_DEODORANT_HERE",
             "HAND SOAP": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762658995/1759164877399_gke8ht.jpg",
-            "BUNDLES": "PASTE_YOUR_CLOUDINARY_URL_FOR_BUNDLES_HERE",
-            "WAX BURNERS": "PASTE_YOUR_CLOUDINARY_URL_HERE",
-            "WAX MELTS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762658900/20250925_172445_fvjodn.jpg" ,
-            "BODY SPLASH": "PASTE_YOUR_CLOUDINARY_URL_HERE",
-            "CAR DIFFUSER": "PASTE_YOUR_CLOUDINARY_URL_HERE",
-            "REED DIFFUSER": "PASTE_YOUR_CLOUDINARY_URL_HERE",
-
+            "WAX MELTS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762658900/20250925_172445_fvjodn.jpg" 
         };
 
         
