@@ -553,16 +553,23 @@ color: var(--text-light);
 overflow: hidden;
 }
 
-/* Overlay */
+/* This is your existing rule for the overlay */
 .hero-section::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.3); /* Dark overlay (30% opacity) - adjust as needed */
-    z-index: 1; /* Place overlay behind text */
+content: "";
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: rgba(0, 0, 0, 0.3); 
+z-index: 1; 
+
+
+/* ADD THIS NEW RULE */
+.hero-content {
+    position: relative;
+    z-index: 2; /* This ensures text is on top of the overlay (z-index: 1) */
+}
 }
 
 /* Ensure Text/Button elements inside hero are above overlay */
