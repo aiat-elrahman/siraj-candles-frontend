@@ -230,13 +230,14 @@ async function fetchAndrenderCategories() {
     if (!container) return;
 // ADD THIS NEW BLOCK OF CODE
         const categoryImageMap = {
-            "CANDLES": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jbg",
+            "CANDLES": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jpg",
             "FRESHNERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1761781119/siraj-ecommerce-products/qlmsue0yxdm1hfknlsm6.jpg",
-           "REED DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726431/1762712178438_xfuquc.png" ,
-            "CAR DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762713253908_n9oa58.png" ,
-            "BODY SPLASH": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762718491257_ebijfn.png" ,
+           "REED DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726431/1762712178438_xfuquc.jpg" ,
+            "CAR DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762713253908_n9oa58.jpg" ,
+            "WAX MELTS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762736714/1762734206270_bgiks9.jpg",
+            "BODY SPLASH": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762718491257_ebijfn.jpg" ,
             "HAND SOAP": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762658995/1759164877399_gke8ht.jpg",
-            "DEODARANT": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726396/1762719090010_ezijic.png" 
+            "DEODARANT": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726396/1762719090010_ezijic.jpg" 
         };
 
         
@@ -268,7 +269,11 @@ async function fetchAndrenderCategories() {
         // Render categories with simplified structure
         container.innerHTML = categoriesArray.map(name => {
         
-            const imageSrc = categoryImageMap[name] || 'images/placeholder.jpg';
+            // Define a reliable default image at the top of your function
+const defaultImage = "https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jbg";
+
+// ... (later in your map function) ...
+const imageSrc = categoryImageMap[name.toUpperCase()] || defaultImage;
             return `
                 <a href="products.html?category=${encodeURIComponent(name)}" class="category-card-item">
                     <div class="category-image-wrapper">
