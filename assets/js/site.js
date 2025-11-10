@@ -232,8 +232,11 @@ async function fetchAndrenderCategories() {
         const categoryImageMap = {
             "CANDLES": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jbg",
             "FRESHNERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1761781119/siraj-ecommerce-products/qlmsue0yxdm1hfknlsm6.jpg",
+           "REED DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726431/1762712178438_xfuquc.png" ,
+            "CAR DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762713253908_n9oa58.png" ,
+            "BODY SPLASH": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762718491257_ebijfn.png" ,
             "HAND SOAP": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762658995/1759164877399_gke8ht.jpg",
-            "WAX MELTS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762658900/20250925_172445_fvjodn.jpg" 
+            "DEODARANT": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726396/1762719090010_ezijic.png" 
         };
 
         
