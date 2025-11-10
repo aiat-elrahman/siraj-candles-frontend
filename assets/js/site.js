@@ -231,7 +231,7 @@ async function fetchAndrenderCategories() {
 // ADD THIS NEW BLOCK OF CODE
         const categoryImageMap = {
             "CANDLES": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jpg",
-            "FRESHNERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1761781119/siraj-ecommerce-products/qlmsue0yxdm1hfknlsm6.jpg",
+            "FRESHNERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762736936/Untitled_design_rug14h.jpg",
            "REED DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726431/1762712178438_xfuquc.jpg" ,
             "CAR DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762713253908_n9oa58.jpg" ,
             "WAX MELTS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762736714/1762734206270_bgiks9.jpg",
