@@ -237,6 +237,9 @@ async function fetchAndrenderCategories() {
             "WAX MELTS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762736714/1762734206270_bgiks9.jpg",
             "BODY SPLASH": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762718491257_ebijfn.jpg" ,
             "HAND SOAP": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762658995/1759164877399_gke8ht.jpg",
+           "SOAP":"https://res.cloudinary.com/dvr195vfw/image/upload/v1762658995/1759164877399_gke8ht.jpg",
+           "WAX BURNERS":"https://res.cloudinary.com/dvr195vfw/image/upload/v1762898528/1762718763686_di3doc.jpg",
+           "POTTERY COLLECTION" : "https://res.cloudinary.com/dvr195vfw/image/upload/v1762898447/1762895593299_glhgqy.jpg",
             "DEODARANT": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726396/1762719090010_ezijic.jpg" 
         };
 
