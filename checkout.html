@@ -102,12 +102,20 @@
                 </form>
             </section>
 
-            <section class="checkout-section order-summary-section">
-                <div class="order-summary-box" id="checkout-summary-container">
-                    <p class="loading-message">Loading summary...</p>
-                </div>
-            </section>
+           <section class="checkout-section order-summary-section">
+    <div class="order-summary-box" id="checkout-summary-container">
+        <p class="loading-message">Loading summary...</p>
+    </div>
 
+    <div class="discount-section">
+        <h3>Discount Code</h3>
+        <div class="discount-input-group">
+            <input type="text" id="discount-code" placeholder="Enter coupon code">
+            <button type="button" id="apply-discount-btn" class="apply-btn">Apply</button>
+        </div>
+        <p id="discount-message"></p>
+    </div>
+</section>
             <!-- Added Cart Management Section -->
             <section class="checkout-section cart-management-section">
                 <h2 class="section-title">Cart Items</h2>
