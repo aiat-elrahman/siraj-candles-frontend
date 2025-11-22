@@ -29,8 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageName = document.body.getAttribute('data-page');
     switch (pageName) {
         case 'home':
-            fetchAndRenderCategories(); 
-            fetchBestsellers();
+            // Make sure this spelling matches the function definition below!
+            if (typeof fetchAndRenderCategories === 'function') {
+                fetchAndRenderCategories(); 
+            } else {
+                console.error("fetchAndRenderCategories function is missing!");
+            }
+            if (typeof fetchBestsellers === 'function') {
+                fetchBestsellers();
+            }
             break;
         case 'products':
             initProductsPage();
