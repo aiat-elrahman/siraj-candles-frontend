@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageName = document.body.getAttribute('data-page');
     switch (pageName) {
         case 'home':
-            fetchAndrenderCategories(); 
+            fetchAndRenderCategories(); 
             fetchBestsellers();
             break;
         case 'products':
