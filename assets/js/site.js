@@ -379,7 +379,7 @@ function renderFilterSortBar() {
                         <option value="Deodorant" ${currentCategory === 'Deodorant' ? 'selected' : ''}>Deodorant</option>
                         <option value="Soap" ${currentCategory === 'Soap' ? 'selected' : ''}>Soap</option>
                         <option value="Body Splash" ${currentCategory === 'Body Splash' ? 'selected' : ''}>Body Splash</option>
-                        <option value="Shimmering Body Oil" ${currentCategory === 'Shimmering Body Oil' ? 'selected' : ''}>Shimmering Body Oil</option>
+                        <option value="Body Oil" ${currentCategory === 'Body Oil' ? 'selected' : ''}> Body Oil</option>
                         <option value="Massage Candles" ${currentCategory === 'Massage Candles' ? 'selected' : ''}>Massage Candles</option>
                         <option value="Fizzy Salts" ${currentCategory === 'Fizzy Salts' ? 'selected' : ''}>Fizzy Salts</option>
                         <option value="Sets" ${currentCategory === 'Sets' ? 'selected' : ''}>Sets</option>
@@ -632,7 +632,7 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
             case 'Body Splash':
                 // Already handled by universal 'scents'
                 break;
-            case 'Shimmering Body Oil':
+            case 'Body Oil':
                 if (product.color) attributes.push({ label: 'Color', value: product.color, icon: '🎨' });
                 if (product.oilWeight) attributes.push({ label: 'Size', value: product.oilWeight, icon: '💧' });
                 break;
@@ -768,7 +768,7 @@ function renderProductSpecifications(product) {
             if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
             break;
             
-        case 'Shimmering Body Oil':
+        case 'Body Oil':
             if (product.color) specs.push({ label: 'COLOR', value: product.color });
             if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
             if (product.oilWeight) specs.push({ label: 'SIZE', value: product.oilWeight });
