@@ -1323,17 +1323,17 @@ async function setupCheckoutPage() {
     renderCheckoutSummary(summaryContainer);
     renderCheckoutCartItems();
     
-    // 1. NEW: Load Shipping Cities from Backend
-    await loadShippingCities();
+    
+    // 1. Load Cities
+    await loadShippingCities(); 
 
-    // 2. NEW: Attach Discount Listener
+    // 2. Attach Discount Listener
     const applyBtn = document.getElementById('apply-discount-btn');
     if (applyBtn) {
-        applyBtn.addEventListener('click', handleApplyDiscount);
-    }
 
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', processCheckout);
+        applyBtn.replaceWith(applyBtn.cloneNode(true));
+        const newBtn = document.getElementById('apply-discount-btn');
+        newBtn.addEventListener('click', handleApplyDiscount);
     }
 }
 function renderCheckoutSummary(container) {
@@ -1368,16 +1368,18 @@ function updateCheckoutTotals() {
     const citySelect = document.getElementById('city');
     let shippingFee = 0;
     
-    // Check if free shipping applies first (e.g., over 2000)
+    // Check if free shipping applies
     if (subtotal >= 2000) {
         shippingFee = 0;
-    } else if (citySelect && citySelect.selectedOptions[0] && citySelect.selectedOptions[0].dataset.fee) {
-        // Get fee from selected city
-        shippingFee = parseFloat(citySelect.selectedOptions[0].dataset.fee);
-    } else {
-        // Default fallback if no city selected yet
-        shippingFee = 0; 
-    }
+    } 
+    // SAFETY CHECK: Ensure citySelect exists and has options before reading
+    else if (citySelect && citySelect.options.length > 0 && citySelect.selectedIndex >= 0) {
+        const selectedOption = citySelect.options[citySelect.selectedIndex];
+        // Only read dataset if it exists
+        if (selectedOption && selectedOption.dataset.fee) {
+            shippingFee = parseFloat(selectedOption.dataset.fee);
+        }
+    } 
 
     // 2. Calculate Discount
     let discountAmount = 0;
@@ -1391,21 +1393,30 @@ function updateCheckoutTotals() {
 
     const total = subtotal + shippingFee - discountAmount;
 
-    // 3. Update UI
-    document.getElementById('summary-subtotal').textContent = subtotal.toFixed(2) + ' EGP';
-    
-    const shippingText = subtotal >= 2000 ? "FREE" : (shippingFee > 0 ? shippingFee.toFixed(2) + ' EGP' : 'Calculated at checkout');
-    document.getElementById('summary-shipping').textContent = shippingText;
-
+    // 3. Update UI Elements (Safe check)
+    const subtotalEl = document.getElementById('summary-subtotal');
+    const shippingEl = document.getElementById('summary-shipping');
     const discountRow = document.getElementById('discount-row');
-    if (discountAmount > 0) {
-        discountRow.style.display = 'flex'; // or block depending on your CSS
-        document.getElementById('summary-discount').textContent = `-${discountAmount.toFixed(2)} EGP`;
-    } else {
-        discountRow.style.display = 'none';
+    const discountEl = document.getElementById('summary-discount');
+    const totalEl = document.getElementById('summary-total');
+
+    if(subtotalEl) subtotalEl.textContent = subtotal.toFixed(2) + ' EGP';
+    
+    if(shippingEl) {
+        const shippingText = subtotal >= 2000 ? "FREE" : (shippingFee > 0 ? shippingFee.toFixed(2) + ' EGP' : 'Select City');
+        shippingEl.textContent = shippingText;
     }
 
-    document.getElementById('summary-total').textContent = total.toFixed(2) + ' EGP';
+    if(discountRow && discountEl) {
+        if (discountAmount > 0) {
+            discountRow.style.display = 'flex';
+            discountEl.textContent = `-${discountAmount.toFixed(2)} EGP`;
+        } else {
+            discountRow.style.display = 'none';
+        }
+    }
+
+    if(totalEl) totalEl.textContent = total.toFixed(2) + ' EGP';
 }
 // FIXED: Checkout cart items with working quantity controls & Variant Display
 function renderCheckoutCartItems() {
