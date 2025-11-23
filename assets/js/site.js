@@ -496,23 +496,30 @@ async function loadProductDetails() {
 // FIXED: Related products function moved to proper scope
 async function fetchRelatedProducts(category, excludeId) {
     const container = document.getElementById('related-products-container');
-    if (!container) {
-        console.warn("Related products container not found, skipping fetch.");
-        return;
-    }
+    if (!container) return;
 
     try {
-        const query = `&category=${encodeURIComponent(category)}&limit=4&exclude_id=${excludeId}&status=Active`;
-        const { items } = await fetchGridData('/products', 1, 4, query);
+        // 1. Fetch a larger batch of random products (no category filter)
+        // We ask for 20 items so we can pick 4 random ones from them
+        const { items } = await fetchGridData('/products', 1, 20, `&exclude_id=${excludeId}&status=Active`);
         
-        if (document.getElementById('related-products-container')) {
-            renderProductGrid('related-products-container', items, 'related products');
+        if (!items || items.length === 0) {
+            container.innerHTML = '<p class="no-products-message">Check out our latest collection!</p>';
+            return;
         }
+
+        // 2. Shuffle the array to get random items
+        const shuffled = items.sort(() => 0.5 - Math.random());
+
+        // 3. Take the first 4
+        const randomSelection = shuffled.slice(0, 4);
+
+        // 4. Render
+        renderProductGrid('related-products-container', randomSelection, 'products');
+
     } catch (error) {
         console.error("Error fetching related products:", error);
-        if (document.getElementById('related-products-container')) {
-            container.innerHTML = '<p class="error-message">Could not load related products.</p>';
-        }
+        container.innerHTML = ''; 
     }
 }
 
