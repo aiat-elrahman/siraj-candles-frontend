@@ -881,16 +881,53 @@ window.adjustQty = (d) => {
     i.value = n;
 };
 
-// 7. Helper: Collect Selections
+// Helper: Collect All Selections (Options & Bundles)
 function collectAllSelections(product) {
     const selections = [];
-    let valid = true;
-    document.querySelectorAll('select.product-custom-option, select.bundle-item-select').forEach(s => {
-        if(s.required && !s.value) { s.focus(); valid = false; }
-        if(s.value) selections.push(s.value);
+    let validationFailed = false;
+
+    // 1. Collect from Standard Options (Scent, Size, Shape, etc.)
+    const optionSelectors = [
+        'scent-option', 'size-option', 'weight-option', 'type-option', 'shape-option'
+    ];
+
+    optionSelectors.forEach(selectorId => {
+        const selector = document.getElementById(selectorId);
+        if (selector) {
+            // Check if it is required but empty
+            if (selector.required && !selector.value) {
+                selector.focus(); // Highlight the missing field
+                validationFailed = true;
+            } else if (selector.value) {
+                // Format as "Type: Value" (e.g., "scent: Vanilla")
+                selections.push(`${selectorId.replace('-option', '')}: ${selector.value}`);
+            }
+        }
     });
-    return valid ? selections : null;
+
+    // Stop if any standard option is missing
+    if (validationFailed) return null;
+
+    // 2. Collect from Bundle Items (if applicable)
+    if (product.isBundle) {
+        const bundleItems = product.bundleItems || [];
+        for (let i = 0; i < bundleItems.length; i++) {
+            const selector = document.getElementById(`bundle-scent-${i}`);
+            
+            // specific check for bundle selectors
+            if (!selector || !selector.value) {
+                selector?.focus();
+                return null; // Stop immediately
+            }
+            
+            // Format as "SubProduct: Scent"
+            selections.push(`${bundleItems[i].subProductName}: ${selector.value}`);
+        }
+    }
+
+    return selections;
 }
+
 
 function renderProductOptions(product) {
     const container = document.getElementById('options-container');
