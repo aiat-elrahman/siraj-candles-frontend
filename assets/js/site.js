@@ -1654,62 +1654,7 @@ window.swapImage = function(imgElement) {
     document.querySelectorAll('.thumbnail-image').forEach(thumb => thumb.classList.remove('active'));
     imgElement.classList.add('active');
 }
-// 4. The New Add To Cart Handler (Supports Variants)
-function addToCartHandler(product) {
-    const qty = parseInt(document.getElementById('quantity').value);
-    
-    let selectedVariant = null;
-    let finalPrice = product.price_egp || 0;
-    
-    // Check if Variant Selector exists
-    const variantSelect = document.getElementById('variant-select');
-    if (variantSelect) {
-        const selectedOption = variantSelect.options[variantSelect.selectedIndex];
-        finalPrice = parseFloat(selectedOption.getAttribute('data-price'));
-        selectedVariant = variantSelect.value;
-        
-        // Stock check for variant
-        const stock = parseInt(selectedOption.getAttribute('data-stock'));
-        if (stock < qty) {
-            alert(`Sorry, only ${stock} left in stock for this option.`);
-            return;
-        }
-    } else {
-        // Fallback stock check for simple products
-        if (product.stock < qty) {
-            alert('Not enough stock available.');
-            return;
-        }
-    }
 
-    // Collect Customization Options (Scents, Shapes)
-    const customization = [];
-    document.querySelectorAll('.product-custom-option').forEach(select => {
-        if (select.value) customization.push(`${select.id.replace('opt-', '')}: ${select.value}`);
-        else if (select.hasAttribute('required')) {
-            alert('Please select all options.');
-            throw new Error('Validation Failed');
-        }
-    });
-
-    // Collect Bundle Options
-    document.querySelectorAll('.bundle-item-select').forEach((select, i) => {
-        customization.push(`${product.bundleItems[i].subProductName}: ${select.value}`);
-    });
-
-    // Create Cart Item
-    const cartItem = {
-        _id: product._id,
-        name: product.isBundle ? product.bundleName : product.name_en,
-        price: finalPrice,
-        quantity: qty,
-        imageUrl: product.imagePaths?.[0],
-        variantName: selectedVariant, // IMPORTANT: Sending this to backend
-        customization: customization
-    };
-
-    addToCart(cartItem);
-}
 // --- NEW: Fetch and Render Care Instructions ---
 async function fetchAndRenderCare(categoryName) {
     const section = document.getElementById('care-instructions-section');
