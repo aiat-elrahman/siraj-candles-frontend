@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
+    // 1. Search Toggle (Open Search Modal)
     if (searchToggle) {
         searchToggle.addEventListener('click', () => {
             searchModal.style.display = 'flex';
@@ -68,12 +69,66 @@ function setupEventListeners() {
         });
     }
 
+    // 2. Close Search Modal
     if (closeSearch) {
         closeSearch.addEventListener('click', () => {
             searchModal.style.display = 'none';
             searchResults.innerHTML = '';
         });
     }
+
+    // 3. Cart Toggle (Open/Close Dropdown)
+    if (cartToggle) {
+        cartToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cartDropdown.style.display = cartDropdown.style.display === 'block' ? 'none' : 'block';
+        });
+    } 
+
+    // 4. Mobile Menu Toggle Logic
+    const menuToggle = document.getElementById('mobile-menu-toggle');
+    const mobileMenu = document.getElementById('mobile-nav-menu');
+
+    if (menuToggle && mobileMenu) {
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+            document.body.classList.toggle('mobile-menu-open');
+        });
+    }
+
+    // 5. Body Click Listener (Close popups when clicking outside)
+    document.body.addEventListener('click', (e) => {
+        if (cartDropdown && !cartDropdown.contains(e.target) && e.target !== cartToggle && cartDropdown.style.display === 'block') {
+            cartDropdown.style.display = 'none';
+        }
+        if (searchModal && !searchModal.contains(e.target) && e.target !== searchToggle && searchModal.style.display === 'flex') {
+            searchModal.style.display = 'none';
+        }
+        if (mobileMenu && mobileMenu.classList.contains('active') && !mobileMenu.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
+            menuToggle.classList.remove('active');
+            mobileMenu.classList.remove('active');
+            document.body.classList.remove('mobile-menu-open');
+        }
+    });
+
+    // 6. Search Input Logic (THE FIX IS HERE)
+    if (searchInput) {
+        // Remove old listeners to be safe
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+        
+        // Attach new listener
+        newSearchInput.addEventListener('input', debounce(handleSearch, 300));
+        
+        // Allow "Enter" key to go to search results page
+        newSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                window.location.href = `products.html?search=${encodeURIComponent(newSearchInput.value)}`;
+            }
+        });
+    }
+}
 
     if (cartToggle) {
         cartToggle.addEventListener('click', (e) => {
@@ -599,7 +654,7 @@ function renderProduct(product) {
     // 2. Render Other Options (Scents, Shapes)
     renderProductOptions(product);
     if (product.isBundle) renderBundleItems(product);
-
+renderProductSpecifications(product);
     // 3. Attach Cart Listener (Uses new handler)
     const addBtn = document.getElementById('add-to-cart-btn');
     if (addBtn) {
@@ -898,36 +953,36 @@ function renderBundleItems(product) {
 
 
 function setupBuyNowButton(product) {
-    const buyNowBtn = document.querySelector('.buy-it-now-btn');
-    if (!buyNowBtn) return;
+    const buyNowBtn = document.querySelector('.buy-it-now-btn');
+    if (!buyNowBtn) return;
 
-    buyNowBtn.addEventListener('click', (e) => {
-        const quantity = parseInt(document.getElementById('quantity')?.value || 1);
-        const customization = collectAllSelections(product);
+    buyNowBtn.addEventListener('click', (e) => {
+        const quantity = parseInt(document.getElementById('quantity')?.value || 1);
+        const customization = collectAllSelections(product);
 
-        // This check is now correct because collectAllSelections handles validation
-        if (customization === null) return; // Validation failed
+        // This check is now correct because collectAllSelections handles validation
+        if (customization === null) return; // Validation failed
 
-        const itemName = product.isBundle ? product.bundleName : product.name_en;
-      const itemPrice = product.price_egp || product.price || 0;
+        const itemName = product.isBundle ? product.bundleName : product.name_en;
+      const itemPrice = product.price_egp || product.price || 0;
 
-        const item = {
-            _id: product._id,
-            name: itemName || product.name || 'Product',
-            price: itemPrice,
-            quantity: quantity,
+        const item = {
+            _id: product._id,
+            name: itemName || product.name || 'Product',
+            price: itemPrice,
+            quantity: quantity,
             // *** THIS IS THE FIX ***
             // Only add customization if the array has items.
-            customization: customization.length > 0 ? customization : null,
-            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
-        };
+            customization: customization.length > 0 ? customization : null,
+            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
+        };
 
-        // ADD the item to cart (don't clear existing items)
-        addToCart(item);
-        
-        // Redirect to checkout
-        window.location.href = 'checkout.html';
-    });
+        // ADD the item to cart (don't clear existing items)
+        addToCart(item);
+        
+        // Redirect to checkout
+        window.location.href = 'checkout.html';
+    });
 }
 function attachQuantityButtonListeners(maxStock) {
     const quantityInput = document.getElementById('quantity');
@@ -949,90 +1004,90 @@ function attachQuantityButtonListeners(maxStock) {
 }
 
 function attachAddToCartListener(product) {
-    const addToCartBtn = document.getElementById('add-to-cart-btn');
-    const quantityInput = document.getElementById('quantity');
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const quantityInput = document.getElementById('quantity');
 
-    if (!addToCartBtn || !quantityInput) {
-        return;
-    }
+    if (!addToCartBtn || !quantityInput) {
+        return;
+    }
 
-    addToCartBtn.addEventListener('click', (e) => {
-        const quantity = parseInt(quantityInput.value);
-        const customization = collectAllSelections(product);
+    addToCartBtn.addEventListener('click', (e) => {
+        const quantity = parseInt(quantityInput.value);
+        const customization = collectAllSelections(product);
 
-        // This check is now correct because collectAllSelections handles validation
-        if (customization === null) return; // Validation failed
+        // This check is now correct because collectAllSelections handles validation
+        if (customization === null) return; // Validation failed
 
-        const itemName = product.isBundle ? product.bundleName : product.name_en;
-        const itemPrice = product.price_egp || product.price || 0;
+        const itemName = product.isBundle ? product.bundleName : product.name_en;
+        const itemPrice = product.price_egp || product.price || 0;
 
-        const item = {
-            _id: product._id,
-            name: itemName || product.name || 'Product',
-            price: itemPrice,
-            quantity: quantity,
+        const item = {
+            _id: product._id,
+            name: itemName || product.name || 'Product',
+            price: itemPrice,
+            quantity: quantity,
             // *** THIS IS THE FIX ***
             // Only add customization if the array has items.
-            customization: customization.length > 0 ? customization : null,
-            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
-        };
-        addToCart(item);
-    });
+            customization: customization.length > 0 ? customization : null,
+            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
+        };
+        addToCart(item);
+    });
 }
 
 // NEW: Collect all selections from options and bundle items
 // NEW: Collect all selections from options and bundle items
 function collectAllSelections(product) {
-    const selections = [];
+    const selections = [];
     let validationFailed = false; // Add a flag
 
-    // Collect from product options
-    const optionSelectors = [
-        'scent-option', 'size-option', 'weight-option', 'type-option', 'shape-option'
-    ];
+    // Collect from product options
+    const optionSelectors = [
+        'scent-option', 'size-option', 'weight-option', 'type-option', 'shape-option'
+    ];
 
-    optionSelectors.forEach(selectorId => {
-        const selector = document.getElementById(selectorId);
-        if (selector) {
+    optionSelectors.forEach(selectorId => {
+        const selector = document.getElementById(selectorId);
+        if (selector) {
             // Check if it's required AND has no value
             if (selector.required && !selector.value) {
                 console.error(`Please select a value for ${selectorId}`);
                 selector.focus(); // Highlight the missing field
                 validationFailed = true;
             } else if (selector.value) {
-                selections.push(`${selectorId.replace('-option', '')}: ${selector.value}`);
-            }
+                selections.push(`${selectorId.replace('-option', '')}: ${selector.value}`);
+            }
         }
-    });
+    });
 
     // If any required option failed, return null
     if (validationFailed) return null;
 
-    // Collect from bundle items if it's a bundle
-    if (product.isBundle) {
-        const bundleItems = product.bundleItems || [];
-        const bundleSelections = [];
-        let allSelected = true;
+    // Collect from bundle items if it's a bundle
+    if (product.isBundle) {
+        const bundleItems = product.bundleItems || [];
+        const bundleSelections = [];
+        let allSelected = true;
 
-        for (let i = 0; i < bundleItems.length; i++) {
-            const selector = document.getElementById(`bundle-scent-${i}`);
-            if (!selector || !selector.value) {
-         console.error(`Please choose a scent for Item ${i + 1}.`);
-                selector?.focus(); // Highlight the missing field
-                allSelected = false;
-                break;
-            }
-            bundleSelections.push(selector.value);
-        }
+        for (let i = 0; i < bundleItems.length; i++) {
+            const selector = document.getElementById(`bundle-scent-${i}`);
+            if (!selector || !selector.value) {
+         console.error(`Please choose a scent for Item ${i + 1}.`);
+                selector?.focus(); // Highlight the missing field
+                allSelected = false;
+                break;
+            }
+            bundleSelections.push(selector.value);
+        }
 
-        if (!allSelected) return null;
-        selections.push(...bundleSelections);
-    }
+        if (!allSelected) return null;
+        selections.push(...bundleSelections);
+    }
 
-    // *** THIS IS THE FIX ***
+    // *** THIS IS THE FIX ***
     // Always return the array, even if it's empty.
     // The validation checks above will return null if something is missing.
-    return selections;
+    return selections;
 }
 
 // ====================================
@@ -1142,6 +1197,7 @@ function getCartTotal() {
 }
 
 // FIXED: Update cart UI with proper event delegation
+// FIXED: Update cart UI with Tiny Images
 function updateCartUI() {
     const cartCountElement = document.querySelector('.cart-count');
     const cartListElement = document.querySelector('.cart-items-list');
@@ -1165,7 +1221,7 @@ function updateCartUI() {
     // Update cart total in dropdown
     cartTotalElement.textContent = `${totalPrice.toFixed(2)} EGP`;
     
-    // Update cart items list in dropdown WITH QUANTITY CONTROLS
+    // Update cart items list
     if (cartListElement) {
         if (cart.length === 0) {
             cartListElement.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
@@ -1177,23 +1233,32 @@ function updateCartUI() {
                     : '';
                 const itemTotal = (item.price * item.quantity).toFixed(2);
                 
+                // --- NEW: Get Image URL (default to placeholder if missing) ---
+                const itemImage = item.imageUrl || 'assets/images/placeholder.jpg';
+
                 return `
-                    <div class="cart-item" data-id="${uniqueId}">
-                        <div class="cart-item-details">
-                            <p class="cart-item-name">${item.name}</p>
-                            <p class="cart-item-total">${itemTotal} EGP</p>
-                        </div>
-                        ${customizationDetail}
-                        <div class="cart-item-controls">
-                            <div class="quantity-controls">
-                                <button class="quantity-btn minus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity - 1})">-</button>
-                                <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
-                                       onchange="updateItemQuantity('${uniqueId}', this.value)">
-                                <button class="quantity-btn plus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity + 1})">+</button>
+                    <div class="cart-item" data-id="${uniqueId}" style="display:flex; gap:10px; align-items:center; padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <img src="${itemImage}" alt="${item.name}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; flex-shrink:0;">
+                        
+                        <div style="flex:1;">
+                            <div class="cart-item-details" style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <p class="cart-item-name" style="margin:0; font-size:0.9rem; font-weight:600; line-height:1.2;">${item.name}</p>
+                                <p class="cart-item-total" style="margin:0; font-size:0.9rem; font-weight:600; color:var(--accent-color); white-space:nowrap;">${itemTotal} EGP</p>
                             </div>
-                            <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')" aria-label="Remove item">
-                                <i class="fas fa-times"></i>
-                            </button>
+                            
+                            ${customizationDetail}
+                            
+                            <div class="cart-item-controls" style="margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn minus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity - 1})">-</button>
+                                    <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
+                                           onchange="updateItemQuantity('${uniqueId}', this.value)" style="height:25px; width:30px; padding:0; font-size:0.8rem;">
+                                    <button class="quantity-btn plus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity + 1})">+</button>
+                                </div>
+                                <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')" aria-label="Remove item">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
