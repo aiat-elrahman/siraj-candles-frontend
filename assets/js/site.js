@@ -169,7 +169,7 @@ function setupEventListeners() {
     if (searchInput) {
         searchInput.addEventListener('input', debounce(handleSearch, 300));
     }
-}
+
 
 // ====================================
 // 2. UNIVERSAL FETCHING & UTILS
