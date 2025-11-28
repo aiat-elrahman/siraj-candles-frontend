@@ -2711,3 +2711,10 @@ select#city {
         margin: 20px 0;
     }
 }
+.action-btn, 
+.quantity-btn, 
+.quantity-minus, 
+.quantity-plus {
+    touch-action: manipulation; /* Prevents double-tap to zoom */
+    user-select: none;          /* Prevents highlighting text */
+}
