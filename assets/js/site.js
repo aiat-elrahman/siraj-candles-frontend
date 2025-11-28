@@ -59,33 +59,40 @@ document.addEventListener('DOMContentLoaded', () => {
             break;
     }
 });
-
 function setupEventListeners() {
-    // 1. Search Toggle (Open Search Modal)
-    if (searchToggle) {
-        searchToggle.addEventListener('click', () => {
-            searchModal.style.display = 'flex';
-            searchInput.focus();
+    // 1. Search Toggle
+    const sToggle = document.getElementById('search-toggle');
+    if (sToggle) {
+        sToggle.addEventListener('click', () => {
+            const modal = document.getElementById('search-modal');
+            const input = document.getElementById('search-input');
+            if(modal) modal.style.display = 'flex';
+            if(input) input.focus();
         });
     }
 
-    // 2. Close Search Modal
-    if (closeSearch) {
-        closeSearch.addEventListener('click', () => {
-            searchModal.style.display = 'none';
-            searchResults.innerHTML = '';
+    // 2. Close Search
+    const cSearch = document.querySelector('.close-search');
+    if (cSearch) {
+        cSearch.addEventListener('click', () => {
+            const modal = document.getElementById('search-modal');
+            const results = document.getElementById('search-results');
+            if(modal) modal.style.display = 'none';
+            if(results) results.innerHTML = '';
         });
     }
 
-    // 3. Cart Toggle (Open/Close Dropdown)
-    if (cartToggle) {
-        cartToggle.addEventListener('click', (e) => {
+    // 3. Cart Toggle
+    const cToggle = document.getElementById('cart-toggle');
+    if (cToggle) {
+        cToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            cartDropdown.style.display = cartDropdown.style.display === 'block' ? 'none' : 'block';
+            const dropdown = document.getElementById('cart-dropdown');
+            if(dropdown) dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
         });
     } 
 
-    // 4. Mobile Menu Toggle Logic
+    // 4. Mobile Menu Toggle (FIXED)
     const menuToggle = document.getElementById('mobile-menu-toggle');
     const mobileMenu = document.getElementById('mobile-nav-menu');
 
@@ -97,13 +104,17 @@ function setupEventListeners() {
         });
     }
 
-    // 5. Body Click Listener (Close popups when clicking outside)
+    // 5. Click Outside to Close (FIXED)
     document.body.addEventListener('click', (e) => {
-        if (cartDropdown && !cartDropdown.contains(e.target) && e.target !== cartToggle && cartDropdown.style.display === 'block') {
-            cartDropdown.style.display = 'none';
+        const dropdown = document.getElementById('cart-dropdown');
+        const toggle = document.getElementById('cart-toggle');
+        const modal = document.getElementById('search-modal');
+        
+        if (dropdown && dropdown.style.display === 'block' && !dropdown.contains(e.target) && e.target !== toggle && !toggle.contains(e.target)) {
+            dropdown.style.display = 'none';
         }
-        if (searchModal && !searchModal.contains(e.target) && e.target !== searchToggle && searchModal.style.display === 'flex') {
-            searchModal.style.display = 'none';
+        if (modal && modal.style.display === 'flex' && !modal.contains(e.target) && e.target.id !== 'search-toggle' && !e.target.closest('#search-toggle')) {
+            modal.style.display = 'none';
         }
         if (mobileMenu && mobileMenu.classList.contains('active') && !mobileMenu.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
             menuToggle.classList.remove('active');
@@ -112,16 +123,15 @@ function setupEventListeners() {
         }
     });
 
-    // 6. Search Input Logic (THE FIX IS HERE)
-    if (searchInput) {
-        // Remove old listeners to be safe
-        const newSearchInput = searchInput.cloneNode(true);
-        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+    // 6. Search Input Logic (FIXED)
+    const sInput = document.getElementById('search-input');
+    if (sInput) {
+        // Clone to remove old broken listeners
+        const newSearchInput = sInput.cloneNode(true);
+        sInput.parentNode.replaceChild(newSearchInput, sInput);
         
-        // Attach new listener
+        // Attach new listeners
         newSearchInput.addEventListener('input', debounce(handleSearch, 300));
-        
-        // Allow "Enter" key to go to search results page
         newSearchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 window.location.href = `products.html?search=${encodeURIComponent(newSearchInput.value)}`;
@@ -129,47 +139,6 @@ function setupEventListeners() {
         });
     }
 }
-
-    if (cartToggle) {
-        cartToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            cartDropdown.style.display = cartDropdown.style.display === 'block' ? 'none' : 'block';
-        });
-    } 
-
-    // --- Mobile Menu Toggle Logic ---
-    const menuToggle = document.getElementById('mobile-menu-toggle');
-    const mobileMenu = document.getElementById('mobile-nav-menu');
-
-    if (menuToggle && mobileMenu) {
-        menuToggle.addEventListener('click', () => {
-            // Toggle 'active' class on both button and menu
-            menuToggle.classList.toggle('active');
-            mobileMenu.classList.toggle('active');
-            document.body.classList.toggle('mobile-menu-open');
-        });
-    }
-
-    // This body click listener handles closing popups
-    document.body.addEventListener('click', (e) => {
-        if (cartDropdown && !cartDropdown.contains(e.target) && e.target !== cartToggle && cartDropdown.style.display === 'block') {
-            cartDropdown.style.display = 'none';
-        }
-        if (searchModal && !searchModal.contains(e.target) && e.target !== searchToggle && searchModal.style.display === 'flex') {
-            searchModal.style.display = 'none';
-        }
-        // ADDED: Close mobile menu if clicking outside
-        if (mobileMenu && mobileMenu.classList.contains('active') && !mobileMenu.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
-            menuToggle.classList.remove('active');
-            mobileMenu.classList.remove('active');
-            document.body.classList.remove('mobile-menu-open');
-        }
-    });
-
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce(handleSearch, 300));
-    }
-
 
 // ====================================
 // 2. UNIVERSAL FETCHING & UTILS
@@ -357,25 +326,27 @@ async function fetchBestsellers() {
 // 4. SEARCH LOGIC
 // ====================================
 async function handleSearch() {
-    const query = searchInput.value.trim();
+    const input = document.getElementById('search-input');
+    const results = document.getElementById('search-results');
+    if (!input || !results) return;
+
+    const query = input.value.trim();
     if (query.length < 2) {
-        searchResults.innerHTML = '<p style="padding:10px; color:#666;">Enter at least 2 characters...</p>';
+        results.innerHTML = '<p style="padding:10px; color:#666;">Enter at least 2 characters...</p>';
         return;
     }
 
-    searchResults.innerHTML = '<p style="padding:10px;">Searching...</p>';
-    searchResults.style.display = 'block';
+    results.innerHTML = '<p style="padding:10px;">Searching...</p>';
+    results.style.display = 'block';
 
     try {
-        // Fetch results
         const { items } = await fetchGridData('/products', 1, 5, `&search=${encodeURIComponent(query)}`);
 
         if (!items || items.length === 0) {
-            searchResults.innerHTML = `<p style="padding:10px;">No results found.</p>`;
+            results.innerHTML = `<p style="padding:10px;">No results found.</p>`;
         } else {
-            searchResults.innerHTML = items.map(product => {
+            results.innerHTML = items.map(product => {
                 const productName = product.name_en || product.bundleName || product.name;
-                // Calculate price (handle variants if they exist)
                 let price = product.price_egp || 0;
                 if(product.variants && product.variants.length > 0) {
                     price = Math.min(...product.variants.map(v => v.price));
@@ -391,8 +362,7 @@ async function handleSearch() {
             `<a href="products.html?search=${encodeURIComponent(query)}" class="search-view-all">View All Results</a>`;
         }
     } catch (error) {
-        console.error(error);
-        searchResults.innerHTML = '<p class="error-message">Search error.</p>';
+        results.innerHTML = '<p class="error-message">Search error.</p>';
     }
 }
 // ====================================
@@ -581,6 +551,9 @@ async function fetchRelatedProducts(category, excludeId) {
 function renderProduct(product) {
     const container = document.getElementById('product-detail-container');
     const itemName = product.isBundle ? product.bundleName : product.name_en;
+    const itemCategory = product.category;
+    const itemStock = product.stock || 0;
+    const isOutOfStock = itemStock <= 0;
     
     // --- Logic to determine Initial Price ---
     let displayPrice = product.price_egp || 0;
@@ -588,15 +561,12 @@ function renderProduct(product) {
     
     if (product.variants && product.variants.length > 0) {
         hasVariants = true;
-        // Default to the first variant's price
         displayPrice = product.variants[0].price;
     }
 
+    // Image Gallery (Scrollable Thumbnails)
     const imageGalleryHTML = (product.imagePaths || []).map((path, idx) => 
-        `<img src="${path}" 
-              class="thumbnail-image ${idx === 0 ? 'active' : ''}" 
-              onclick="swapImage(this)" 
-              alt="Thumbnail ${idx + 1}">`
+        `<img src="${path}" class="thumbnail-image ${idx === 0 ? 'active' : ''}" onclick="swapImage(this)" alt="Thumbnail ${idx + 1}">`
     ).join('');
 
     // HTML Structure
@@ -613,18 +583,17 @@ function renderProduct(product) {
 
             <div class="product-info-area-new">
                 <h1 class="product-title-main">${itemName}</h1>
-                <p class="product-category-subtle">${product.category}</p> 
+                <p class="product-category-subtle">${itemCategory}</p> 
                 
                 <p class="product-price-main" id="dynamic-price">${displayPrice.toFixed(2)} EGP</p>
 
-                ${product.stock > 0 || hasVariants ? `
+                ${!isOutOfStock || hasVariants ? `
                     <div class="product-actions-grid">
-                        
                         <div id="variant-selector-container"></div>
-
+                        
                         <div class="quantity-selector-box">
                             <button class="action-btn" onclick="adjustQty(-1)">-</button>
-                            <input type="number" id="quantity" value="1" min="1" readonly class="quantity-input-box">
+                            <input type="number" id="quantity" value="1" min="1" max="${itemStock}" readonly class="quantity-input-box">
                             <button class="action-btn" onclick="adjustQty(1)">+</button>
                         </div>
 
@@ -636,31 +605,41 @@ function renderProduct(product) {
                 ` : `<p class="stock-status out-of-stock">Out of Stock</p>`}
 
                 <div class="product-description-section">
-                    <h3>Description / Instructions</h3>
-                    <p>${(product.isBundle ? product.bundleDescription : product.description_en) || ''}</p>
+                    <h3>Description</h3>
+                    <p>${(product.isBundle ? product.bundleDescription : product.description_en) || 'No description available.'}</p>
                     ${product.formattedDescription ? `<div class="formatted-desc">${product.formattedDescription}</div>` : ''}
+                </div>
+
+                <div id="product-specifications-section" class="product-specifications-section" style="display:none;">
+                    <h3>Specifications</h3>
+                    <div id="specifications-container"></div>
+                </div>
+
+                <div class="shipping-returns-new">
+                    <h3>Shipping & Returns</h3>
+                    <ul>
+                        <li>Orders processed within 1–2 business days.</li>
+                        <li>Delivery across Egypt within 5-7 days.</li>
+                    </ul>
+                </div>
+                
+                <div id="care-instructions-section" class="care-instructions-section" style="display:none;">
+                    <h3>Product Care</h3>
+                    <div id="care-instructions-container" class="care-grid"></div>
                 </div>
             </div> 
         </div>
     `;
 
-    // --- Post Render Logic ---
-    
-    // 1. Render Variants (Weight/Size with Price Change)
-    if (hasVariants) {
-        renderVariantSelector(product.variants);
-    }
-
-    // 2. Render Other Options (Scents, Shapes)
+    // --- Activate Features ---
+    if (hasVariants) renderVariantSelector(product.variants);
     renderProductOptions(product);
     if (product.isBundle) renderBundleItems(product);
-renderProductSpecifications(product);
-    // 3. Attach Cart Listener (Uses new handler)
+    renderProductSpecifications(product); // Show Specs Table
+    fetchAndRenderCare(product.category); // Show Care Instructions
+
     const addBtn = document.getElementById('add-to-cart-btn');
-    if (addBtn) {
-        addBtn.addEventListener('click', () => addToCartHandler(product));
-    }
-    fetchAndRenderCare(product.category);
+    if (addBtn) addBtn.addEventListener('click', () => addToCartHandler(product));
 }
 
 function renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock) {
@@ -794,96 +773,124 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
 }
 
 // FIXED: Render product specifications with original table layout
+
+// --- NEW HELPER FUNCTIONS (Paste at bottom of file) ---
+
+// 1. Specs Table
 function renderProductSpecifications(product) {
     const section = document.getElementById('product-specifications-section');
     const container = document.getElementById('specifications-container');
-    
     if (!section || !container) return;
 
     const specs = [];
-    const category = product.category;
-
-    // Define specifications for each category
-    switch (category) {
-        case 'Candles':
-        case 'Pottery Collection':
-            if (product.burnTime) specs.push({ label: 'BURN TIME', value: product.burnTime });
-            if (product.wickType) specs.push({ label: 'WICK TYPE', value: product.wickType });
-            if (product.coverageSpace) specs.push({ label: 'COVERAGE SPACE', value: product.coverageSpace });
-            if (product.scents && !product.scentOptions) specs.push({ label: 'SCENT', value: product.scents });
-            break;
-            
-        case 'Deodorant':
-            if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
-            if (product.skinType) specs.push({ label: 'SKIN TYPE', value: product.skinType });
-            if (product.keyIngredients) specs.push({ label: 'KEY INGREDIENTS', value: product.keyIngredients });
-            break;
-            
-        case 'Soap':
-            if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
-            if (product.soapWeight) specs.push({ label: 'WEIGHT', value: product.soapWeight });
-            if (product.featureBenefit) specs.push({ label: 'FEATURE', value: product.featureBenefit });
-            if (product.keyIngredients) specs.push({ label: 'KEY INGREDIENTS', value: product.keyIngredients });
-            break;
-            
-        case 'Body Splash':
-            if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
-            break;
-            
-        case 'Body Oil':
-            if (product.color) specs.push({ label: 'COLOR', value: product.color });
-            if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
-            if (product.oilWeight) specs.push({ label: 'SIZE', value: product.oilWeight });
-            break;
-            
-        case 'Massage Candles':
-            if (product.scents) specs.push({ label: 'SCENT', value: product.scents });
-            if (product.massageWeight) specs.push({ label: 'WEIGHT', value: product.massageWeight });
-            break;
-            
-        case 'Wax Burners':
-            if (product.dimensions) specs.push({ label: 'DIMENSIONS', value: product.dimensions });
-            break;
-            
-        case 'Fizzy Salts':
-            if (product.fizzySpecs) specs.push({ label: 'SPECIFICATIONS', value: product.fizzySpecs });
-            break;
+    const cat = product.category;
+    
+    // Map based on category
+    if(cat==='Candles'||cat==='Pottery Collection'){
+        if(product.burnTime) specs.push({label:'BURN TIME', value:product.burnTime});
+        if(product.wickType) specs.push({label:'WICK TYPE', value:product.wickType});
+        if(product.coverageSpace) specs.push({label:'COVERAGE', value:product.coverageSpace});
+        if(product.scents && !product.scentOptions) specs.push({label:'SCENT', value:product.scents});
     }
+    if(cat==='Deodorant' || cat==='Soap' || cat==='Body Splash'){
+         if(product.scents) specs.push({label:'SCENT', value:product.scents});
+         if(product.skinType) specs.push({label:'SKIN TYPE', value:product.skinType});
+         if(product.keyIngredients) specs.push({label:'INGREDIENTS', value:product.keyIngredients});
+    }
+    if(cat==='Wax Burners' && product.dimensions) specs.push({label:'DIMENSIONS', value:product.dimensions});
+    if(cat==='Shimmering Body Oil' && product.oilWeight) specs.push({label:'SIZE', value:product.oilWeight});
 
     if (specs.length > 0) {
         section.style.display = 'block';
-        
-        // Create table rows with 4 columns per row
-        let tableHTML = '<table class="specifications-table">';
-        tableHTML += '<tr>';
-        
-        specs.forEach((spec, index) => {
-            tableHTML += `
-                <th>${spec.label}</th>
-                <td>${spec.value}</td>
-            `;
-            
-            // Start new row after every 2 specs (4 cells)
-            if ((index + 1) % 2 === 0 && index !== specs.length - 1) {
-                tableHTML += '</tr><tr>';
-            }
-        });
-        
-        // Fill remaining cells if needed
-        const remainingCells = 4 - (specs.length * 2 % 4);
-        if (remainingCells > 0 && remainingCells < 4) {
-            for (let i = 0; i < remainingCells; i++) {
-                tableHTML += '<td></td>';
-            }
-        }
-        
-        tableHTML += '</tr></table>';
-        container.innerHTML = tableHTML;
+        container.innerHTML = '<table class="specifications-table">' + 
+            specs.map(s => `<tr><th>${s.label}</th><td>${s.value}</td></tr>`).join('') + 
+            '</table>';
     } else {
         section.style.display = 'none';
     }
 }
 
+// 2. Care Instructions
+async function fetchAndRenderCare(cat) {
+    const section = document.getElementById('care-instructions-section');
+    const container = document.getElementById('care-instructions-container');
+    if(!section) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/care`);
+        const data = await res.json();
+        const relevant = data.filter(i => i.category.toLowerCase() === cat.toLowerCase());
+        if(relevant.length > 0) {
+            section.style.display = 'block';
+            container.innerHTML = relevant.map(i => `<div class="care-card"><h4>${i.careTitle}</h4><p>${i.careContent}</p></div>`).join('');
+        }
+    } catch(e) { console.error(e); }
+}
+
+// 3. Variants Selector
+function renderVariantSelector(variants) {
+    const container = document.getElementById('variant-selector-container');
+    if (!container) return;
+    container.innerHTML = `<div class="option-group"><label>Option:</label><select id="variant-select" class="option-selector">` +
+        variants.map((v, i) => `<option value="${v.variantName}" data-price="${v.price}" data-stock="${v.stock}" ${i===0?'selected':''}>${v.variantName} - ${v.price} EGP</option>`).join('') +
+        `</select></div>`;
+        
+    document.getElementById('variant-select').addEventListener('change', (e) => {
+        const price = e.target.options[e.target.selectedIndex].getAttribute('data-price');
+        document.getElementById('dynamic-price').textContent = `${parseFloat(price).toFixed(2)} EGP`;
+    });
+}
+
+// 4. Add to Cart Handler (Variants)
+function addToCartHandler(product) {
+    const qty = parseInt(document.getElementById('quantity').value);
+    let price = product.price_egp || 0, variant = null;
+    
+    const vSelect = document.getElementById('variant-select');
+    if (vSelect) {
+        const opt = vSelect.options[vSelect.selectedIndex];
+        price = parseFloat(opt.getAttribute('data-price'));
+        variant = vSelect.value;
+        const stock = parseInt(opt.getAttribute('data-stock'));
+        if(stock < qty) { alert(`Only ${stock} left!`); return; }
+    }
+
+    const cartItem = {
+        _id: product._id,
+        name: product.isBundle ? product.bundleName : product.name_en,
+        price: price,
+        quantity: qty,
+        imageUrl: product.imagePaths?.[0],
+        variantName: variant,
+        customization: collectAllSelections(product) || []
+    };
+    addToCart(cartItem);
+}
+
+// 5. Helper: Swap Image
+window.swapImage = (img) => {
+    document.getElementById('main-display-image').src = img.src;
+    document.querySelectorAll('.thumbnail-image').forEach(t => t.classList.remove('active'));
+    img.classList.add('active');
+};
+
+// 6. Helper: Adjust Qty
+window.adjustQty = (d) => {
+    const i = document.getElementById('quantity');
+    let n = parseInt(i.value) + d;
+    if(n < 1) n = 1;
+    i.value = n;
+};
+
+// 7. Helper: Collect Selections
+function collectAllSelections(product) {
+    const selections = [];
+    let valid = true;
+    document.querySelectorAll('select.product-custom-option, select.bundle-item-select').forEach(s => {
+        if(s.required && !s.value) { s.focus(); valid = false; }
+        if(s.value) selections.push(s.value);
+    });
+    return valid ? selections : null;
+}
 
 function renderProductOptions(product) {
     const container = document.getElementById('options-container');
@@ -953,36 +960,36 @@ function renderBundleItems(product) {
 
 
 function setupBuyNowButton(product) {
-    const buyNowBtn = document.querySelector('.buy-it-now-btn');
-    if (!buyNowBtn) return;
+    const buyNowBtn = document.querySelector('.buy-it-now-btn');
+    if (!buyNowBtn) return;
 
-    buyNowBtn.addEventListener('click', (e) => {
-        const quantity = parseInt(document.getElementById('quantity')?.value || 1);
-        const customization = collectAllSelections(product);
+    buyNowBtn.addEventListener('click', (e) => {
+        const quantity = parseInt(document.getElementById('quantity')?.value || 1);
+        const customization = collectAllSelections(product);
 
-        // This check is now correct because collectAllSelections handles validation
-        if (customization === null) return; // Validation failed
+        // This check is now correct because collectAllSelections handles validation
+        if (customization === null) return; // Validation failed
 
-        const itemName = product.isBundle ? product.bundleName : product.name_en;
-      const itemPrice = product.price_egp || product.price || 0;
+        const itemName = product.isBundle ? product.bundleName : product.name_en;
+      const itemPrice = product.price_egp || product.price || 0;
 
-        const item = {
-            _id: product._id,
-            name: itemName || product.name || 'Product',
-            price: itemPrice,
-            quantity: quantity,
+        const item = {
+            _id: product._id,
+            name: itemName || product.name || 'Product',
+            price: itemPrice,
+            quantity: quantity,
             // *** THIS IS THE FIX ***
             // Only add customization if the array has items.
-            customization: customization.length > 0 ? customization : null,
-            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
-        };
+            customization: customization.length > 0 ? customization : null,
+            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
+        };
 
-        // ADD the item to cart (don't clear existing items)
-        addToCart(item);
-        
-        // Redirect to checkout
-        window.location.href = 'checkout.html';
-    });
+        // ADD the item to cart (don't clear existing items)
+        addToCart(item);
+        
+        // Redirect to checkout
+        window.location.href = 'checkout.html';
+    });
 }
 function attachQuantityButtonListeners(maxStock) {
     const quantityInput = document.getElementById('quantity');
@@ -1004,90 +1011,90 @@ function attachQuantityButtonListeners(maxStock) {
 }
 
 function attachAddToCartListener(product) {
-    const addToCartBtn = document.getElementById('add-to-cart-btn');
-    const quantityInput = document.getElementById('quantity');
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const quantityInput = document.getElementById('quantity');
 
-    if (!addToCartBtn || !quantityInput) {
-        return;
-    }
+    if (!addToCartBtn || !quantityInput) {
+        return;
+    }
 
-    addToCartBtn.addEventListener('click', (e) => {
-        const quantity = parseInt(quantityInput.value);
-        const customization = collectAllSelections(product);
+    addToCartBtn.addEventListener('click', (e) => {
+        const quantity = parseInt(quantityInput.value);
+        const customization = collectAllSelections(product);
 
-        // This check is now correct because collectAllSelections handles validation
-        if (customization === null) return; // Validation failed
+        // This check is now correct because collectAllSelections handles validation
+        if (customization === null) return; // Validation failed
 
-        const itemName = product.isBundle ? product.bundleName : product.name_en;
-        const itemPrice = product.price_egp || product.price || 0;
+        const itemName = product.isBundle ? product.bundleName : product.name_en;
+        const itemPrice = product.price_egp || product.price || 0;
 
-        const item = {
-            _id: product._id,
-            name: itemName || product.name || 'Product',
-            price: itemPrice,
-            quantity: quantity,
+        const item = {
+            _id: product._id,
+            name: itemName || product.name || 'Product',
+            price: itemPrice,
+            quantity: quantity,
             // *** THIS IS THE FIX ***
             // Only add customization if the array has items.
-            customization: customization.length > 0 ? customization : null,
-            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
-        };
-        addToCart(item);
-    });
+            customization: customization.length > 0 ? customization : null,
+            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
+        };
+        addToCart(item);
+    });
 }
 
 // NEW: Collect all selections from options and bundle items
 // NEW: Collect all selections from options and bundle items
 function collectAllSelections(product) {
-    const selections = [];
+    const selections = [];
     let validationFailed = false; // Add a flag
 
-    // Collect from product options
-    const optionSelectors = [
-        'scent-option', 'size-option', 'weight-option', 'type-option', 'shape-option'
-    ];
+    // Collect from product options
+    const optionSelectors = [
+        'scent-option', 'size-option', 'weight-option', 'type-option', 'shape-option'
+    ];
 
-    optionSelectors.forEach(selectorId => {
-        const selector = document.getElementById(selectorId);
-        if (selector) {
+    optionSelectors.forEach(selectorId => {
+        const selector = document.getElementById(selectorId);
+        if (selector) {
             // Check if it's required AND has no value
             if (selector.required && !selector.value) {
                 console.error(`Please select a value for ${selectorId}`);
                 selector.focus(); // Highlight the missing field
                 validationFailed = true;
             } else if (selector.value) {
-                selections.push(`${selectorId.replace('-option', '')}: ${selector.value}`);
-            }
+                selections.push(`${selectorId.replace('-option', '')}: ${selector.value}`);
+            }
         }
-    });
+    });
 
     // If any required option failed, return null
     if (validationFailed) return null;
 
-    // Collect from bundle items if it's a bundle
-    if (product.isBundle) {
-        const bundleItems = product.bundleItems || [];
-        const bundleSelections = [];
-        let allSelected = true;
+    // Collect from bundle items if it's a bundle
+    if (product.isBundle) {
+        const bundleItems = product.bundleItems || [];
+        const bundleSelections = [];
+        let allSelected = true;
 
-        for (let i = 0; i < bundleItems.length; i++) {
-            const selector = document.getElementById(`bundle-scent-${i}`);
-            if (!selector || !selector.value) {
-         console.error(`Please choose a scent for Item ${i + 1}.`);
-                selector?.focus(); // Highlight the missing field
-                allSelected = false;
-                break;
-            }
-            bundleSelections.push(selector.value);
-        }
+        for (let i = 0; i < bundleItems.length; i++) {
+            const selector = document.getElementById(`bundle-scent-${i}`);
+            if (!selector || !selector.value) {
+         console.error(`Please choose a scent for Item ${i + 1}.`);
+                selector?.focus(); // Highlight the missing field
+                allSelected = false;
+                break;
+            }
+            bundleSelections.push(selector.value);
+        }
 
-        if (!allSelected) return null;
-        selections.push(...bundleSelections);
-    }
+        if (!allSelected) return null;
+        selections.push(...bundleSelections);
+    }
 
-    // *** THIS IS THE FIX ***
+    // *** THIS IS THE FIX ***
     // Always return the array, even if it's empty.
     // The validation checks above will return null if something is missing.
-    return selections;
+    return selections;
 }
 
 // ====================================
@@ -1195,74 +1202,42 @@ window.updateItemQuantity = updateItemQuantity;
 function getCartTotal() {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 }
-
-// FIXED: Update cart UI with proper event delegation
-// FIXED: Update cart UI with Tiny Images
 function updateCartUI() {
-    const cartCountElement = document.querySelector('.cart-count');
-    const cartListElement = document.querySelector('.cart-items-list');
-    const cartTotalElement = document.getElementById('cart-total');
-    
-    if (!cartCountElement || !cartTotalElement) return;
+    const countEl = document.querySelector('.cart-count');
+    const listEl = document.querySelector('.cart-items-list');
+    const totalEl = document.getElementById('cart-total');
+    if (!countEl) return;
 
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const totalPrice = getCartTotal();
+    const totalQty = cart.reduce((s, i) => s + i.quantity, 0);
+    countEl.textContent = totalQty;
+    countEl.style.opacity = totalQty > 0 ? 1 : 0;
     
-    // Update cart counter
-    if (totalItems === 0) {
-        cartCountElement.style.visibility = 'hidden'; 
-        cartCountElement.style.opacity = 0;
-    } else {
-        cartCountElement.style.visibility = 'visible'; 
-        cartCountElement.style.opacity = 1;
-        cartCountElement.textContent = totalItems;
-    }
-    
-    // Update cart total in dropdown
-    cartTotalElement.textContent = `${totalPrice.toFixed(2)} EGP`;
-    
-    // Update cart items list
-    if (cartListElement) {
-        if (cart.length === 0) {
-            cartListElement.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
-        } else {
-            cartListElement.innerHTML = cart.map(item => {
-                const uniqueId = getCartUniqueId(item);
-                const customizationDetail = item.customization ? 
-                    `<div class="cart-customization-detail">${item.customization.slice(0, 2).join(', ')}${item.customization.length > 2 ? '...' : ''}</div>` 
-                    : '';
-                const itemTotal = (item.price * item.quantity).toFixed(2);
-                
-                // --- NEW: Get Image URL (default to placeholder if missing) ---
-                const itemImage = item.imageUrl || 'assets/images/placeholder.jpg';
+    if(totalEl) totalEl.textContent = getCartTotal().toFixed(2) + ' EGP';
 
-                return `
-                    <div class="cart-item" data-id="${uniqueId}" style="display:flex; gap:10px; align-items:center; padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <img src="${itemImage}" alt="${item.name}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; flex-shrink:0;">
-                        
-                        <div style="flex:1;">
-                            <div class="cart-item-details" style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <p class="cart-item-name" style="margin:0; font-size:0.9rem; font-weight:600; line-height:1.2;">${item.name}</p>
-                                <p class="cart-item-total" style="margin:0; font-size:0.9rem; font-weight:600; color:var(--accent-color); white-space:nowrap;">${itemTotal} EGP</p>
-                            </div>
-                            
-                            ${customizationDetail}
-                            
-                            <div class="cart-item-controls" style="margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
-                                <div class="quantity-controls">
-                                    <button class="quantity-btn minus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity - 1})">-</button>
-                                    <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
-                                           onchange="updateItemQuantity('${uniqueId}', this.value)" style="height:25px; width:30px; padding:0; font-size:0.8rem;">
-                                    <button class="quantity-btn plus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity + 1})">+</button>
-                                </div>
-                                <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')" aria-label="Remove item">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
+    if(listEl) {
+        if(cart.length === 0) listEl.innerHTML = '<p class="empty-cart">Empty</p>';
+        else {
+            listEl.innerHTML = cart.map(item => `
+                <div class="cart-item" style="display:flex; gap:10px; align-items:center; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #eee;">
+                    <img src="${item.imageUrl || 'assets/images/placeholder.jpg'}" style="width:50px; height:50px; border-radius:4px; object-fit:cover;">
+                    <div style="flex:1;">
+                        <div style="font-weight:600; font-size:0.9rem;">${item.name}</div>
+                        <div style="font-size:0.8rem; color:#666;">${item.variantName ? item.variantName + ' | ' : ''}${item.quantity} x ${item.price}</div>
                     </div>
-                `;
-            }).join('');
+                    <button onclick="removeItemFromCart('${getCartUniqueId(item)}')" style="color:red; border:none; background:none; font-size:1.1rem; cursor:pointer;">&times;</button>
+                </div>
+            `).join('');
+            
+            // Add View Cart / Checkout Buttons
+            const btnContainer = document.createElement('div');
+            btnContainer.style.marginTop = '10px';
+            btnContainer.innerHTML = `
+                <div style="display:flex; gap:10px;">
+                    <a href="shopcart.html" class="checkout-btn" style="background:white; color:#A98E82; border:1px solid #A98E82; flex:1; text-align:center; text-decoration:none; padding:8px;">View Cart</a>
+                    <a href="checkout.html" class="checkout-btn" style="flex:1; text-align:center; text-decoration:none; padding:8px;">Checkout</a>
+                </div>
+            `;
+            listEl.appendChild(btnContainer);
         }
     }
 }
