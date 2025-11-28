@@ -1192,6 +1192,7 @@ function updateCartUI() {
     const countEl = document.querySelector('.cart-count');
     const listEl = document.querySelector('.cart-items-list');
     const totalEl = document.getElementById('cart-total');
+    
     if (!countEl) return;
 
     const totalQty = cart.reduce((s, i) => s + i.quantity, 0);
@@ -1201,29 +1202,22 @@ function updateCartUI() {
     if(totalEl) totalEl.textContent = getCartTotal().toFixed(2) + ' EGP';
 
     if(listEl) {
-        if(cart.length === 0) listEl.innerHTML = '<p class="empty-cart">Empty</p>';
-        else {
+        if(cart.length === 0) {
+            listEl.innerHTML = '<p class="empty-cart">Your cart is empty.</p>';
+        } else {
             listEl.innerHTML = cart.map(item => `
-                <div class="cart-item" style="display:flex; gap:10px; align-items:center; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #eee;">
+                <div class="cart-item">
                     <img src="${item.imageUrl || 'assets/images/placeholder.jpg'}" style="width:50px; height:50px; border-radius:4px; object-fit:cover;">
-                    <div style="flex:1;">
-                        <div style="font-weight:600; font-size:0.9rem;">${item.name}</div>
-                        <div style="font-size:0.8rem; color:#666;">${item.variantName ? item.variantName + ' | ' : ''}${item.quantity} x ${item.price}</div>
+                    
+                    <div class="cart-item-details">
+                        <div class="cart-item-name">${item.name}</div>
+                        <span class="cart-item-variant">${item.variantName || ''}</span>
+                        <div class="cart-item-price">${item.quantity} x ${item.price} EGP</div>
                     </div>
-                    <button onclick="removeItemFromCart('${getCartUniqueId(item)}')" style="color:red; border:none; background:none; font-size:1.1rem; cursor:pointer;">&times;</button>
+
+                    <button class="remove-item-btn" onclick="removeItemFromCart('${getCartUniqueId(item)}')">&times;</button>
                 </div>
             `).join('');
-            
-            // Add View Cart / Checkout Buttons
-            const btnContainer = document.createElement('div');
-            btnContainer.style.marginTop = '10px';
-            btnContainer.innerHTML = `
-                <div style="display:flex; gap:10px;">
-                    <a href="shopcart.html" class="checkout-btn" style="background:white; color:#A98E82; border:1px solid #A98E82; flex:1; text-align:center; text-decoration:none; padding:8px;">View Cart</a>
-                    <a href="checkout.html" class="checkout-btn" style="flex:1; text-align:center; text-decoration:none; padding:8px;">Checkout</a>
-                </div>
-            `;
-            listEl.appendChild(btnContainer);
         }
     }
 }
