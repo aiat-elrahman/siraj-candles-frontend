@@ -1042,60 +1042,7 @@ function attachAddToCartListener(product) {
     });
 }
 
-// NEW: Collect all selections from options and bundle items
-// NEW: Collect all selections from options and bundle items
-function collectAllSelections(product) {
-    const selections = [];
-    let validationFailed = false; // Add a flag
 
-    // Collect from product options
-    const optionSelectors = [
-        'scent-option', 'size-option', 'weight-option', 'type-option', 'shape-option'
-    ];
-
-    optionSelectors.forEach(selectorId => {
-        const selector = document.getElementById(selectorId);
-        if (selector) {
-            // Check if it's required AND has no value
-            if (selector.required && !selector.value) {
-                console.error(`Please select a value for ${selectorId}`);
-                selector.focus(); // Highlight the missing field
-                validationFailed = true;
-            } else if (selector.value) {
-                selections.push(`${selectorId.replace('-option', '')}: ${selector.value}`);
-            }
-        }
-    });
-
-    // If any required option failed, return null
-    if (validationFailed) return null;
-
-    // Collect from bundle items if it's a bundle
-    if (product.isBundle) {
-        const bundleItems = product.bundleItems || [];
-        const bundleSelections = [];
-        let allSelected = true;
-
-        for (let i = 0; i < bundleItems.length; i++) {
-            const selector = document.getElementById(`bundle-scent-${i}`);
-            if (!selector || !selector.value) {
-         console.error(`Please choose a scent for Item ${i + 1}.`);
-                selector?.focus(); // Highlight the missing field
-                allSelected = false;
-                break;
-            }
-            bundleSelections.push(selector.value);
-        }
-
-        if (!allSelected) return null;
-        selections.push(...bundleSelections);
-    }
-
-    // *** THIS IS THE FIX ***
-    // Always return the array, even if it's empty.
-    // The validation checks above will return null if something is missing.
-    return selections;
-}
 
 // ====================================
 // 8. CART MANAGEMENT (FIXED - ALL ISSUES RESOLVED)
