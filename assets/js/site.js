@@ -1634,39 +1634,7 @@ async function handleApplyDiscount() {
         messageEl.textContent = 'Error applying discount';
     }
 }
-// 1. Render the Variant Dropdown
-function renderVariantSelector(variants) {
-    const container = document.getElementById('variant-selector-container');
-    if (!container) return;
 
-    let html = `<div class="option-group"><label>Choose Option:</label>`;
-    html += `<select id="variant-select" class="option-selector" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%;">`;
-    
-    variants.forEach((v, index) => {
-        // Store price and stock in data attributes so we can access them easily
-        html += `<option value="${v.variantName}" 
-                         data-price="${v.price}" 
-                         data-stock="${v.stock}"
-                         ${index === 0 ? 'selected' : ''}>
-                    ${v.variantName} - ${v.price} EGP
-                 </option>`;
-    });
-    
-    html += `</select></div>`;
-    container.innerHTML = html;
-
-    // Event Listener to change Price immediately
-    const select = document.getElementById('variant-select');
-    const priceDisplay = document.getElementById('dynamic-price');
-
-    select.addEventListener('change', (e) => {
-        const selectedOption = e.target.options[e.target.selectedIndex];
-        const newPrice = parseFloat(selectedOption.getAttribute('data-price'));
-        
-        // Update Price on screen
-        priceDisplay.textContent = `${newPrice.toFixed(2)} EGP`;
-    });
-}
 
 // 2. Helper for Quantity
 window.adjustQty = function(delta) {
