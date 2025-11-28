@@ -810,21 +810,6 @@ function renderProductSpecifications(product) {
     }
 }
 
-// 2. Care Instructions
-async function fetchAndRenderCare(cat) {
-    const section = document.getElementById('care-instructions-section');
-    const container = document.getElementById('care-instructions-container');
-    if(!section) return;
-    try {
-        const res = await fetch(`${API_BASE_URL}/api/care`);
-        const data = await res.json();
-        const relevant = data.filter(i => i.category.toLowerCase() === cat.toLowerCase());
-        if(relevant.length > 0) {
-            section.style.display = 'block';
-            container.innerHTML = relevant.map(i => `<div class="care-card"><h4>${i.careTitle}</h4><p>${i.careContent}</p></div>`).join('');
-        }
-    } catch(e) { console.error(e); }
-}
 
 // 3. Variants Selector
 function renderVariantSelector(variants) {
