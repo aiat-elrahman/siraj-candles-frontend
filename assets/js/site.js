@@ -776,40 +776,57 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
 
 // --- NEW HELPER FUNCTIONS (Paste at bottom of file) ---
 
-// 1. Specs Table
+// FIXED: Render Specs as Cute Chips (Badges) instead of Table
 function renderProductSpecifications(product) {
     const section = document.getElementById('product-specifications-section');
     const container = document.getElementById('specifications-container');
+    
     if (!section || !container) return;
 
     const specs = [];
-    const cat = product.category;
-    
-    // Map based on category
-    if(cat==='Candles'||cat==='Pottery Collection'){
-        if(product.burnTime) specs.push({label:'BURN TIME', value:product.burnTime});
-        if(product.wickType) specs.push({label:'WICK TYPE', value:product.wickType});
-        if(product.coverageSpace) specs.push({label:'COVERAGE', value:product.coverageSpace});
-        if(product.scents && !product.scentOptions) specs.push({label:'SCENT', value:product.scents});
+    const category = product.category;
+
+    // Define specs with Icons for the "Cute" look
+    switch (category) {
+        case 'Candles':
+        case 'Pottery Collection':
+            if (product.burnTime) specs.push({ label: 'Burn Time', value: product.burnTime, icon: '🔥' });
+            if (product.wickType) specs.push({ label: 'Wick', value: product.wickType, icon: '🕯️' });
+            if (product.coverageSpace) specs.push({ label: 'Coverage', value: product.coverageSpace, icon: '🏠' });
+            if (product.scents && !product.scentOptions) specs.push({ label: 'Scent', value: product.scents, icon: '🌸' });
+            break;
+        case 'Deodorant':
+            if (product.skinType) specs.push({ label: 'Skin', value: product.skinType, icon: '✨' });
+            if (product.keyIngredients) specs.push({ label: 'Ingredients', value: product.keyIngredients, icon: '🌿' });
+            break;
+        case 'Soap':
+            if (product.soapWeight) specs.push({ label: 'Weight', value: product.soapWeight, icon: '⚖️' });
+            if (product.featureBenefit) specs.push({ label: 'Benefit', value: product.featureBenefit, icon: '🛁' });
+            break;
+        case 'Wax Burners':
+            if (product.dimensions) specs.push({ label: 'Dimensions', value: product.dimensions, icon: '📏' });
+            break;
+        // ... Add other categories as needed ...
     }
-    if(cat==='Deodorant' || cat==='Soap' || cat==='Body Splash'){
-         if(product.scents) specs.push({label:'SCENT', value:product.scents});
-         if(product.skinType) specs.push({label:'SKIN TYPE', value:product.skinType});
-         if(product.keyIngredients) specs.push({label:'INGREDIENTS', value:product.keyIngredients});
-    }
-    if(cat==='Wax Burners' && product.dimensions) specs.push({label:'DIMENSIONS', value:product.dimensions});
-    if(cat==='Shimmering Body Oil' && product.oilWeight) specs.push({label:'SIZE', value:product.oilWeight});
 
     if (specs.length > 0) {
         section.style.display = 'block';
-        container.innerHTML = '<table class="specifications-table">' + 
-            specs.map(s => `<tr><th>${s.label}</th><td>${s.value}</td></tr>`).join('') + 
-            '</table>';
+        // Render as a Grid of Chips
+        container.innerHTML = `
+            <div class="product-attributes-grid">
+                ${specs.map(spec => `
+                    <div class="attribute-chip">
+                        <span class="attribute-icon">${spec.icon || '🔹'}</span>
+                        <span class="attribute-label">${spec.label}:</span>
+                        <span class="attribute-value">${spec.value}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     } else {
         section.style.display = 'none';
     }
 }
-
 
 // 3. Variants Selector
 function renderVariantSelector(variants) {
