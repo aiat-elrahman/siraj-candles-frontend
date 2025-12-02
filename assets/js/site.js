@@ -253,11 +253,11 @@ async function fetchAndRenderCategories() {
 
     // Your Image Map (Keep your existing URLs here)
     const categoryImageMap = {
-        "CANDLES": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762648007/IMG_20250926_135031_588_zn7dcy.jpg",
+        "CANDLES": "https://res.cloudinary.com/dvr195vfw/image/upload/v1764711918/1758882705366_z2cnjt.jpg",
         "FRESHENERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762736936/Untitled_design_rug14h.jpg",
         "REED DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726431/1762712178438_xfuquc.jpg",
         "CAR DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762713253908_n9oa58.jpg",
-        "WAX MELTS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762736714/1762734206270_bgiks9.jpg",
+        "WAX MELTS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1764711920/7_qtfonk.jpg",
         "BODY SPLASH": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762718491257_ebijfn.jpg" ,
         "HAND SOAP": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762658995/1759164877399_gke8ht.jpg",
         "SOAP":"https://res.cloudinary.com/dvr195vfw/image/upload/v1762658995/1759164877399_gke8ht.jpg",
