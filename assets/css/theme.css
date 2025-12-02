@@ -508,11 +508,13 @@ body.mobile-menu-open::before {
 /* ------------------ Improved Cart Item Display ------------------ */
 .cart-item-details {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column; /* CHANGED: Stack items vertically */
+    justify-content: center;
     align-items: flex-start;
     width: 100%;
     flex: 1;
     min-width: 0;
+    gap: 4px; /* Add small space between lines */
 }
 
 .cart-item-name {
@@ -1645,15 +1647,30 @@ text-align: center; /* Center the text on mobile */
         background: white;
     }
     
-    .cart-table td {
-        border: none;
-        position: relative;
-        padding-left: 50%;
-        text-align: left;
-        padding: 0.5rem 1rem 0.5rem 50%;
+   .cart-table td {
+        display: flex;              /* Use Flexbox */
+        justify-content: space-between; /* Label on left, Value on right */
+        align-items: center;        /* Align vertically */
+        padding: 0.75rem 0;         /* Vertical padding only */
         border-bottom: 1px solid #eee;
+        text-align: right;          /* Value aligns right */
+        width: 100%;                /* Full width */
+        position: relative;
     }
     
+    /* Remove the old padding-left: 50% rule if you see it */
+
+    .cart-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        text-align: left;
+        /* Remove absolute positioning */
+        position: static; 
+        width: auto;
+        padding-right: 1rem;
+        color: var(--text-dark);
+        flex-shrink: 0; /* Prevent label from shrinking */
+    }
     .cart-table td:last-child {
         border-bottom: none;
     }
