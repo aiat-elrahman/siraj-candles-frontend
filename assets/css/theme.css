@@ -1621,7 +1621,6 @@ text-align: center; /* Center the text on mobile */
     margin-bottom: 2rem;
     font-size: 0.95rem;
 }
-
 /* FIXED: Mobile responsive cart table */
 @media (max-width: 767px) {
     .cart-table, 
@@ -1647,7 +1646,7 @@ text-align: center; /* Center the text on mobile */
         background: white;
     }
     
-   .cart-table td {
+    .cart-table td {
         display: flex;              /* Use Flexbox */
         justify-content: space-between; /* Label on left, Value on right */
         align-items: center;        /* Align vertically */
@@ -1658,32 +1657,20 @@ text-align: center; /* Center the text on mobile */
         position: relative;
     }
     
-    /* Remove the old padding-left: 50% rule if you see it */
-
+    /* Fixed: Label styling using Flexbox (Static) */
     .cart-table td::before {
         content: attr(data-label);
         font-weight: bold;
         text-align: left;
-        /* Remove absolute positioning */
-        position: static; 
+        position: static;           /* KEY FIX: No absolute positioning */
         width: auto;
         padding-right: 1rem;
         color: var(--text-dark);
-        flex-shrink: 0; /* Prevent label from shrinking */
+        flex-shrink: 0; 
     }
+
     .cart-table td:last-child {
         border-bottom: none;
-    }
-    
-    .cart-table td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 1rem;
-        width: 45%;
-        padding-right: 1rem;
-        font-weight: bold;
-        text-align: left;
-        white-space: nowrap;
     }
     
     /* FIXED: Cart summary stays visible when scrolling */
@@ -1702,6 +1689,8 @@ text-align: center; /* Center the text on mobile */
         max-width: none;
     }
 }
+
+/* ------------------ Global Cart Styles ------------------ */
 
 .cart-table th, .cart-table td {
     padding: 0.8rem 1rem;
@@ -1724,6 +1713,18 @@ text-align: center; /* Center the text on mobile */
     object-fit: cover;
     margin-right: 1rem;
     border-radius: 4px;
+}
+
+/* FIXED: This fixes the squashed text in the Popup Cart */
+.cart-item-details, .cart-dropdown .cart-item-details {
+    display: flex;
+    flex-direction: column; /* Stacks the Name, Variant, and Price */
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+    gap: 4px;
 }
 
 .cart-product-col {
