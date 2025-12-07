@@ -433,17 +433,23 @@ async function loadProducts(page) {
 
     const sortBy = document.getElementById('sort-by-select')?.value || '';
     const filterCategory = new URLSearchParams(window.location.search).get('category') || document.getElementById('filter-category-select')?.value || '';
-    
+    // FIXED: Now reading the search parameter from URL
+    const searchQuery = new URLSearchParams(window.location.search).get('search') || ''; 
+
     let query = '';
     if (filterCategory) {
         query += `&category=${encodeURIComponent(filterCategory)}`;
+    }
+    // FIXED: Appending search parameter to API call
+    if (searchQuery) {
+        query += `&search=${encodeURIComponent(searchQuery)}`;
     }
     if (sortBy) {
         const [sortField, sortOrder] = sortBy.split('_');
         query += `&sort=${sortField}&order=${sortOrder}`;
     }
     
-    container.innerHTML = '<p class="loading-message">Fetching all products...</p>';
+    container.innerHTML = '<p class="loading-message">Fetching products...</p>';
     paginationControls.innerHTML = '';
     
     const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE, query);
