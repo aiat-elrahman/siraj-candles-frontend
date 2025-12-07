@@ -554,7 +554,7 @@ body.mobile-menu-open::before {
 
 .hero-section {
     /* Make sure to update this URL to your NEW image once you upload it */
-    background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1765148994/Your_paragraph_text_wdwt8s.png'); 
+    background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1765150425/Your_paragraph_text_1_ck0hsl.png'); 
     
     /* CHANGED: 'cover' ensures the image fills the entire area, with no gray bars */
     background-size: cover;
