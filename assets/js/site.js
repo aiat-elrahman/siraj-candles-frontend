@@ -265,7 +265,7 @@ async function fetchAndRenderCategories() {
         "BUNDLES":"https://res.cloudinary.com/dvr195vfw/image/upload/v1762906767/1762904881341_ev7saf.png",
         "POTTERY COLLECTION" : "https://res.cloudinary.com/dvr195vfw/image/upload/v1762898447/1762895593299_glhgqy.jpg",
         "DEODORANT": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726396/1762719090010_ezijic.jpg" ,
-         "Massage Candles": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762898532/1762713775444_obseay.png"
+    "Massage Candles":"https://res.cloudinary.com/dvr195vfw/image/upload/v1762898532/1762713775444_obseay.png"
     };
     const defaultImage = "assets/images/placeholder.jpg"; 
 
