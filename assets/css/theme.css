@@ -549,37 +549,41 @@ body.mobile-menu-open::before {
 
 /* ------------------ Hero Section (Updated with Background Image) ------------------ */
 
+
+/* ------------------ Hero Section (Updated with Background Image) ------------------ */
+
 .hero-section {
-background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1765144119/Gemini_Generated_Image_3vc9b23vc9b23vc9_oe1jsf.png'); /* This points to a local file */
-background-size: contain;
- background-position: center center;
-background-repeat: no-repeat;
-padding: 5rem 1rem; /* This is the original padding */
-text-align: center;
-position: relative;
-color: var(--text-light);
-overflow: hidden;
+    /* Make sure to update this URL to your NEW image once you upload it */
+    background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1764711918/1758882705366_z2cnjt.png'); 
+    
+    /* CHANGED: 'cover' ensures the image fills the entire area, with no gray bars */
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    
+    /* Adjust padding to control height if needed, but 5rem 1rem is fine */
+    padding: 8rem 1rem; 
+    text-align: center;
+    position: relative;
+    /* color: var(--text-light); Removed as text is now in the image */
+    overflow: hidden;
+    /* Optional: Add a minimum height to ensure it looks big enough on large screens */
+    min-height: 500px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Overlay */
-.hero-section::before {
-content: "";
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-bottom: 0;
-background-color: rgba(0, 0, 0, 0.3); /* Dark overlay */
-z-index: 1; /* Place overlay behind text */
-}
+/* REMOVED: .hero-section::before (The dark overlay filter is gone) */
 
-/* Ensure Text/Button elements inside hero are above overlay */
-.hero-section h1,
-.hero-section p,
+/* Ensure Button is positioned correctly */
 .hero-section .shop-now-btn {
-position: relative;
- z-index: 2; /* This ensures text is above the overlay */
+    position: relative;
+    z-index: 2;
+    /* Optional: Add margin if you need to push the button down from the text in your image */
+    /* margin-top: 200px; */ 
 }
+
 /* Mobile Responsive (Stacking the columns) */
 @media (max-width: 768px) {
     .hero-section {
@@ -879,8 +883,7 @@ text-align: center; /* Center the text on mobile */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2712%27%20height%3D%2712%27%20viewBox%3D%270%200%2012%2012%27%3E%3Cpath%20fill%3D%27%23333%27%20d%3D%27M10.293%203.293L6%207.586%201.707%203.293%200.293%204.707%206%2010.414%2011.707%204.707z%27%2F%3E%3C%2Fsvg%3E");
-    background-repeat: no-repeat;
+    background-image: url("https://res.cloudinary.com/dvr195vfw/image/upload/v1765148994/Your_paragraph_text_wdwt8s.png");
     background-position: right 0.75rem center;
     background-size: 10px 10px;
 }
