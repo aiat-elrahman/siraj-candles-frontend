@@ -431,22 +431,54 @@ async function loadProducts(page) {
     const container = document.getElementById('products-container');
     const paginationControls = document.getElementById('pagination-controls');
 
-    const sortBy = document.getElementById('sort-by-select')?.value || '';
-    const filterCategory = new URLSearchParams(window.location.search).get('category') || document.getElementById('filter-category-select')?.value || '';
-    // FIXED: Now reading the search parameter from URL
-    const searchQuery = new URLSearchParams(window.location.search).get('search') || ''; 
+    // --- FIX START: Correct Priority Order ---
+    const categorySelect = document.getElementById('filter-category-select');
+    const sortSelect = document.getElementById('sort-by-select');
+    
+    // 1. Get Search Term from URL (This part is correct!)
+    const searchQuery = new URLSearchParams(window.location.search).get('search') || '';
+    
+    let filterCategory = '';
+    let sortBy = '';
 
+    // 2. LOGIC FIX: Check Dropdown FIRST. If it exists, use it.
+    if (categorySelect) {
+        filterCategory = categorySelect.value;
+        
+        // Optional: Update URL without reloading so the link matches the dropdown
+        const url = new URL(window.location);
+        if(filterCategory) url.searchParams.set('category', filterCategory);
+        else url.searchParams.delete('category');
+        
+        // Don't lose the search term if we are just changing category!
+        if(searchQuery) url.searchParams.set('search', searchQuery);
+        
+        window.history.pushState({}, '', url);
+    } 
+    // 3. If Dropdown is missing, THEN look at URL
+    else {
+        filterCategory = new URLSearchParams(window.location.search).get('category') || '';
+    }
+
+    if (sortSelect) {
+        sortBy = sortSelect.value;
+    } else {
+        sortBy = new URLSearchParams(window.location.search).get('sort') || 'name_asc';
+    }
+    // --- FIX END ---
+    
     let query = '';
     if (filterCategory) {
         query += `&category=${encodeURIComponent(filterCategory)}`;
     }
-    // FIXED: Appending search parameter to API call
     if (searchQuery) {
         query += `&search=${encodeURIComponent(searchQuery)}`;
     }
     if (sortBy) {
-        const [sortField, sortOrder] = sortBy.split('_');
-        query += `&sort=${sortField}&order=${sortOrder}`;
+        const [sortField, sortOrder] = sortBy === 'newest' ? ['createdAt', 'desc'] : sortBy.split('_');
+        if (sortField && sortOrder) {
+            query += `&sort=${sortField}&order=${sortOrder}`;
+        }
     }
     
     container.innerHTML = '<p class="loading-message">Fetching products...</p>';
