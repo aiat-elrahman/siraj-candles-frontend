@@ -874,18 +874,25 @@ text-align: center; /* Center the text on mobile */
 }
 
 .filter-select {
-    border: 1px solid var(--border-color);
+    /* Match the header ribbon color */
+    background-color: var(--accent-color); 
+    color: var(--text-light); /* White text to contrast with the brown */
+    
+    /* Remove the problematic picture/grid */
+    background-image: none; 
+    
+    /* styling basics */
+    border: 1px solid var(--accent-color);
     border-radius: 4px;
-    background-color: #fff;
     font-size: 0.85rem;
     width: 100%;
-    padding: 0.6rem 2rem 0.6rem 0.75rem;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: url("https://res.cloudinary.com/dvr195vfw/image/upload/v1765148994/Your_paragraph_text_wdwt8s.png");
-    background-position: right 0.75rem center;
-    background-size: 10px 10px;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    
+    /* Reset browser default arrow so it shows up cleanly without a custom image */
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
+    appearance: menulist;
 }
 
 @media (min-width: 768px) {
