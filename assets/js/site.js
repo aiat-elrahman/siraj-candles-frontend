@@ -1377,7 +1377,7 @@ function renderShopCartPage() {
 
 async function setupCheckoutPage() {
     const summaryContainer = document.getElementById('checkout-summary-container');
-    const checkoutForm = document.getElementById('checkout-form');
+    const checkoutForm = document.getElementById('checkout-form'); // <--- 1. Get the form
     const cartItemsContainer = document.getElementById('checkout-cart-items');
     
     if (cart.length === 0) {
@@ -1389,17 +1389,20 @@ async function setupCheckoutPage() {
     renderCheckoutSummary(summaryContainer);
     renderCheckoutCartItems();
     
-    
     // 1. Load Cities
     await loadShippingCities(); 
 
     // 2. Attach Discount Listener
     const applyBtn = document.getElementById('apply-discount-btn');
     if (applyBtn) {
-
         applyBtn.replaceWith(applyBtn.cloneNode(true));
         const newBtn = document.getElementById('apply-discount-btn');
         newBtn.addEventListener('click', handleApplyDiscount);
+    }
+
+    // 3. ATTACH CHECKOUT SUBMIT LISTENER (THIS WAS MISSING)
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', processCheckout);
     }
 }
 function renderCheckoutSummary(container) {
@@ -1542,7 +1545,14 @@ async function processCheckout(e) {
     const checkoutForm = e.target;
     const formData = new FormData(checkoutForm);
     const totalAmount = getCartTotal();
-    const shippingFee = totalAmount >= 2000 ? 0.00 : 50.00;
+    const citySelect = document.getElementById('city');
+    const selectedOption = citySelect.options[citySelect.selectedIndex];
+    let shippingFee = 0;
+
+    if (totalAmount < 2000) {
+        // Read fee from data-attribute, default to 50 if missing
+        shippingFee = parseFloat(selectedOption.dataset.fee) || 50.00;
+    }
 
     const orderData = {
         customerInfo: {
