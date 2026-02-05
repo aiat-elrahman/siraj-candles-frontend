@@ -407,7 +407,7 @@ function renderFilterSortBar() {
                         <option value="Body Splash" ${currentCategory === 'Body Splash' ? 'selected' : ''}>Body Splash</option>
                         <option value="Body Oil" ${currentCategory === 'Body Oil' ? 'selected' : ''}> Body Oil</option>
                         <option value="Massage Candles" ${currentCategory === 'Massage Candles' ? 'selected' : ''}>Massage Candles</option>
-                        <option value="Fizzy Salts" ${currentCategory === 'Fizzy Salts' ? 'selected' : ''}>Fizzy Salts</option>
+                        
                         <option value="Sets" ${currentCategory === 'Sets' ? 'selected' : ''}>Sets</option>
                         <option value="Bundles" ${currentCategory === 'Bundles' ? 'selected' : ''}>Bundles</option>
                     </select>
@@ -722,9 +722,7 @@ function renderMainProductDetails(container, product, isBundle, itemName, itemPr
             case 'Wax Burners':
                 if (product.dimensions) attributes.push({ label: 'Dimensions', value: product.dimensions, icon: '📏' });
                 break;
-            case 'Fizzy Salts':
-                if (product.fizzySpecs) attributes.push({ label: 'Specs', value: product.fizzySpecs, icon: '🛁' });
-                break;
+
         }
     }
 
