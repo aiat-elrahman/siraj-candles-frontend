@@ -26,10 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     setupEventListeners();
     loadCartFromStorage();
+    
+    // Load hero section settings (dynamic banner)
+    loadHeroSettings();
+    
     const pageName = document.body.getAttribute('data-page');
     switch (pageName) {
         case 'home':
-            // Make sure this spelling matches the function definition below!
             if (typeof fetchAndRenderCategories === 'function') {
                 fetchAndRenderCategories(); 
             } else {
@@ -251,33 +254,13 @@ async function fetchAndRenderCategories() {
     const container = document.getElementById('categories-container');
     if (!container) return;
 
-    // Your Image Map (Keep your existing URLs here)
-    const categoryImageMap = {
-        "CANDLES": "https://res.cloudinary.com/dvr195vfw/image/upload/v1764711918/1758882705366_z2cnjt.jpg",
-        "FRESHENERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762736936/Untitled_design_rug14h.jpg",
-        "REED DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726431/1762712178438_xfuquc.jpg",
-        "CAR DIFFUSERS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762713253908_n9oa58.jpg",
-        "WAX MELTS": "https://res.cloudinary.com/dvr195vfw/image/upload/v1764711920/7_qtfonk.jpg",
-        "BODY SPLASH": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726397/1762718491257_ebijfn.jpg" ,
-        "HAND SOAP": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762658995/1759164877399_gke8ht.jpg",
-        "SOAP":"https://res.cloudinary.com/dvr195vfw/image/upload/v1762658995/1759164877399_gke8ht.jpg",
-        "WAX BURNERS":"https://res.cloudinary.com/dvr195vfw/image/upload/v1762898528/1762718763686_di3doc.jpg",
-        "BUNDLES":"https://res.cloudinary.com/dvr195vfw/image/upload/v1762906767/1762904881341_ev7saf.png",
-        "POTTERY COLLECTION" : "https://res.cloudinary.com/dvr195vfw/image/upload/v1762898447/1762895593299_glhgqy.jpg",
-        "DEODORANT": "https://res.cloudinary.com/dvr195vfw/image/upload/v1762726396/1762719090010_ezijic.jpg" ,
-    "MASSAGE CANDLES":"https://res.cloudinary.com/dvr195vfw/image/upload/v1762898532/1762713775444_obseay.png"
-    };
-    const defaultImage = "assets/images/placeholder.jpg"; 
-
     container.innerHTML = '<p class="loading-message">Loading categories...</p>';
 
     try {
-        // NEW: Fetch from the Categories Endpoint to get Sort Order
         const response = await fetch(`${API_BASE_URL}/api/categories`);
         if (!response.ok) throw new Error('Failed to load categories');
         
         const categories = await response.json();
-        // Sort by the order you set in Admin Dashboard
         categories.sort((a, b) => a.sortOrder - b.sortOrder);
 
         if (categories.length === 0) {
@@ -286,16 +269,22 @@ async function fetchAndRenderCategories() {
         }
 
         container.innerHTML = categories.map(cat => {
-            const name = cat.name;
-            const imageSrc = categoryImageMap[name.toUpperCase()] || defaultImage;
+            // Use the dynamic image URL from database
+            let imageSrc = cat.image || 'assets/images/placeholder.jpg';
+            
+            // Optimize Cloudinary images on the fly
+            if (imageSrc.includes('res.cloudinary.com')) {
+                imageSrc = imageSrc.replace('/upload/', '/upload/f_auto,q_auto,w_400/');
+            }
+            
             return `
-                <a href="products.html?category=${encodeURIComponent(name)}" class="category-card-item">
+                <a href="products.html?category=${encodeURIComponent(cat.name)}" class="category-card-item">
                     <div class="category-image-wrapper">
-                        <img src="${imageSrc}" alt="${name}" class="category-image" loading="lazy">
+                        <img src="${imageSrc}" alt="${cat.name}" class="category-image" loading="lazy">
                     </div>
                     <div class="category-info">
-                        <p class="category-name">${name}</p>
-                        <i class="fas fa-arrow-right"></i>  
+                        <p class="category-name">${cat.name}</p>
+                        <i class="fas fa-arrow-right"></i>
                     </div>
                 </a>
             `;
@@ -306,7 +295,36 @@ async function fetchAndRenderCategories() {
         container.innerHTML = '<p class="error-message">Could not load categories.</p>';
     }
 }
-
+async function loadHeroSettings() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/settings/hero`);
+        const heroData = await response.json();
+        
+        const heroSection = document.querySelector('.hero-section');
+        const heroButton = document.getElementById('hero-button');
+        
+        if (heroData.backgroundImage && heroSection) {
+            heroSection.style.backgroundImage = `url(${heroData.backgroundImage})`;
+            heroSection.style.backgroundSize = 'cover';
+            heroSection.style.backgroundPosition = 'center';
+        }
+        
+        if (heroData.buttonText && heroButton) {
+            heroButton.textContent = heroData.buttonText;
+        }
+        
+        if (heroData.buttonLink && heroButton) {
+            heroButton.href = heroData.buttonLink;
+        }
+    } catch (error) {
+        console.error('Failed to load hero settings:', error);
+        // Fallback to default if API fails
+        const heroSection = document.querySelector('.hero-section');
+        if (heroSection) {
+            heroSection.style.backgroundImage = "url('https://res.cloudinary.com/dvr195vfw/image/upload/f_auto,q_auto,w_1200/v1765150425/Your_paragraph_text_1_ck0hsl.png')";
+        }
+    }
+}
 async function fetchBestsellers() {
     const container = document.getElementById('bestsellers-container');
     if (!container) return;
@@ -905,14 +923,7 @@ function addToCartHandler(product) {
     addToCart(cartItem);
 }
 
-// 5. Helper: Swap Image
-window.swapImage = (img) => {
-    document.getElementById('main-display-image').src = img.src;
-    document.querySelectorAll('.thumbnail-image').forEach(t => t.classList.remove('active'));
-    img.classList.add('active');
-};
-
-// 6. Helper: Adjust Qty
+//  Helper: Adjust Qty
 window.adjustQty = (d) => {
     const i = document.getElementById('quantity');
     let n = parseInt(i.value) + d;
@@ -1161,6 +1172,15 @@ function addToCart(product) {
             ...product, 
             cartItemId: uniqueId, 
             quantity: product.quantity || 1 
+        });
+    }
+    if (typeof fbq !== 'undefined') {
+        fbq('track', 'AddToCart', {
+            content_name: product.name,
+            content_ids: [product._id],
+            content_type: 'product',
+            value: product.price,
+            currency: 'EGP'
         });
     }
     saveCartToStorage();
@@ -1594,6 +1614,14 @@ async function processCheckout(e) {
         const result = await response.json();
 
         if (response.ok) {
+             if (typeof fbq !== 'undefined') {
+            fbq('track', 'Purchase', {
+                value: orderData.totalAmount,
+                currency: 'EGP',
+                content_ids: orderData.items.map(item => item.productId),
+                content_type: 'product'
+            });
+        }
             console.log('Order placed successfully! Your Order ID is: ' + result.orderId);
             cart = []; 
             saveCartToStorage();
@@ -1679,13 +1707,6 @@ async function handleApplyDiscount() {
 }
 
 
-// 2. Helper for Quantity
-window.adjustQty = function(delta) {
-    const input = document.getElementById('quantity');
-    let newVal = parseInt(input.value) + delta;
-    if (newVal < 1) newVal = 1;
-    input.value = newVal;
-}
 
 // 3. Helper for Image Swapping
 window.swapImage = function(imgElement) {
@@ -1739,3 +1760,4 @@ async function fetchAndRenderCare(categoryName) {
         section.style.display = 'none';
     }
 }
+
