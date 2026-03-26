@@ -388,10 +388,10 @@ async function handleSearch() {
 // 5. PRODUCTS GRID PAGE LOGIC
 // ====================================
 
-function initProductsPage() {
+async function initProductsPage() {
     const filterSortBar = document.getElementById('filter-sort-bar');
     if (filterSortBar) {
-        filterSortBar.innerHTML = renderFilterSortBar();
+        filterSortBar.innerHTML = await renderFilterSortBar();
         document.getElementById('sort-by-select').addEventListener('change', () => loadProducts(1));
         document.getElementById('filter-category-select').addEventListener('change', () => loadProducts(1));
     }
@@ -401,36 +401,35 @@ function initProductsPage() {
     loadProducts(initialPage);
 }
 
-function renderFilterSortBar() {
+async function renderFilterSortBar() {
     const urlParams = new URLSearchParams(window.location.search);
     const currentSort = urlParams.get('sort') || 'name_asc';
     const currentCategory = urlParams.get('category') || '';
-    
+
+    // Fetch live categories from your admin/API
+    let categoryOptions = '<option value="">All Categories</option>';
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
+        if (response.ok) {
+            const categories = await response.json();
+            categories.sort((a, b) => a.sortOrder - b.sortOrder);
+            categoryOptions += categories.map(cat => 
+                `<option value="${cat.name}" ${currentCategory === cat.name ? 'selected' : ''}>${cat.name}</option>`
+            ).join('');
+        }
+    } catch (e) {
+        console.error('Could not load categories for filter:', e);
+    }
+
     return `
         <div class="filter-controls-group">
             <div class="filter-row">
                 <div class="filter-item">
                     <label for="filter-category-select">Category:</label>
                     <select id="filter-category-select" class="filter-select">
-                        <option value="">All Categories</option>
-                        <option value="Candles" ${currentCategory === 'Candles' ? 'selected' : ''}>Candles</option>
-                        <option value="Pottery Collection" ${currentCategory === 'Pottery Collection' ? 'selected' : ''}>Pottery Collection</option>
-                        <option value="Wax Burners" ${currentCategory === 'Wax Burners' ? 'selected' : ''}>Wax Burners</option>
-                        <option value="Fresheners" ${currentCategory === 'Fresheners' ? 'selected' : ''}>Fresheners</option>
-                        <option value="Wax Melts" ${currentCategory === 'Wax Melts' ? 'selected' : ''}>Wax Melts</option>
-                        <option value="Car Diffusers" ${currentCategory === 'Car Diffusers' ? 'selected' : ''}>Car Diffusers</option>
-                        <option value="Reed Diffusers" ${currentCategory === 'Reed Diffusers' ? 'selected' : ''}>Reed Diffusers</option>
-                        <option value="Deodorant" ${currentCategory === 'Deodorant' ? 'selected' : ''}>Deodorant</option>
-                        <option value="Soap" ${currentCategory === 'Soap' ? 'selected' : ''}>Soap</option>
-                        <option value="Body Splash" ${currentCategory === 'Body Splash' ? 'selected' : ''}>Body Splash</option>
-                        <option value="Body Oil" ${currentCategory === 'Body Oil' ? 'selected' : ''}> Body Oil</option>
-                        <option value="Massage Candles" ${currentCategory === 'Massage Candles' ? 'selected' : ''}>Massage Candles</option>
-                        
-                        <option value="Sets" ${currentCategory === 'Sets' ? 'selected' : ''}>Sets</option>
-                        <option value="Bundles" ${currentCategory === 'Bundles' ? 'selected' : ''}>Bundles</option>
+                        ${categoryOptions}
                     </select>
                 </div>
-                
                 <div class="filter-item">
                     <label for="sort-by-select">Sort By:</label>
                     <select id="sort-by-select" class="filter-select">
