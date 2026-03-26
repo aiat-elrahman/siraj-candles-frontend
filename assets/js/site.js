@@ -1450,61 +1450,73 @@ function renderCheckoutSummary(container) {
 
 function updateCheckoutTotals() {
     const subtotal = getCartTotal();
-    
-    // 1. Get Shipping Fee
+ 
+    // 1. Shipping Fee
     const citySelect = document.getElementById('city');
     let shippingFee = 0;
-    
-    // Check if free shipping applies
+ 
     if (subtotal >= 2000) {
-        shippingFee = 0;
-    } 
-    // SAFETY CHECK: Ensure citySelect exists and has options before reading
-    else if (citySelect && citySelect.options.length > 0 && citySelect.selectedIndex >= 0) {
+        shippingFee = 0; // free shipping threshold
+    } else if (citySelect && citySelect.options.length > 0 && citySelect.selectedIndex >= 0) {
         const selectedOption = citySelect.options[citySelect.selectedIndex];
-        // Only read dataset if it exists
         if (selectedOption && selectedOption.dataset.fee) {
             shippingFee = parseFloat(selectedOption.dataset.fee);
         }
-    } 
-
-    // 2. Calculate Discount
+    }
+ 
+    // 2. Discount Amount
     let discountAmount = 0;
+    let freeShipping = false;
+ 
     if (appliedDiscount) {
-        if (appliedDiscount.type === 'percentage') {
-            discountAmount = subtotal * (appliedDiscount.value / 100);
+        if (appliedDiscount.isFreeShipping || appliedDiscount.type === 'free_shipping') {
+            // Free shipping discount — zero out shipping fee
+            freeShipping = true;
+            shippingFee = 0;
+            discountAmount = 0;
         } else {
-            discountAmount = appliedDiscount.value;
+            // Use the pre-calculated amount from the backend (already handles category logic)
+            discountAmount = appliedDiscount.discountAmount || 0;
         }
     }
-
-    const total = subtotal + shippingFee - discountAmount;
-
-    // 3. Update UI Elements (Safe check)
-    const subtotalEl = document.getElementById('summary-subtotal');
-    const shippingEl = document.getElementById('summary-shipping');
+ 
+    const total = Math.max(0, subtotal + shippingFee - discountAmount);
+ 
+    // 3. Update UI
+    const subtotalEl  = document.getElementById('summary-subtotal');
+    const shippingEl  = document.getElementById('summary-shipping');
     const discountRow = document.getElementById('discount-row');
-    const discountEl = document.getElementById('summary-discount');
-    const totalEl = document.getElementById('summary-total');
-
-    if(subtotalEl) subtotalEl.textContent = subtotal.toFixed(2) + ' EGP';
-    
-    if(shippingEl) {
-        const shippingText = subtotal >= 2000 ? "FREE" : (shippingFee > 0 ? shippingFee.toFixed(2) + ' EGP' : 'Select City');
-        shippingEl.textContent = shippingText;
+    const discountEl  = document.getElementById('summary-discount');
+    const totalEl     = document.getElementById('summary-total');
+ 
+    if (subtotalEl) subtotalEl.textContent = subtotal.toFixed(2) + ' EGP';
+ 
+    if (shippingEl) {
+        if (subtotal >= 2000 || freeShipping) {
+            shippingEl.textContent = 'FREE 🎉';
+        } else if (shippingFee > 0) {
+            shippingEl.textContent = shippingFee.toFixed(2) + ' EGP';
+        } else {
+            shippingEl.textContent = 'Select City';
+        }
     }
-
-    if(discountRow && discountEl) {
+ 
+    if (discountRow && discountEl) {
         if (discountAmount > 0) {
             discountRow.style.display = 'flex';
-            discountEl.textContent = `-${discountAmount.toFixed(2)} EGP`;
+            const label = appliedDiscount?.appliesTo === 'categories'
+                ? `Discount (${appliedDiscount.categories?.join(', ')} only)`
+                : 'Discount';
+            discountRow.querySelector('span:first-child') && 
+                (discountRow.innerHTML = `${label}: <span id="summary-discount">-${discountAmount.toFixed(2)} EGP</span>`);
         } else {
             discountRow.style.display = 'none';
         }
     }
-
-    if(totalEl) totalEl.textContent = total.toFixed(2) + ' EGP';
+ 
+    if (totalEl) totalEl.textContent = total.toFixed(2) + ' EGP';
 }
+ 
 // FIXED: Checkout cart items with working quantity controls & Variant Display
 function renderCheckoutCartItems() {
     const container = document.getElementById('checkout-cart-items');
@@ -1623,6 +1635,14 @@ async function processCheckout(e) {
             });
         }
             console.log('Order placed successfully! Your Order ID is: ' + result.orderId);
+           if (appliedDiscount?.code) {
+    fetch(`${API_BASE_URL}/api/discounts/use`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: appliedDiscount.code })
+    });
+    appliedDiscount = null;
+}
             cart = []; 
             saveCartToStorage();
             updateCartUI();
@@ -1671,29 +1691,46 @@ async function loadShippingCities() {
         citySelect.innerHTML = '<option value="">Error loading cities (Standard shipping applies)</option>';
     }
 }
-let appliedDiscount = null; // Store current discount
-
+let appliedDiscount = null;
+ 
 async function handleApplyDiscount() {
     const codeInput = document.getElementById('discount-code');
     const messageEl = document.getElementById('discount-message');
     const code = codeInput.value.trim().toUpperCase();
-
+ 
     if (!code) return;
-
+ 
+    messageEl.textContent = 'Checking code...';
+    messageEl.className = '';
+ 
+    // Build cartItems array so backend can do category-based discounts
+    const cartItems = cart.map(item => ({
+        category: item.category || '',
+        price: item.price,
+        quantity: item.quantity
+    }));
+ 
     try {
         const response = await fetch(`${API_BASE_URL}/api/discounts/validate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, cartTotal: getCartTotal() })
+            body: JSON.stringify({
+                code,
+                cartTotal: getCartTotal(),
+                cartItems   // ← NEW: send cart items for category checking
+            })
         });
-
+ 
         const data = await response.json();
-
-        if (response.ok && data.valid) {
-            appliedDiscount = data.discount; // Store discount details
-            messageEl.textContent = `Coupon applied: ${data.discount.code}`;
+ 
+        if (data.valid) {
+            appliedDiscount = {
+                ...data.discount,
+                discountAmount: data.discountAmount  // pre-calculated by backend
+            };
+            messageEl.textContent = data.message;
             messageEl.className = 'discount-success';
-            updateCheckoutTotals(); // Recalculate totals
+            updateCheckoutTotals();
         } else {
             appliedDiscount = null;
             messageEl.textContent = data.message || 'Invalid code';
@@ -1702,9 +1739,11 @@ async function handleApplyDiscount() {
         }
     } catch (error) {
         console.error(error);
-        messageEl.textContent = 'Error applying discount';
+        messageEl.textContent = 'Error checking discount. Please try again.';
+        messageEl.className = 'discount-error';
     }
 }
+
 
 
 
