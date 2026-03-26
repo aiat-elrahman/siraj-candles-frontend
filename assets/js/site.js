@@ -449,61 +449,48 @@ async function loadProducts(page) {
     const container = document.getElementById('products-container');
     const paginationControls = document.getElementById('pagination-controls');
 
-    // --- FIX START: Correct Priority Order ---
     const categorySelect = document.getElementById('filter-category-select');
     const sortSelect = document.getElementById('sort-by-select');
-    
-    // 1. Get Search Term from URL (This part is correct!)
-    const searchQuery = new URLSearchParams(window.location.search).get('search') || '';
-    
-    let filterCategory = '';
-    let sortBy = '';
+    const urlParams = new URLSearchParams(window.location.search);
 
-    // 2. LOGIC FIX: Check Dropdown FIRST. If it exists, use it.
-    if (categorySelect) {
+    // Always read search from URL
+    const searchQuery = urlParams.get('search') || '';
+
+    // ✅ FIX: Read category from URL first (handles homepage → category clicks)
+    // Only trust the dropdown if it has a value AND the URL has no category
+    // (meaning the user changed it manually via the dropdown)
+    let filterCategory = urlParams.get('category') || '';
+    if (categorySelect && categorySelect.value && categorySelect.value !== filterCategory) {
+        // User changed the dropdown manually — trust the dropdown
         filterCategory = categorySelect.value;
-        
-        // Optional: Update URL without reloading so the link matches the dropdown
-        const url = new URL(window.location);
-        if(filterCategory) url.searchParams.set('category', filterCategory);
-        else url.searchParams.delete('category');
-        
-        // Don't lose the search term if we are just changing category!
-        if(searchQuery) url.searchParams.set('search', searchQuery);
-        
-        window.history.pushState({}, '', url);
-    } 
-    // 3. If Dropdown is missing, THEN look at URL
-    else {
-        filterCategory = new URLSearchParams(window.location.search).get('category') || '';
     }
 
-    if (sortSelect) {
-        sortBy = sortSelect.value;
-    } else {
-        sortBy = new URLSearchParams(window.location.search).get('sort') || 'name_asc';
+    // Sync dropdown to match the active category
+    if (categorySelect && filterCategory) {
+        categorySelect.value = filterCategory;
     }
-    // --- FIX END ---
-    
+
+    // Update URL to reflect current state
+    const url = new URL(window.location);
+    if (filterCategory) url.searchParams.set('category', filterCategory);
+    else url.searchParams.delete('category');
+    if (searchQuery) url.searchParams.set('search', searchQuery);
+    window.history.pushState({}, '', url);
+
+    let sortBy = sortSelect ? sortSelect.value : (urlParams.get('sort') || 'name_asc');
+
     let query = '';
-    if (filterCategory) {
-        query += `&category=${encodeURIComponent(filterCategory)}`;
-    }
-    if (searchQuery) {
-        query += `&search=${encodeURIComponent(searchQuery)}`;
-    }
+    if (filterCategory) query += `&category=${encodeURIComponent(filterCategory)}`;
+    if (searchQuery) query += `&search=${encodeURIComponent(searchQuery)}`;
     if (sortBy) {
         const [sortField, sortOrder] = sortBy === 'newest' ? ['createdAt', 'desc'] : sortBy.split('_');
-        if (sortField && sortOrder) {
-            query += `&sort=${sortField}&order=${sortOrder}`;
-        }
+        if (sortField && sortOrder) query += `&sort=${sortField}&order=${sortOrder}`;
     }
-    
+
     container.innerHTML = '<p class="loading-message">Fetching products...</p>';
     paginationControls.innerHTML = '';
-    
-    const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE, query);
 
+    const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE, query);
     renderProductGrid('products-container', items, 'products');
     renderPagination('pagination-controls', totalPages, currentPage, 'products.html', loadProducts);
 }
