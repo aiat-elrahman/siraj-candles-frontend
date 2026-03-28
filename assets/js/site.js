@@ -295,26 +295,38 @@ async function loadHeroSettings() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/settings/hero`);
         const heroData = await response.json();
-        
+
         const heroSection = document.querySelector('.hero-section');
         const heroButton = document.getElementById('hero-button');
-        
+        const heroTitle = document.getElementById('hero-title');
+        const heroSubtitle = document.getElementById('hero-subtitle');
+
         if (heroData.backgroundImage && heroSection) {
             heroSection.style.backgroundImage = `url(${heroData.backgroundImage})`;
             heroSection.style.backgroundSize = 'cover';
             heroSection.style.backgroundPosition = 'center';
         }
-        
+
+        if (heroData.title && heroTitle) {
+            heroTitle.textContent = heroData.title;
+            heroTitle.style.display = 'block';
+        }
+
+        if (heroData.subtitle && heroSubtitle) {
+            heroSubtitle.textContent = heroData.subtitle;
+            heroSubtitle.style.display = 'block';
+        }
+
         if (heroData.buttonText && heroButton) {
             heroButton.textContent = heroData.buttonText;
         }
-        
+
         if (heroData.buttonLink && heroButton) {
             heroButton.href = heroData.buttonLink;
         }
+
     } catch (error) {
         console.error('Failed to load hero settings:', error);
-        // Fallback to default if API fails
         const heroSection = document.querySelector('.hero-section');
         if (heroSection) {
             heroSection.style.backgroundImage = "url('https://res.cloudinary.com/dvr195vfw/image/upload/f_auto,q_auto,w_1200/v1765150425/Your_paragraph_text_1_ck0hsl.png')";
