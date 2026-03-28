@@ -1,42 +1,17 @@
 const API_BASE_URL = 'https://siraj-backend.onrender.com'; 
 const ITEMS_PER_PAGE = 12; 
 
-// ====================================
-// 1. DOM & INITIALIZATION
-// ====================================
-const searchModal = document.getElementById('search-modal');
-const cartDropdown = document.getElementById('cart-dropdown');
-const searchInput = document.getElementById('search-input');
-const searchResults = document.getElementById('search-results');
-const closeSearch = document.querySelector('.close-search');
-
 document.addEventListener('DOMContentLoaded', () => {
-    // ====================================
-    // SAFETY CHECK: Error Handling for Missing Elements
-    // ====================================
-    const requiredElements = ['search-toggle', 'cart-toggle', 'mobile-menu-toggle'];
-    requiredElements.forEach(id => {
-        if (!document.getElementById(id)) {
-            console.warn(`Required element #${id} not found`);
-        }
-    });
     setupEventListeners();
     loadCartFromStorage();
-    
-    // Load hero section settings (dynamic banner)
     loadHeroSettings();
-    
+    buildMobileMenu();  // ← NEW: builds dynamic mobile menu on every page
+ 
     const pageName = document.body.getAttribute('data-page');
     switch (pageName) {
         case 'home':
-            if (typeof fetchAndRenderCategories === 'function') {
-                fetchAndRenderCategories(); 
-            } else {
-                console.error("fetchAndRenderCategories function is missing!");
-            }
-            if (typeof fetchBestsellers === 'function') {
-                fetchBestsellers();
-            }
+            fetchAndRenderCategories();
+            fetchBestsellers();
             break;
         case 'products':
             initProductsPage();
@@ -53,8 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
         case 'checkout':
             setupCheckoutPage();
             break;
+        case 'category-landing':       // ← NEW page
+            initCategoryLandingPage();
+            break;
         default:
-            
             break;
     }
 });
@@ -246,51 +223,183 @@ function debounce(func, delay) {
 // ====================================
 // 3. HOMEPAGE LOGIC (UPDATED)
 // ====================================
+function getCategoryUrl(category) {
+    if (category.subcategories && category.subcategories.length > 0) {
+        return `category.html?category=${encodeURIComponent(category.name)}`;
+    }
+    return `products.html?category=${encodeURIComponent(category.name)}`;
+}
+ 
 async function fetchAndRenderCategories() {
     const container = document.getElementById('categories-container');
     if (!container) return;
-
     container.innerHTML = '<p class="loading-message">Loading categories...</p>';
-
     try {
         const response = await fetch(`${API_BASE_URL}/api/categories`);
         if (!response.ok) throw new Error('Failed to load categories');
-        
         const categories = await response.json();
         categories.sort((a, b) => a.sortOrder - b.sortOrder);
-
         if (categories.length === 0) {
             container.innerHTML = '<p class="no-products-message">No categories found.</p>';
             return;
         }
-
         container.innerHTML = categories.map(cat => {
-            // Use the dynamic image URL from database
             let imageSrc = cat.image || 'assets/images/placeholder.jpg';
-            
-            // Optimize Cloudinary images on the fly
             if (imageSrc.includes('res.cloudinary.com')) {
                 imageSrc = imageSrc.replace('/upload/', '/upload/f_auto,q_auto,w_400/');
             }
-            
+            const url = getCategoryUrl(cat);
+            const hasSubcats = cat.subcategories && cat.subcategories.length > 0;
             return `
-                <a href="products.html?category=${encodeURIComponent(cat.name)}" class="category-card-item">
+                <a href="${url}" class="category-card-item">
                     <div class="category-image-wrapper">
                         <img src="${imageSrc}" alt="${cat.name}" class="category-image" loading="lazy">
                     </div>
                     <div class="category-info">
                         <p class="category-name">${cat.name}</p>
-                        <i class="fas fa-arrow-right"></i>
+                        <span class="category-arrow">${hasSubcats ? '›' : '→'}</span>
                     </div>
                 </a>
             `;
         }).join('');
-
     } catch (error) {
         console.error("Error fetching categories:", error);
         container.innerHTML = '<p class="error-message">Could not load categories.</p>';
     }
 }
+async function buildMobileMenu() {
+    const mobileMenu = document.getElementById('mobile-nav-menu');
+    if (!mobileMenu) return;
+ 
+    let categories = [];
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/categories`);
+        if (res.ok) {
+            const data = await res.json();
+            categories = data.sort((a, b) => a.sortOrder - b.sortOrder);
+        }
+    } catch (e) { console.error('Menu load failed', e); }
+ 
+    let html = `
+        <div class="mobile-menu-header">
+            <button class="mobile-menu-close" id="mobile-menu-close">✕</button>
+        </div>
+        <nav class="mobile-menu-nav">
+            <a href="index.html" class="mobile-nav-link">Home</a>
+            <div class="mobile-nav-item has-children">
+                <button class="mobile-nav-link mobile-nav-parent" data-target="mobile-products-sub">
+                    Products <span class="mobile-nav-arrow">›</span>
+                </button>
+                <div class="mobile-nav-submenu" id="mobile-products-sub">
+    `;
+ 
+    categories.forEach(cat => {
+        const hasSubcats = cat.subcategories && cat.subcategories.length > 0;
+        if (hasSubcats) {
+            html += `
+                <div class="mobile-nav-item has-children">
+                    <button class="mobile-nav-sublink mobile-nav-parent" data-target="mobile-sub-${cat._id}">
+                        ${cat.name} <span class="mobile-nav-arrow">›</span>
+                    </button>
+                    <div class="mobile-nav-submenu mobile-nav-submenu--deep" id="mobile-sub-${cat._id}">
+                        <a href="category.html?category=${encodeURIComponent(cat.name)}" class="mobile-nav-deeplink mobile-nav-deeplink--all">Browse All ${cat.name}</a>
+                        ${cat.subcategories.map(sub => `
+                            <a href="products.html?category=${encodeURIComponent(cat.name)}&sub=${encodeURIComponent(sub)}" class="mobile-nav-deeplink">${sub}</a>
+                        `).join('')}
+                    </div>
+                </div>`;
+        } else {
+            html += `<a href="products.html?category=${encodeURIComponent(cat.name)}" class="mobile-nav-sublink">${cat.name}</a>`;
+        }
+    });
+ 
+    html += `</div></div><a href="bundles.html" class="mobile-nav-link">Bundles</a></nav>`;
+    mobileMenu.innerHTML = html;
+ 
+    mobileMenu.querySelectorAll('.mobile-nav-parent').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const targetId = btn.getAttribute('data-target');
+            const submenu = document.getElementById(targetId);
+            if (!submenu) return;
+            const isOpen = submenu.classList.contains('open');
+            btn.closest('.mobile-nav-item')?.parentElement?.querySelectorAll('.mobile-nav-submenu').forEach(s => {
+                if (s !== submenu) { s.classList.remove('open'); s.previousElementSibling?.querySelector('.mobile-nav-arrow')?.classList.remove('rotated'); }
+            });
+            submenu.classList.toggle('open', !isOpen);
+            btn.querySelector('.mobile-nav-arrow')?.classList.toggle('rotated', !isOpen);
+        });
+    });
+ 
+    document.getElementById('mobile-menu-close')?.addEventListener('click', () => {
+        const toggle = document.getElementById('mobile-menu-toggle');
+        mobileMenu.classList.remove('active');
+        toggle?.classList.remove('active');
+        document.body.classList.remove('mobile-menu-open');
+    });
+}
+ 
+// ── Category Landing Page ─────────────────────────────────────
+async function initCategoryLandingPage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryName = urlParams.get('category');
+    if (!categoryName) { window.location.href = 'products.html'; return; }
+ 
+    document.title = `${categoryName} | Siraj Candles`;
+    const breadcrumbCurrent = document.getElementById('breadcrumb-current');
+    const titleEl = document.getElementById('category-title');
+    if (breadcrumbCurrent) breadcrumbCurrent.textContent = categoryName;
+    if (titleEl) titleEl.textContent = categoryName;
+ 
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/categories`);
+        const allCategories = await res.json();
+        const category = allCategories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
+ 
+        if (!category || !category.subcategories || category.subcategories.length === 0) {
+            window.location.href = `products.html?category=${encodeURIComponent(categoryName)}`;
+            return;
+        }
+ 
+        const bannerEl = document.getElementById('category-banner');
+        if (bannerEl && category.image) { bannerEl.style.backgroundImage = `url(${category.image})`; bannerEl.style.display = 'block'; }
+ 
+        const subtitleEl = document.getElementById('category-subtitle');
+        if (subtitleEl) subtitleEl.textContent = `Browse our ${category.name} collection`;
+ 
+        const container = document.getElementById('subcategory-container');
+        if (container) {
+            container.innerHTML = category.subcategories.map(sub => {
+                let imageSrc = category.image || 'assets/images/placeholder.jpg';
+                if (imageSrc.includes('res.cloudinary.com')) imageSrc = imageSrc.replace('/upload/', '/upload/f_auto,q_auto,w_400/');
+                return `
+                    <a href="products.html?category=${encodeURIComponent(category.name)}&sub=${encodeURIComponent(sub)}" class="category-card-item subcategory-card">
+                        <div class="category-image-wrapper">
+                            <img src="${imageSrc}" alt="${sub}" class="category-image" loading="lazy">
+                        </div>
+                        <div class="category-info">
+                            <p class="category-name">${sub}</p>
+                            <span class="category-arrow">→</span>
+                        </div>
+                    </a>`;
+            }).join('');
+        }
+ 
+        // Also load products from this category below
+        const section = document.getElementById('category-all-products-section');
+        const prodContainer = document.getElementById('category-products-container');
+        const heading = document.getElementById('all-products-heading');
+        if (section && prodContainer) {
+            if (heading) heading.textContent = `All ${categoryName} Products`;
+            const { items } = await fetchGridData('/products', 1, 8, `&category=${encodeURIComponent(categoryName)}`);
+            if (items.length > 0) { section.style.display = 'block'; renderProductGrid('category-products-container', items, 'products'); }
+        }
+    } catch (error) {
+        console.error('Category page error:', error);
+        window.location.href = `products.html?category=${encodeURIComponent(categoryName)}`;
+    }
+}
+
 async function loadHeroSettings() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/settings/hero`);
@@ -486,8 +595,11 @@ async function loadProducts(page) {
 
     let sortBy = sortSelect ? sortSelect.value : (urlParams.get('sort') || 'name_asc');
 
+    const subCategory = urlParams.get('sub') || '';
+ 
     let query = '';
     if (filterCategory) query += `&category=${encodeURIComponent(filterCategory)}`;
+    if (subCategory) query += `&sub=${encodeURIComponent(subCategory)}`;
     if (searchQuery) query += `&search=${encodeURIComponent(searchQuery)}`;
     if (sortBy) {
         const [sortField, sortOrder] = sortBy === 'newest' ? ['createdAt', 'desc'] : sortBy.split('_');
@@ -1139,13 +1251,13 @@ function loadCartFromStorage() {
     const cartData = localStorage.getItem('sirajCart');
     if (cartData) {
         try {
-    cart = JSON.parse(cartData) || [];
-} catch(e) {
-    cart = [];
-    localStorage.removeItem('sirajCart');
-}
+            cart = JSON.parse(cartData) || [];
+        } catch(e) {
+            cart = [];
+            localStorage.removeItem('sirajCart');
+        }
     }
-    updateCartUI(); 
+    updateCartUI();
 }
 
 function saveCartToStorage() {
@@ -1438,9 +1550,12 @@ function renderCheckoutSummary(container) {
         <hr>
         <p class="checkout-summary-line">Subtotal: <span id="summary-subtotal">0.00 EGP</span></p>
         <p class="checkout-summary-line">Shipping: <span id="summary-shipping">Select City</span></p>
-       <p class="checkout-summary-line" id="discount-row" style="display:none; color:green;">
+      
     <span class="discount-label">Discount:</span>
-    <span id="summary-discount">-0.00 EGP</span>
+      <p class="checkout-summary-line" id="discount-row" style="display:none; color:green;">
+            <span class="discount-label">Discount:</span>
+            <span id="summary-discount">-0.00 EGP</span>
+        </p>
 </p>
         <p class="checkout-summary-line final-total">Total: <span id="summary-total">0.00 EGP</span></p>
     `;
@@ -1578,16 +1693,22 @@ async function processCheckout(e) {
     const checkoutForm = e.target;
     const formData = new FormData(checkoutForm);
     const totalAmount = getCartTotal();
-    const citySelect = document.getElementById('city');
+    
     if (!formData.get('city')) {
     alert('Please select your city.');
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
     return;
 }
+    const citySelect = document.getElementById('city');
+    if (!citySelect || !citySelect.value) {
+        alert('Please select your city before placing the order.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        return;
+    }
     const selectedOption = citySelect.options[citySelect.selectedIndex];
     let shippingFee = 0;
-
     if (totalAmount < 2000) {
         shippingFee = parseFloat(selectedOption.dataset.fee) || 50.00;
     }
