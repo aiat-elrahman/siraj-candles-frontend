@@ -1,13 +1,9 @@
 const API_BASE_URL = 'https://siraj-backend.onrender.com'; 
-const ITEMS_PER_PAGE = 12;
-const AVAILABLE_SCENTS = []; 
+const ITEMS_PER_PAGE = 12; 
 
 // ====================================
 // 1. DOM & INITIALIZATION
 // ====================================
-
-const searchToggle = document.getElementById('search-toggle');
-const cartToggle = document.getElementById('cart-toggle');
 const searchModal = document.getElementById('search-modal');
 const cartDropdown = document.getElementById('cart-dropdown');
 const searchInput = document.getElementById('search-input');
@@ -900,6 +896,7 @@ function addToCartHandler(product) {
     const cartItem = {
         _id: product._id,
         name: product.isBundle ? product.bundleName : product.name_en,
+        category: product.category || '',
         price: price,
         quantity: qty,
         imageUrl: product.imagePaths?.[0],
@@ -924,8 +921,9 @@ function collectAllSelections(product) {
 
     // 1. Collect from Standard Options (Scent, Size, Shape, etc.)
     const optionSelectors = [
-        'scent-option', 'size-option', 'weight-option', 'type-option', 'shape-option'
-    ];
+    'opt-scent', 'opt-shape', 'opt-type', 'opt-size'
+];
+
 
     optionSelectors.forEach(selectorId => {
         const selector = document.getElementById(selectorId);
@@ -963,8 +961,6 @@ function collectAllSelections(product) {
 
     return selections;
 }
-
-
 function renderProductOptions(product) {
     const container = document.getElementById('options-container');
     if(!container) return;
@@ -1007,7 +1003,9 @@ function renderBundleItems(product) {
 
     
     const itemsHtml = product.bundleItems.map((item, i) => {
-        const scents = item.allowedScents.split(',');
+        const scents = Array.isArray(item.allowedScents) 
+    ? item.allowedScents 
+    : (item.allowedScents || '').split(',');
         return `
             <div class="bundle-selector-group">
                 <label for="bundle-item-${i}">
@@ -1049,6 +1047,7 @@ function setupBuyNowButton(product) {
         const item = {
             _id: product._id,
             name: itemName || product.name || 'Product',
+category: product.category || '',
             price: itemPrice,
             quantity: quantity,
             // *** THIS IS THE FIX ***
@@ -1104,6 +1103,7 @@ function attachAddToCartListener(product) {
         const item = {
             _id: product._id,
             name: itemName || product.name || 'Product',
+ category: product.category || '',
             price: itemPrice,
             quantity: quantity,
             // *** THIS IS THE FIX ***
@@ -1126,7 +1126,12 @@ let cart = [];
 function loadCartFromStorage() {
     const cartData = localStorage.getItem('sirajCart');
     if (cartData) {
-        cart = JSON.parse(cartData);
+        try {
+    cart = JSON.parse(cartData) || [];
+} catch(e) {
+    cart = [];
+    localStorage.removeItem('sirajCart');
+}
     }
     updateCartUI(); 
 }
@@ -1358,19 +1363,16 @@ function renderShopCartPage() {
         `;
     }).join('');
 
-    const subtotal = getCartTotal();
-    const shipping = subtotal >= 2000 ? 0.00 : 50.00;
-    const grandTotal = subtotal + shipping;
+   const subtotal = getCartTotal();
+const freeShipping = subtotal >= 2000;
 
-    // Render Summary
-    summaryContainer.innerHTML = `
-        <h3>Cart Summary</h3>
-        <p>Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
-        <p>Shipping (Egypt): <span>${shipping === 0 ? 'FREE' : shipping.toFixed(2) + ' EGP'}</span></p>
-        <p class="cart-total-final">Grand Total: <span>${grandTotal.toFixed(2)} EGP</span></p>
-        <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
-    `;
-    
+summaryContainer.innerHTML = `
+    <h3>Cart Summary</h3>
+    <p>Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
+    <p>Shipping: <span>${freeShipping ? 'FREE 🎉' : 'Calculated at checkout'}</span></p>
+    <p class="cart-total-final">Total: <span>${subtotal.toFixed(2)} EGP${freeShipping ? '' : ' + shipping'}</span></p>
+    <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
+`;
     const checkoutLink = document.getElementById('checkout-link-bottom');
     if (checkoutLink) checkoutLink.style.display = 'block';
 }
@@ -1424,9 +1426,10 @@ function renderCheckoutSummary(container) {
         <hr>
         <p class="checkout-summary-line">Subtotal: <span id="summary-subtotal">0.00 EGP</span></p>
         <p class="checkout-summary-line">Shipping: <span id="summary-shipping">Select City</span></p>
-        <p class="checkout-summary-line" id="discount-row" style="display:none; color:green;">
-            Discount: <span id="summary-discount">-0.00 EGP</span>
-        </p>
+       <p class="checkout-summary-line" id="discount-row" style="display:none; color:green;">
+    <span class="discount-label">Discount:</span>
+    <span id="summary-discount">-0.00 EGP</span>
+</p>
         <p class="checkout-summary-line final-total">Total: <span id="summary-total">0.00 EGP</span></p>
     `;
     
@@ -1487,22 +1490,24 @@ function updateCheckoutTotals() {
         }
     }
  
-    if (discountRow && discountEl) {
-        if (discountAmount > 0) {
-            discountRow.style.display = 'flex';
-            const label = appliedDiscount?.appliesTo === 'categories'
-                ? `Discount (${appliedDiscount.categories?.join(', ')} only)`
-                : 'Discount';
-            discountRow.querySelector('span:first-child') && 
-                (discountRow.innerHTML = `${label}: <span id="summary-discount">-${discountAmount.toFixed(2)} EGP</span>`);
-        } else {
-            discountRow.style.display = 'none';
-        }
+    if (discountRow) {
+    if (discountAmount > 0) {
+        discountRow.style.display = 'flex';
+        const label = appliedDiscount?.appliesTo === 'categories'
+            ? `Discount (${appliedDiscount.categories?.join(', ')} only)`
+            : 'Discount';
+        // Update label text directly — don't touch innerHTML
+        const labelSpan = discountRow.querySelector('.discount-label');
+        const valueSpan = discountRow.querySelector('#summary-discount');
+        if (labelSpan) labelSpan.textContent = label + ':';
+        if (valueSpan) valueSpan.textContent = `-${discountAmount.toFixed(2)} EGP`;
+    } else {
+        discountRow.style.display = 'none';
     }
+}
  
     if (totalEl) totalEl.textContent = total.toFixed(2) + ' EGP';
 }
- 
 // FIXED: Checkout cart items with working quantity controls & Variant Display
 function renderCheckoutCartItems() {
     const container = document.getElementById('checkout-cart-items');
@@ -1562,11 +1567,16 @@ async function processCheckout(e) {
     const formData = new FormData(checkoutForm);
     const totalAmount = getCartTotal();
     const citySelect = document.getElementById('city');
+    if (!formData.get('city')) {
+    alert('Please select your city.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+    return;
+}
     const selectedOption = citySelect.options[citySelect.selectedIndex];
     let shippingFee = 0;
 
     if (totalAmount < 2000) {
-        // Read fee from data-attribute, default to 50 if missing
         shippingFee = parseFloat(selectedOption.dataset.fee) || 50.00;
     }
 
@@ -1625,7 +1635,7 @@ async function processCheckout(e) {
     fetch(`${API_BASE_URL}/api/discounts/use`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: appliedDiscount.code })
+        body: JSON.stringify({ codes: [appliedDiscount.code] })
     });
     appliedDiscount = null;
 }
@@ -1677,6 +1687,12 @@ async function loadShippingCities() {
         citySelect.innerHTML = '<option value="">Error loading cities (Standard shipping applies)</option>';
     }
 }
+
+// ============================================================
+// REPLACE these two functions in your site.js
+// (find "let appliedDiscount = null" and replace from there)
+// ============================================================
+ 
 let appliedDiscount = null;
  
 async function handleApplyDiscount() {
@@ -1729,7 +1745,6 @@ async function handleApplyDiscount() {
         messageEl.className = 'discount-error';
     }
 }
-
 
 
 
