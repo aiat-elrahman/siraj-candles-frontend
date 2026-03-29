@@ -628,7 +628,7 @@ async function loadProducts(page) {
 
     let sortBy = sortSelect ? sortSelect.value : (urlParams.get('sort') || 'name_asc');
 
-    const subCategory = urlParams.get('sub') || '';
+
  
     let query = '';
   const subCategory = new URLSearchParams(window.location.search).get('sub') || '';
