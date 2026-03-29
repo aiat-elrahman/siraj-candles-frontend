@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category | Siraj Candles</title>
+    <meta name="description" content="Browse our collection by category at Siraj Candles.">
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+    <script>
+        !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+        n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+        (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init','YOUR_PIXEL_ID_HERE');fbq('track','PageView');
+    </script>
+</head>
+<body data-page="category-landing">
+
+    <div class="announcement-ribbon"><p>🎉 Free delivery on orders over 2000 EGP.</p></div>
+
+    <nav class="navbar">
+        <div class="container">
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Open navigation menu">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="index.html" class="logo">
+                <span class="logo-siraj">SIRAJ</span>
+                <span class="logo-candles">CANDLES</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="products.html"><i class="fas fa-box-open"></i> Products</a></li>
+                <li><a href="bundles.html"><i class="fas fa-gift"></i> Bundles</a></li>
+            </ul>
+            <div class="nav-icons">
+                <button id="search-toggle" aria-label="Search"><i class="fas fa-search"></i></button>
+                <button id="cart-toggle" class="cart-icon-button" aria-label="View cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" style="visibility: hidden; opacity: 0;">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mobile-nav-menu" id="mobile-nav-menu"></div>
+
+    <div id="cart-dropdown" class="cart-dropdown">
+        <h3 class="dropdown-header">Your Cart</h3>
+        <div class="cart-items-list"></div>
+        <div class="cart-summary"><p>Total: <span id="cart-total">0.00 EGP</span></p></div>
+        <div class="cart-dropdown-actions">
+            <a href="shopcart.html" class="view-cart-btn">View Cart</a>
+            <a href="checkout.html" class="checkout-btn-small">Checkout</a>
+        </div>
+    </div>
+
+    <div id="search-modal" class="search-modal">
+        <div class="search-content">
+            <button class="close-search">&times;</button>
+            <input type="text" id="search-input" placeholder="Search for product name or category...">
+            <div id="search-results" class="search-results"></div>
+        </div>
+    </div>
+
+    <main class="category-landing-main container">
+
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="index.html">Home</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="products.html">Products</a>
+            <span class="breadcrumb-sep">›</span>
+            <span id="breadcrumb-current" class="breadcrumb-current">Loading...</span>
+        </nav>
+
+        <div class="category-landing-header">
+            <div class="category-landing-banner" id="category-banner"></div>
+            <h1 class="category-landing-title" id="category-title">Loading...</h1>
+            <p class="category-landing-subtitle" id="category-subtitle"></p>
+        </div>
+
+        <section class="subcategory-grid-section">
+            <div class="category-grid subcategory-grid" id="subcategory-container">
+                <p class="loading-message">Loading...</p>
+            </div>
+        </section>
+
+        <section class="category-all-products" id="category-all-products-section" style="display:none;">
+            <h2 class="section-title" id="all-products-heading"></h2>
+            <div class="product-grid" id="category-products-container"></div>
+            <div class="pagination-controls" id="category-pagination"></div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>Email us for <strong>bulk orders</strong> and <strong>customized gifts</strong>:
+            <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a>
+        </p>
+        <p>&copy; 2025 Siraj Candles. All rights reserved.</p>
+        <div class="social-links">
+            <a href="https://www.instagram.com/siraj_candles_eg" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.facebook.com/people/sirajcandles/61576576972784/" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://www.tiktok.com/@sirajcandles" target="_blank"><i class="fab fa-tiktok"></i></a>
+        </div>
+        <p>From our Home to Yours ❤️</p>
+    </footer>
+
+    <script type="module" src="assets/js/site.js"></script>
+</body>
+</html>
