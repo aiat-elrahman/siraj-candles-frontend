@@ -1521,6 +1521,7 @@ async function setupCheckoutPage() {
     
     // 1. Load Cities
     await loadShippingCities(); 
+    await checkAndApplyAutomaticDiscounts();
 
     // 2. Attach Discount Listener
     const applyBtn = document.getElementById('apply-discount-btn');
@@ -1879,7 +1880,55 @@ async function handleApplyDiscount() {
     }
 }
 
+async function checkAndApplyAutomaticDiscounts() {
+    try {
+        const cartItems = cart.map(item => ({
+            category: item.category || '',
+            price: item.price,
+            quantity: item.quantity
+        }));
 
+        const response = await fetch(`${API_BASE_URL}/api/discounts/apply-automatic`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cartTotal: getCartTotal(),
+                cartItems
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.applied && data.applied.length > 0) {
+            const best = data.applied[0];
+            appliedDiscount = {
+                ...best,
+                discountAmount: best.discountAmount
+            };
+
+            // Show the discount message to customer
+            const messageEl = document.getElementById('discount-message');
+            if (messageEl) {
+                messageEl.textContent = best.message;
+                messageEl.className = 'discount-success';
+            }
+
+            // Hide the discount code input — deal is already applied automatically
+            const discountSection = document.querySelector('.discount-section');
+            if (discountSection && !best.isStackable) {
+                discountSection.innerHTML = `
+                    <div class="auto-discount-banner">
+                        🎉 ${best.message}
+                    </div>
+                `;
+            }
+
+            updateCheckoutTotals();
+        }
+    } catch (error) {
+        console.error('Auto-discount check failed:', error);
+    }
+}
 
 // 3. Helper for Image Swapping
 window.swapImage = function(imgElement) {
