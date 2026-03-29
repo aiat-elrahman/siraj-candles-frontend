@@ -344,56 +344,89 @@ async function initCategoryLandingPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const categoryName = urlParams.get('category');
     if (!categoryName) { window.location.href = 'products.html'; return; }
- 
+
     document.title = `${categoryName} | Siraj Candles`;
+
     const breadcrumbCurrent = document.getElementById('breadcrumb-current');
     const titleEl = document.getElementById('category-title');
     if (breadcrumbCurrent) breadcrumbCurrent.textContent = categoryName;
     if (titleEl) titleEl.textContent = categoryName;
- 
+
     try {
         const res = await fetch(`${API_BASE_URL}/api/categories`);
+        if (!res.ok) throw new Error('Failed to load categories');
         const allCategories = await res.json();
-        const category = allCategories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
- 
+
+        const category = allCategories.find(
+            c => c.name.toLowerCase() === categoryName.toLowerCase()
+        );
+
+        // If no category found or no subcategories → redirect to products page
         if (!category || !category.subcategories || category.subcategories.length === 0) {
             window.location.href = `products.html?category=${encodeURIComponent(categoryName)}`;
             return;
         }
- 
+
+        // Set banner image
         const bannerEl = document.getElementById('category-banner');
-        if (bannerEl && category.image) { bannerEl.style.backgroundImage = `url(${category.image})`; bannerEl.style.display = 'block'; }
- 
+        if (bannerEl && category.image) {
+            bannerEl.style.backgroundImage = `url(${category.image})`;
+            bannerEl.style.display = 'block';
+        }
+
+        // Set subtitle
         const subtitleEl = document.getElementById('category-subtitle');
         if (subtitleEl) subtitleEl.textContent = `Browse our ${category.name} collection`;
- 
+
+        // Render subcategory cards
         const container = document.getElementById('subcategory-container');
         if (container) {
             container.innerHTML = category.subcategories.map(sub => {
-                let imageSrc = category.image || 'assets/images/placeholder.jpg';
-                if (imageSrc.includes('res.cloudinary.com')) imageSrc = imageSrc.replace('/upload/', '/upload/f_auto,q_auto,w_400/');
+                // Handle both old string format and new object format {name, image}
+                const subName  = typeof sub === 'string' ? sub : sub.name;
+                const subImage = typeof sub === 'string' ? category.image : (sub.image || category.image);
+
+                let imageSrc = subImage || 'assets/images/placeholder.jpg';
+                if (imageSrc.includes('res.cloudinary.com')) {
+                    imageSrc = imageSrc.replace('/upload/', '/upload/f_auto,q_auto,w_400/');
+                }
+
+                const url = `products.html?category=${encodeURIComponent(category.name)}&sub=${encodeURIComponent(subName)}`;
+
                 return `
-                    <a href="products.html?category=${encodeURIComponent(category.name)}&sub=${encodeURIComponent(sub)}" class="category-card-item subcategory-card">
+                    <a href="${url}" class="category-card-item subcategory-card">
                         <div class="category-image-wrapper">
-                            <img src="${imageSrc}" alt="${sub}" class="category-image" loading="lazy">
+                            <img src="${imageSrc}" alt="${subName}" class="category-image" loading="lazy">
+                            <div class="subcategory-overlay">
+                                <span class="subcategory-overlay-text">${subName}</span>
+                            </div>
                         </div>
                         <div class="category-info">
-                            <p class="category-name">${sub}</p>
+                            <p class="category-name">${subName}</p>
                             <span class="category-arrow">→</span>
                         </div>
-                    </a>`;
+                    </a>
+                `;
             }).join('');
         }
- 
-        // Also load products from this category below
-        const section = document.getElementById('category-all-products-section');
-        const prodContainer = document.getElementById('category-products-container');
-        const heading = document.getElementById('all-products-heading');
-        if (section && prodContainer) {
+
+        // Show all products from this category below the subcategory cards
+        const section    = document.getElementById('category-all-products-section');
+        const prodGrid   = document.getElementById('category-products-container');
+        const heading    = document.getElementById('all-products-heading');
+
+        if (section && prodGrid) {
             if (heading) heading.textContent = `All ${categoryName} Products`;
-            const { items } = await fetchGridData('/products', 1, 8, `&category=${encodeURIComponent(categoryName)}`);
-            if (items.length > 0) { section.style.display = 'block'; renderProductGrid('category-products-container', items, 'products'); }
+            const { items } = await fetchGridData(
+                '/products', 1, 8,
+                `&category=${encodeURIComponent(categoryName)}`
+            );
+            if (items.length > 0) {
+                section.style.display = 'block';
+                renderProductGrid('category-products-container', items, 'products');
+            }
         }
+
     } catch (error) {
         console.error('Category page error:', error);
         window.location.href = `products.html?category=${encodeURIComponent(categoryName)}`;
@@ -598,7 +631,8 @@ async function loadProducts(page) {
     const subCategory = urlParams.get('sub') || '';
  
     let query = '';
-    if (filterCategory) query += `&category=${encodeURIComponent(filterCategory)}`;
+  const subCategory = new URLSearchParams(window.location.search).get('sub') || '';
+if (subCategory) query += `&sub=${encodeURIComponent(subCategory)}`;
     if (subCategory) query += `&sub=${encodeURIComponent(subCategory)}`;
     if (searchQuery) query += `&search=${encodeURIComponent(searchQuery)}`;
     if (sortBy) {
