@@ -1906,16 +1906,9 @@ async function checkAndApplyAutomaticDiscounts() {
                 discountAmount: best.discountAmount
             };
 
-            // Show the discount message to customer
-            const messageEl = document.getElementById('discount-message');
-            if (messageEl) {
-                messageEl.textContent = best.message;
-                messageEl.className = 'discount-success';
-            }
-
-            // Hide the discount code input — deal is already applied automatically
+            // Replace the discount code section with a clean auto-discount banner
             const discountSection = document.querySelector('.discount-section');
-            if (discountSection && !best.isStackable) {
+            if (discountSection) {
                 discountSection.innerHTML = `
                     <div class="auto-discount-banner">
                         🎉 ${best.message}
@@ -1923,7 +1916,17 @@ async function checkAndApplyAutomaticDiscounts() {
                 `;
             }
 
+            // Update totals FIRST so the discount row appears
             updateCheckoutTotals();
+
+            // Then fix the discount row label to not say "Discount:" twice
+            // Change the summary row label to be silent — just show the amount
+            const discountRow = document.getElementById('discount-row');
+            if (discountRow) {
+                const labelSpan = discountRow.querySelector('.discount-label');
+                if (labelSpan) labelSpan.textContent = ''; // hide the "Discount:" text in summary since banner already shows it
+            }
+
         }
     } catch (error) {
         console.error('Auto-discount check failed:', error);
