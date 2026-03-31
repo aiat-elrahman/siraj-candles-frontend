@@ -597,55 +597,71 @@ async function renderFilterSortBar() {
 async function loadProducts(page) {
     const container = document.getElementById('products-container');
     const paginationControls = document.getElementById('pagination-controls');
+    if (!container) return;
 
     const categorySelect = document.getElementById('filter-category-select');
     const sortSelect = document.getElementById('sort-by-select');
     const urlParams = new URLSearchParams(window.location.search);
 
-    // Always read search from URL
+    // Get values from URL (these should take precedence on initial load)
     const searchQuery = urlParams.get('search') || '';
-
-    // ✅ FIX: Read category from URL first (handles homepage → category clicks)
-    // Only trust the dropdown if it has a value AND the URL has no category
-    // (meaning the user changed it manually via the dropdown)
-    let filterCategory = urlParams.get('category') || '';
-    if (categorySelect && categorySelect.value && categorySelect.value !== filterCategory) {
-        // User changed the dropdown manually — trust the dropdown
-        filterCategory = categorySelect.value;
+    const urlCategory = urlParams.get('category') || '';
+    const subCategory = urlParams.get('sub') || '';
+    
+    // Determine active category: URL category takes priority over dropdown on page load
+    let activeCategory = urlCategory;
+    
+    // If user manually changed dropdown, use that instead
+    if (categorySelect && categorySelect.value && categorySelect.value !== urlCategory) {
+        activeCategory = categorySelect.value;
     }
-
-    // Sync dropdown to match the active category
-    if (categorySelect && filterCategory) {
-        categorySelect.value = filterCategory;
+    
+    // Sync dropdown to match active category
+    if (categorySelect && activeCategory) {
+        categorySelect.value = activeCategory;
     }
 
     // Update URL to reflect current state
     const url = new URL(window.location);
-    if (filterCategory) url.searchParams.set('category', filterCategory);
+    if (activeCategory) url.searchParams.set('category', activeCategory);
     else url.searchParams.delete('category');
     if (searchQuery) url.searchParams.set('search', searchQuery);
+    if (subCategory) url.searchParams.set('sub', subCategory);
     window.history.pushState({}, '', url);
 
+    // Build sort parameters
     let sortBy = sortSelect ? sortSelect.value : (urlParams.get('sort') || 'name_asc');
-
-
- 
     let query = '';
-  const subCategory = new URLSearchParams(window.location.search).get('sub') || '';
-if (subCategory) query += `&sub=${encodeURIComponent(subCategory)}`;
-    if (subCategory) query += `&sub=${encodeURIComponent(subCategory)}`;
-    if (searchQuery) query += `&search=${encodeURIComponent(searchQuery)}`;
+    
+    // CRITICAL FIX: Add category to query
+    if (activeCategory) {
+        query += `&category=${encodeURIComponent(activeCategory)}`;
+    }
+    
+    if (subCategory) {
+        query += `&sub=${encodeURIComponent(subCategory)}`;
+    }
+    
+    if (searchQuery) {
+        query += `&search=${encodeURIComponent(searchQuery)}`;
+    }
+    
     if (sortBy) {
         const [sortField, sortOrder] = sortBy === 'newest' ? ['createdAt', 'desc'] : sortBy.split('_');
-        if (sortField && sortOrder) query += `&sort=${sortField}&order=${sortOrder}`;
+        if (sortField && sortOrder) {
+            query += `&sort=${sortField}&order=${sortOrder}`;
+        }
     }
 
     container.innerHTML = '<p class="loading-message">Fetching products...</p>';
-    paginationControls.innerHTML = '';
+    if (paginationControls) paginationControls.innerHTML = '';
 
     const { items, totalPages, currentPage } = await fetchGridData('/products', page, ITEMS_PER_PAGE, query);
+    
     renderProductGrid('products-container', items, 'products');
-    renderPagination('pagination-controls', totalPages, currentPage, 'products.html', loadProducts);
+    if (paginationControls) {
+        renderPagination('pagination-controls', totalPages, currentPage, 'products.html', loadProducts);
+    }
 }
 
 // ====================================
