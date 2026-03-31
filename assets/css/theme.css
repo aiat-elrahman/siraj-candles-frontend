@@ -3107,3 +3107,91 @@ select#city {
     text-align: center;
     margin-top: 10px;
 }
+/* =========================================
+   VARIANT SELECTOR STYLES (Clean dropdown)
+   ========================================= */
+
+/* Variant Selector Wrapper */
+.variant-selector-wrapper {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+/* Label styling */
+.variant-selector-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #374151;
+    font-size: 0.95rem;
+}
+
+/* Clean dropdown without price in options */
+.variant-selector-dropdown {
+    width: 100%;
+    max-width: 300px;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background-color: white;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-dark);
+    font-family: var(--font-body);
+}
+
+.variant-selector-dropdown:hover {
+    border-color: var(--accent-color);
+}
+
+.variant-selector-dropdown:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(169, 142, 130, 0.1);
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .variant-selector-dropdown {
+        max-width: 100%;
+        padding: 0.65rem 0.9rem;
+    }
+    
+    .variant-selector-label {
+        font-size: 0.9rem;
+    }
+}
+
+/* Alternative styling if you want it to match your option-selector */
+#variant-select {
+    width: 100%;
+    max-width: 300px;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background-color: white;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 0;
+}
+
+#variant-select:focus {
+    border-color: var(--accent-color);
+    outline: none;
+}
+
+/* Remove price display from dropdown options */
+#variant-select option {
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+/* Ensure the price element is clearly visible */
+#dynamic-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin: 1rem 0;
+}
