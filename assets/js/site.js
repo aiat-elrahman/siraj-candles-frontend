@@ -1043,14 +1043,41 @@ function renderProductSpecifications(product) {
 function renderVariantSelector(variants) {
     const container = document.getElementById('variant-selector-container');
     if (!container) return;
-    container.innerHTML = `<div class="option-group"><label>Option:</label><select id="variant-select" class="option-selector">` +
-        variants.map((v, i) => `<option value="${v.variantName}" data-price="${v.price}" data-stock="${v.stock}" ${i===0?'selected':''}>${v.variantName} - ${v.price} EGP</option>`).join('') +
-        `</select></div>`;
+    
+    // Determine label based on variant type
+    const variantType = variants[0]?.variantType || 'scent';
+    const labelText = variantType === 'scent' ? 'Scent:' : 
+                      variantType === 'size' ? 'Size:' : 
+                      variantType === 'weight' ? 'Weight:' : 'Option:';
+    
+    container.innerHTML = `
+        <div class="option-group variant-selector-group">
+            <label for="variant-select" class="variant-label">${labelText}</label>
+            <select id="variant-select" class="variant-selector">
+                ${variants.map((v, i) => `
+                    <option value="${v.variantName}" data-price="${v.price}" data-stock="${v.stock}" ${i === 0 ? 'selected' : ''}>
+                        ${v.variantName}
+                    </option>
+                `).join('')}
+            </select>
+        </div>
+    `;
+    
+    // Update price when variant changes
+    const variantSelect = document.getElementById('variant-select');
+    const priceElement = document.getElementById('dynamic-price');
+    
+    if (variantSelect && priceElement) {
+        variantSelect.addEventListener('change', (e) => {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            const price = selectedOption.getAttribute('data-price');
+            priceElement.textContent = `${parseFloat(price).toFixed(2)} EGP`;
+        });
         
-    document.getElementById('variant-select').addEventListener('change', (e) => {
-        const price = e.target.options[e.target.selectedIndex].getAttribute('data-price');
-        document.getElementById('dynamic-price').textContent = `${parseFloat(price).toFixed(2)} EGP`;
-    });
+        // Set initial price
+        const initialPrice = variantSelect.options[variantSelect.selectedIndex].getAttribute('data-price');
+        priceElement.textContent = `${parseFloat(initialPrice).toFixed(2)} EGP`;
+    }
 }
 
 // 4. Add to Cart Handler (Variants)
