@@ -842,6 +842,54 @@ function renderProduct(product) {
                 </div>
             </div> 
         </div>
+
+        <!-- Reviews Section -->
+        <section class="reviews-section" id="reviews-section">
+            <div class="reviews-header">
+                <h3 class="reviews-title"><i class="fas fa-star"></i> Customer Reviews</h3>
+                <button class="write-review-btn" id="write-review-btn" onclick="toggleReviewForm()">
+                    <i class="fas fa-pen"></i> Write a Review
+                </button>
+            </div>
+
+            <div class="review-form-wrapper" id="review-form-wrapper" style="display:none;">
+                <h4 class="review-form-title">Share Your Experience</h4>
+                <div class="review-form">
+                    <div class="star-input-row">
+                        <span class="star-label">Your Rating *</span>
+                        <div class="star-input" id="star-input">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" id="review-rating" value="0">
+                    </div>
+                    <div class="review-form-row">
+                        <input type="text" id="review-name" placeholder="Your Name *" class="review-input" maxlength="60">
+                        <input type="email" id="review-email" placeholder="Email (not shown publicly)" class="review-input" maxlength="100">
+                    </div>
+                    <textarea id="review-comment" placeholder="Tell others about your experience with this product..." class="review-textarea" maxlength="800" rows="4"></textarea>
+                    <div class="review-photo-row">
+                        <label class="review-photo-label" for="review-photos">
+                            <i class="fas fa-camera"></i> Add Photos (optional)
+                        </label>
+                        <input type="file" id="review-photos" accept="image/*" multiple style="display:none;" onchange="previewReviewPhotos(this)">
+                        <div class="review-photo-previews" id="review-photo-previews"></div>
+                    </div>
+                    <div id="review-form-msg" class="review-form-msg" style="display:none;"></div>
+                    <div class="review-form-actions">
+                        <button class="submit-review-btn" onclick="submitReview()">Submit Review</button>
+                        <button class="cancel-review-btn" onclick="toggleReviewForm()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reviews-list">
+                <p class="loading-message">Loading reviews...</p>
+            </div>
+        </section>
     `;
 
     // --- Activate Features ---
@@ -850,6 +898,7 @@ function renderProduct(product) {
     if (product.isBundle) renderBundleItems(product);
     renderProductSpecifications(product); // Show Specs Table
     fetchAndRenderCare(product.category); // Show Care Instructions
+    fetchAndRenderReviews(product._id);   // Show Reviews
 
     const addBtn = document.getElementById('add-to-cart-btn');
     if (addBtn) addBtn.addEventListener('click', () => addToCartHandler(product));
@@ -2052,7 +2101,7 @@ async function fetchAndRenderCare(categoryName) {
                 <div class="care-icon"><i class="fas fa-sparkles"></i></div>
                 <div class="care-content">
                     <h4>${item.careTitle}</h4>
-                    <p>${item.careContent}</p>
+                    <div>${item.careContent}</div>
                 </div>
             </div>
         `).join('');
@@ -2063,3 +2112,199 @@ async function fetchAndRenderCare(categoryName) {
     }
 }
 
+
+// ── REVIEWS ────────────────────────────────────────────────────────────────────
+
+let _currentProductId = null;
+let _selectedRating = 0;
+let _reviewPhotoFiles = [];
+
+async function fetchAndRenderReviews(productId) {
+    _currentProductId = productId;
+    const list = document.getElementById('reviews-list');
+    if (!list) return;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/reviews/${productId}`);
+        const reviews = res.ok ? await res.json() : [];
+        renderReviewsList(reviews);
+    } catch (e) {
+        list.innerHTML = '<p class="no-reviews-msg">Could not load reviews.</p>';
+    }
+}
+
+function renderReviewsList(reviews) {
+    const list = document.getElementById('reviews-list');
+    if (!list) return;
+
+    if (!reviews || reviews.length === 0) {
+        list.innerHTML = '<p class="no-reviews-msg">No reviews yet — be the first to share your experience! ✨</p>';
+        return;
+    }
+
+    const avg = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
+    const starsHTML = (n) => [1,2,3,4,5].map(i =>
+        `<i class="fas fa-star ${i <= Math.round(n) ? 'star-filled' : 'star-empty'}"></i>`
+    ).join('');
+
+    list.innerHTML = `
+        <div class="reviews-summary">
+            <div class="reviews-avg-score">${avg}</div>
+            <div>
+                <div class="reviews-avg-stars">${starsHTML(avg)}</div>
+                <div class="reviews-count">${reviews.length} review${reviews.length !== 1 ? 's' : ''}</div>
+            </div>
+        </div>
+        <div class="reviews-list-inner">
+            ${reviews.map(r => `
+                <div class="review-card">
+                    <div class="review-card-top">
+                        <div class="reviewer-avatar">${(r.name || 'A')[0].toUpperCase()}</div>
+                        <div class="reviewer-meta">
+                            <span class="reviewer-name">${escapeHtml(r.name || 'Anonymous')}</span>
+                            <div class="review-stars">${starsHTML(r.rating)}</div>
+                        </div>
+                        <span class="review-date">${new Date(r.createdAt || Date.now()).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}</span>
+                    </div>
+                    ${r.comment ? `<p class="review-comment">${escapeHtml(r.comment)}</p>` : ''}
+                    ${r.photos && r.photos.length > 0 ? `
+                        <div class="review-photos">
+                            ${r.photos.map(p => `<img src="${p}" class="review-photo-thumb" onclick="openReviewPhoto('${p}')" alt="Review photo">`).join('')}
+                        </div>` : ''}
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function toggleReviewForm() {
+    const wrapper = document.getElementById('review-form-wrapper');
+    if (!wrapper) return;
+    const isHidden = wrapper.style.display === 'none';
+    wrapper.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) {
+        wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        setupStarInput();
+    }
+}
+
+function setupStarInput() {
+    const stars = document.querySelectorAll('#star-input .fa-star');
+    stars.forEach(star => {
+        star.addEventListener('mouseover', () => highlightStars(+star.dataset.value));
+        star.addEventListener('mouseout', () => highlightStars(_selectedRating));
+        star.addEventListener('click', () => {
+            _selectedRating = +star.dataset.value;
+            document.getElementById('review-rating').value = _selectedRating;
+            highlightStars(_selectedRating);
+        });
+    });
+}
+
+function highlightStars(n) {
+    document.querySelectorAll('#star-input .fa-star').forEach(s => {
+        s.classList.toggle('star-selected', +s.dataset.value <= n);
+    });
+}
+
+function previewReviewPhotos(input) {
+    _reviewPhotoFiles = Array.from(input.files).slice(0, 4);
+    const container = document.getElementById('review-photo-previews');
+    if (!container) return;
+    container.innerHTML = _reviewPhotoFiles.map((f, i) => {
+        const url = URL.createObjectURL(f);
+        return `<div class="preview-thumb-wrap">
+            <img src="${url}" class="preview-thumb">
+            <button class="remove-photo-btn" onclick="removeReviewPhoto(${i})">×</button>
+        </div>`;
+    }).join('');
+}
+
+function removeReviewPhoto(idx) {
+    _reviewPhotoFiles.splice(idx, 1);
+    const dt = new DataTransfer();
+    _reviewPhotoFiles.forEach(f => dt.items.add(f));
+    document.getElementById('review-photos').files = dt.files;
+    previewReviewPhotos({ files: dt.files });
+}
+
+async function submitReview() {
+    const name = document.getElementById('review-name')?.value.trim();
+    const email = document.getElementById('review-email')?.value.trim();
+    const comment = document.getElementById('review-comment')?.value.trim();
+    const rating = +document.getElementById('review-rating')?.value;
+    const msgEl = document.getElementById('review-form-msg');
+
+    const showMsg = (text, ok) => {
+        if (!msgEl) return;
+        msgEl.style.display = 'block';
+        msgEl.textContent = text;
+        msgEl.className = 'review-form-msg ' + (ok ? 'msg-success' : 'msg-error');
+    };
+
+    if (!name) return showMsg('Please enter your name.', false);
+    if (!rating) return showMsg('Please select a star rating.', false);
+    if (!comment) return showMsg('Please write a comment.', false);
+
+    const btn = document.querySelector('.submit-review-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+
+    try {
+        // Upload photos first if any
+        let uploadedPhotos = [];
+        for (const file of _reviewPhotoFiles) {
+            const fd = new FormData();
+            fd.append('image', file);
+            const r = await fetch(`${API_BASE_URL}/api/upload`, { method: 'POST', body: fd });
+            if (r.ok) {
+                const d = await r.json();
+                uploadedPhotos.push(d.imageUrl);
+            }
+        }
+
+        const res = await fetch(`${API_BASE_URL}/api/reviews/${_currentProductId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, rating, comment, photos: uploadedPhotos })
+        });
+
+        if (res.ok) {
+            showMsg('Thank you for your review! 🎉', true);
+            // Reset form
+            document.getElementById('review-name').value = '';
+            document.getElementById('review-email').value = '';
+            document.getElementById('review-comment').value = '';
+            document.getElementById('review-rating').value = '0';
+            document.getElementById('review-photo-previews').innerHTML = '';
+            _selectedRating = 0;
+            _reviewPhotoFiles = [];
+            highlightStars(0);
+            setTimeout(() => {
+                toggleReviewForm();
+                fetchAndRenderReviews(_currentProductId);
+            }, 1800);
+        } else {
+            const err = await res.json();
+            showMsg(err.message || 'Failed to submit. Please try again.', false);
+        }
+    } catch (e) {
+        showMsg('Network error. Please try again.', false);
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Submit Review'; }
+    }
+}
+
+function openReviewPhoto(url) {
+    const overlay = document.createElement('div');
+    overlay.className = 'review-photo-overlay';
+    overlay.innerHTML = `<div class="review-photo-overlay-inner">
+        <img src="${url}" class="review-photo-full">
+        <button class="close-overlay-btn" onclick="this.closest('.review-photo-overlay').remove()">×</button>
+    </div>`;
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
