@@ -2604,3 +2604,189 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
     .navbar, .footer, .cart-dropdown,
     .search-modal, .mobile-menu-toggle { display: none !important; }
 }
+/* ── UNIFIED DROPDOWNS (Scent & Weight same style) ────────────────────────── */
+.option-selector,
+.unified-dropdown,
+#variant-select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--cream-mid);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    font-size: 0.93rem;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: border-color var(--trans), box-shadow var(--trans);
+    color: var(--text);
+    appearance: auto;
+}
+
+.option-selector:focus,
+.unified-dropdown:focus,
+#variant-select:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(169,142,130,0.12);
+}
+
+/* ── EXPANDED ADD TO CART BUTTON (Desktop full width) ─────────────────────── */
+@media (min-width: 768px) {
+    .product-actions-grid {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        gap: 12px;
+    }
+    
+    .action-add-to-cart-btn,
+    .action-buy-now-btn {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+    
+    #variant-selector-container,
+    #options-container,
+    #bundle-items-container,
+    .bundle-customization-section {
+        grid-column: 1 / -1;
+    }
+}
+
+/* ── REVIEW SUMMARY next to price ─────────────────────────────────────────── */
+.product-review-summary {
+    margin: 0.5rem 0 1rem 0;
+}
+
+.product-review-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.product-review-stars .star-filled,
+.product-review-stars .star-empty,
+.product-review-stars .fa-star-half-alt {
+    color: var(--gold);
+    font-size: 1rem;
+}
+
+.product-review-stars .review-count {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.product-review-stars:hover .review-count {
+    color: var(--brand);
+    text-decoration: underline;
+}
+
+/* ── RICH TEXT CONTENT STYLES (for descriptions and care) ─────────────────── */
+.rich-text-content {
+    line-height: 1.75;
+    color: var(--text-mid);
+}
+
+.rich-text-content h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 1rem 0 0.5rem;
+    color: var(--text);
+    font-family: var(--font-display);
+}
+
+.rich-text-content h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0.4rem;
+    color: var(--text);
+    font-family: var(--font-display);
+}
+
+.rich-text-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0.3rem;
+    color: var(--text);
+}
+
+.rich-text-content p {
+    margin-bottom: 0.75rem;
+}
+
+.rich-text-content ul,
+.rich-text-content ol {
+    margin: 0.5rem 0 0.75rem 1.5rem;
+}
+
+.rich-text-content li {
+    margin-bottom: 0.25rem;
+}
+
+.rich-text-content strong,
+.rich-text-content b {
+    font-weight: 700;
+    color: var(--text);
+}
+
+.rich-text-content em,
+.rich-text-content i {
+    font-style: italic;
+}
+
+.rich-text-content hr {
+    margin: 1rem 0;
+    border: none;
+    border-top: 1px solid var(--cream-mid);
+}
+
+/* ── CATEGORY LANDING PAGE BANNER (full background, no crop) ───────────────── */
+.category-landing-banner {
+    height: 280px;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    background-size: cover !important;
+    background-position: center 30% !important;
+    background-repeat: no-repeat !important;
+}
+
+@media (min-width: 768px) {
+    .category-landing-banner {
+        height: 380px;
+    }
+}
+
+/* ── CARD HOVER IMPROVEMENTS ──────────────────────────────────────────────── */
+.category-card-item:hover .category-image {
+    transform: scale(1.06);
+}
+
+.subcategory-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(169,142,130,0.7), rgba(140,114,104,0.8));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--trans);
+}
+
+.category-card-item:hover .subcategory-overlay {
+    opacity: 1;
+}
+
+.subcategory-overlay-text {
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+.category-image-wrapper {
+    position: relative;
+}
