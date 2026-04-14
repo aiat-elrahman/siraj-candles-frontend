@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadCartFromStorage();
     loadHeroSettings();
-    buildMobileMenu();  // ← NEW: builds dynamic mobile menu on every page
- 
+    buildMobileMenu();
+
     const pageName = document.body.getAttribute('data-page');
     switch (pageName) {
         case 'home':
@@ -28,15 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
         case 'checkout':
             setupCheckoutPage();
             break;
-        case 'category-landing':       // ← NEW page
+        case 'category-landing':
             initCategoryLandingPage();
             break;
         default:
             break;
     }
 });
+
 function setupEventListeners() {
-    // 1. Search Toggle
     const sToggle = document.getElementById('search-toggle');
     if (sToggle) {
         sToggle.addEventListener('click', () => {
@@ -47,7 +47,6 @@ function setupEventListeners() {
         });
     }
 
-    // 2. Close Search
     const cSearch = document.querySelector('.close-search');
     if (cSearch) {
         cSearch.addEventListener('click', () => {
@@ -58,7 +57,6 @@ function setupEventListeners() {
         });
     }
 
-    // 3. Cart Toggle
     const cToggle = document.getElementById('cart-toggle');
     if (cToggle) {
         cToggle.addEventListener('click', (e) => {
@@ -66,9 +64,8 @@ function setupEventListeners() {
             const dropdown = document.getElementById('cart-dropdown');
             if(dropdown) dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
         });
-    } 
+    }
 
-    // 4. Mobile Menu Toggle (FIXED)
     const menuToggle = document.getElementById('mobile-menu-toggle');
     const mobileMenu = document.getElementById('mobile-nav-menu');
 
@@ -80,7 +77,6 @@ function setupEventListeners() {
         });
     }
 
-    // 5. Click Outside to Close (FIXED)
     document.body.addEventListener('click', (e) => {
         const dropdown = document.getElementById('cart-dropdown');
         const toggle = document.getElementById('cart-toggle');
@@ -99,14 +95,11 @@ function setupEventListeners() {
         }
     });
 
-    // 6. Search Input Logic (FIXED)
     const sInput = document.getElementById('search-input');
     if (sInput) {
-        // Clone to remove old broken listeners
         const newSearchInput = sInput.cloneNode(true);
         sInput.parentNode.replaceChild(newSearchInput, sInput);
         
-        // Attach new listeners
         newSearchInput.addEventListener('input', debounce(handleSearch, 300));
         newSearchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -115,10 +108,6 @@ function setupEventListeners() {
         });
     }
 }
-
-// ====================================
-// 2. UNIVERSAL FETCHING & UTILS
-// ====================================
 
 async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query = '') {
     try {
@@ -142,7 +131,6 @@ async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query =
     }
 }
 
-// FIXED: Product grid rendering
 function renderProductGrid(containerId, items, endpointType) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -152,7 +140,6 @@ function renderProductGrid(containerId, items, endpointType) {
         return;
     }
 
-    // Ensure container has the correct grid class
     if (!container.classList.contains('product-grid')) {
         container.classList.add('product-grid');
     }
@@ -160,14 +147,14 @@ function renderProductGrid(containerId, items, endpointType) {
     container.innerHTML = items.map(item => {
         const isBundle = item.productType === 'Bundle' || item.bundleItems;
         const itemName = item.name_en || item.bundleName || item['Name (English)'] || 'Unknown Product';
-        const itemPrice = item.price_egp || item['Price (EGP)'] || 0;
+        const itemPrice = item.price_egp || item.bundlePrice || item['Price (EGP)'] || 0;
         const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
         
         return `
             <a href="product.html?id=${item._id}" class="product-card">
                 <img src="${itemImage}" alt="${itemName}" loading="lazy"> 
                 <div class="product-info-minimal">
-                    <p class="product-title">${itemName}</p>
+                    <p class="product-title">${escapeHtml(itemName)}</p>
                     <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
                 </div>
             </a>
@@ -195,17 +182,14 @@ function renderPagination(controlsId, totalPages, currentPage, pageFile, loadFun
         return button;
     };
     
-    // Previous button
     if (currentPage > 1) {
         controls.appendChild(createButton('← Previous', currentPage - 1));
     }
 
-    // Page numbers (simple approach)
     for (let i = 1; i <= totalPages; i++) {
         controls.appendChild(createButton(i, i));
     }
 
-    // Next button
     if (currentPage < totalPages) {
         controls.appendChild(createButton('Next →', currentPage + 1));
     }
@@ -220,9 +204,6 @@ function debounce(func, delay) {
     };
 }
 
-// ====================================
-// 3. HOMEPAGE LOGIC (UPDATED)
-// ====================================
 function getCategoryUrl(category) {
     if (category.subcategories && category.subcategories.length > 0) {
         return `category.html?category=${encodeURIComponent(category.name)}`;
@@ -256,7 +237,7 @@ async function fetchAndRenderCategories() {
                         <img src="${imageSrc}" alt="${cat.name}" class="category-image" loading="lazy">
                     </div>
                     <div class="category-info">
-                        <p class="category-name">${cat.name}</p>
+                        <p class="category-name">${escapeHtml(cat.name)}</p>
                         <span class="category-arrow">${hasSubcats ? '›' : '→'}</span>
                     </div>
                 </a>
@@ -267,6 +248,7 @@ async function fetchAndRenderCategories() {
         container.innerHTML = '<p class="error-message">Could not load categories.</p>';
     }
 }
+
 async function buildMobileMenu() {
     const mobileMenu = document.getElementById('mobile-nav-menu');
     if (!mobileMenu) return;
@@ -299,17 +281,18 @@ async function buildMobileMenu() {
             html += `
                 <div class="mobile-nav-item has-children">
                     <button class="mobile-nav-sublink mobile-nav-parent" data-target="mobile-sub-${cat._id}">
-                        ${cat.name} <span class="mobile-nav-arrow">›</span>
+                        ${escapeHtml(cat.name)} <span class="mobile-nav-arrow">›</span>
                     </button>
                     <div class="mobile-nav-submenu mobile-nav-submenu--deep" id="mobile-sub-${cat._id}">
-                        <a href="category.html?category=${encodeURIComponent(cat.name)}" class="mobile-nav-deeplink mobile-nav-deeplink--all">Browse All ${cat.name}</a>
-                        ${cat.subcategories.map(sub => `
-                            <a href="products.html?category=${encodeURIComponent(cat.name)}&sub=${encodeURIComponent(sub)}" class="mobile-nav-deeplink">${sub}</a>
-                        `).join('')}
+                        <a href="category.html?category=${encodeURIComponent(cat.name)}" class="mobile-nav-deeplink mobile-nav-deeplink--all">Browse All ${escapeHtml(cat.name)}</a>
+                        ${cat.subcategories.map(sub => {
+                            const subName = typeof sub === 'string' ? sub : sub.name;
+                            return `<a href="products.html?category=${encodeURIComponent(cat.name)}&sub=${encodeURIComponent(subName)}" class="mobile-nav-deeplink">${escapeHtml(subName)}</a>`;
+                        }).join('')}
                     </div>
                 </div>`;
         } else {
-            html += `<a href="products.html?category=${encodeURIComponent(cat.name)}" class="mobile-nav-sublink">${cat.name}</a>`;
+            html += `<a href="products.html?category=${encodeURIComponent(cat.name)}" class="mobile-nav-sublink">${escapeHtml(cat.name)}</a>`;
         }
     });
  
@@ -339,7 +322,7 @@ async function buildMobileMenu() {
     });
 }
  
-// ── Category Landing Page ─────────────────────────────────────
+// ── Category Landing Page (UPDATED: Fixed Banner + Logic) ─────────────────────────────────────
 async function initCategoryLandingPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const categoryName = urlParams.get('category');
@@ -361,20 +344,24 @@ async function initCategoryLandingPage() {
             c => c.name.toLowerCase() === categoryName.toLowerCase()
         );
 
-        // If no category found or no subcategories → redirect to products page
-        if (!category || !category.subcategories || category.subcategories.length === 0) {
+        const hasSubcategories = category && category.subcategories && category.subcategories.length > 0;
+
+        // If no subcategories → redirect to products page (show all products in this category)
+        if (!category || !hasSubcategories) {
             window.location.href = `products.html?category=${encodeURIComponent(categoryName)}`;
             return;
         }
 
-        // Set banner image
+        // Set banner as BACKGROUND IMAGE (no stretching)
         const bannerEl = document.getElementById('category-banner');
         if (bannerEl && category.image) {
             bannerEl.style.backgroundImage = `url(${category.image})`;
+            bannerEl.style.backgroundSize = 'cover';
+            bannerEl.style.backgroundPosition = 'center 30%';
+            bannerEl.style.backgroundRepeat = 'no-repeat';
             bannerEl.style.display = 'block';
         }
 
-        // Set subtitle
         const subtitleEl = document.getElementById('category-subtitle');
         if (subtitleEl) subtitleEl.textContent = `Browse our ${category.name} collection`;
 
@@ -382,8 +369,7 @@ async function initCategoryLandingPage() {
         const container = document.getElementById('subcategory-container');
         if (container) {
             container.innerHTML = category.subcategories.map(sub => {
-                // Handle both old string format and new object format {name, image}
-                const subName  = typeof sub === 'string' ? sub : sub.name;
+                const subName = typeof sub === 'string' ? sub : sub.name;
                 const subImage = typeof sub === 'string' ? category.image : (sub.image || category.image);
 
                 let imageSrc = subImage || 'assets/images/placeholder.jpg';
@@ -398,11 +384,11 @@ async function initCategoryLandingPage() {
                         <div class="category-image-wrapper">
                             <img src="${imageSrc}" alt="${subName}" class="category-image" loading="lazy">
                             <div class="subcategory-overlay">
-                                <span class="subcategory-overlay-text">${subName}</span>
+                                <span class="subcategory-overlay-text">${escapeHtml(subName)}</span>
                             </div>
                         </div>
                         <div class="category-info">
-                            <p class="category-name">${subName}</p>
+                            <p class="category-name">${escapeHtml(subName)}</p>
                             <span class="category-arrow">→</span>
                         </div>
                     </a>
@@ -410,21 +396,10 @@ async function initCategoryLandingPage() {
             }).join('');
         }
 
-        // Show all products from this category below the subcategory cards
-        const section    = document.getElementById('category-all-products-section');
-        const prodGrid   = document.getElementById('category-products-container');
-        const heading    = document.getElementById('all-products-heading');
-
-        if (section && prodGrid) {
-            if (heading) heading.textContent = `All ${categoryName} Products`;
-            const { items } = await fetchGridData(
-                '/products', 1, 8,
-                `&category=${encodeURIComponent(categoryName)}`
-            );
-            if (items.length > 0) {
-                section.style.display = 'block';
-                renderProductGrid('category-products-container', items, 'products');
-            }
+        // HIDE the "All Products" section when there are subcategories (per your request)
+        const allProductsSection = document.getElementById('category-all-products-section');
+        if (allProductsSection) {
+            allProductsSection.style.display = 'none';
         }
 
     } catch (error) {
@@ -471,10 +446,11 @@ async function loadHeroSettings() {
         console.error('Failed to load hero settings:', error);
         const heroSection = document.querySelector('.hero-section');
         if (heroSection) {
-            heroSection.style.backgroundImage = "url('https://res.cloudinary.com/dvr195vfw/image/upload/f_auto,q_auto,w_1200/v1765150425/Your_paragraph_text_1_ck0hsl.png')";
+            heroSection.style.backgroundImage = "url('https://res.cloudinary.com/dvr195vfw/image/upload/v1776209850/Gemini_Generated_Image__3_bylucb.png')";
         }
     }
 }
+
 async function fetchBestsellers() {
     const container = document.getElementById('bestsellers-container');
     if (!container) return;
@@ -491,9 +467,6 @@ async function fetchBestsellers() {
     }
 }
 
-// ====================================
-// 4. SEARCH LOGIC
-// ====================================
 async function handleSearch() {
     const input = document.getElementById('search-input');
     const results = document.getElementById('search-results');
@@ -516,14 +489,14 @@ async function handleSearch() {
         } else {
             results.innerHTML = items.map(product => {
                 const productName = product.name_en || product.bundleName || product.name;
-                let price = product.price_egp || 0;
+                let price = product.price_egp || product.bundlePrice || 0;
                 if(product.variants && product.variants.length > 0) {
                     price = Math.min(...product.variants.map(v => v.price));
                 }
                 
                 return `
                     <a href="product.html?id=${product._id}" class="search-result-item">
-                        <span class="search-item-title">${productName}</span>
+                        <span class="search-item-title">${escapeHtml(productName)}</span>
                         <span class="search-item-price">${price.toFixed(2)} EGP</span>
                     </a>
                  `;
@@ -534,8 +507,9 @@ async function handleSearch() {
         results.innerHTML = '<p class="error-message">Search error.</p>';
     }
 }
+
 // ====================================
-// 5. PRODUCTS GRID PAGE LOGIC
+// PRODUCTS PAGE (UPDATED: Parent category includes subcategories)
 // ====================================
 
 async function initProductsPage() {
@@ -556,7 +530,6 @@ async function renderFilterSortBar() {
     const currentSort = urlParams.get('sort') || 'name_asc';
     const currentCategory = urlParams.get('category') || '';
 
-    // Fetch live categories from your admin/API
     let categoryOptions = '<option value="">All Categories</option>';
     try {
         const response = await fetch(`${API_BASE_URL}/api/categories`);
@@ -603,25 +576,20 @@ async function loadProducts(page) {
     const sortSelect = document.getElementById('sort-by-select');
     const urlParams = new URLSearchParams(window.location.search);
 
-    // Get values from URL (these should take precedence on initial load)
     const searchQuery = urlParams.get('search') || '';
     const urlCategory = urlParams.get('category') || '';
     const subCategory = urlParams.get('sub') || '';
     
-    // Determine active category: URL category takes priority over dropdown on page load
     let activeCategory = urlCategory;
     
-    // If user manually changed dropdown, use that instead
     if (categorySelect && categorySelect.value && categorySelect.value !== urlCategory) {
         activeCategory = categorySelect.value;
     }
     
-    // Sync dropdown to match active category
     if (categorySelect && activeCategory) {
         categorySelect.value = activeCategory;
     }
 
-    // Update URL to reflect current state
     const url = new URL(window.location);
     if (activeCategory) url.searchParams.set('category', activeCategory);
     else url.searchParams.delete('category');
@@ -629,17 +597,16 @@ async function loadProducts(page) {
     if (subCategory) url.searchParams.set('sub', subCategory);
     window.history.pushState({}, '', url);
 
-    // Build sort parameters
     let sortBy = sortSelect ? sortSelect.value : (urlParams.get('sort') || 'name_asc');
     let query = '';
     
-    // CRITICAL FIX: Add category to query
     if (activeCategory) {
         query += `&category=${encodeURIComponent(activeCategory)}`;
     }
     
+    // CRITICAL FIX: Send subcategory to backend if present
     if (subCategory) {
-        query += `&sub=${encodeURIComponent(subCategory)}`;
+        query += `&subcategory=${encodeURIComponent(subCategory)}`;
     }
     
     if (searchQuery) {
@@ -665,7 +632,7 @@ async function loadProducts(page) {
 }
 
 // ====================================
-// 6. BUNDLES GRID PAGE LOGIC
+// BUNDLES
 // ====================================
 
 function initBundlesPage() {
@@ -689,7 +656,7 @@ async function loadBundles(page) {
 }
 
 // ====================================
-// 7. SINGLE PRODUCT/BUNDLE LOGIC (ENHANCED)
+// SINGLE PRODUCT PAGE (UPDATED: Unified dropdowns, Reviews near price, Rich text)
 // ====================================
 
 async function loadProductDetails() {
@@ -719,7 +686,6 @@ async function loadProductDetails() {
 
         renderProduct(product);
 
-        // Fetch related products
         const relatedContainer = document.getElementById('related-products-container');
         if (relatedContainer) {
             fetchRelatedProducts(product.category || 'general', product._id);
@@ -731,14 +697,11 @@ async function loadProductDetails() {
     }
 }
 
-// FIXED: Related products function moved to proper scope
 async function fetchRelatedProducts(category, excludeId) {
     const container = document.getElementById('related-products-container');
     if (!container) return;
 
     try {
-        // 1. Fetch a larger batch of random products (no category filter)
-        // We ask for 20 items so we can pick 4 random ones from them
         const { items } = await fetchGridData('/products', 1, 20, `&exclude_id=${excludeId}&status=Active`);
         
         if (!items || items.length === 0) {
@@ -746,13 +709,8 @@ async function fetchRelatedProducts(category, excludeId) {
             return;
         }
 
-        // 2. Shuffle the array to get random items
         const shuffled = items.sort(() => 0.5 - Math.random());
-
-        // 3. Take the first 4
         const randomSelection = shuffled.slice(0, 4);
-
-        // 4. Render
         renderProductGrid('related-products-container', randomSelection, 'products');
 
     } catch (error) {
@@ -768,8 +726,7 @@ function renderProduct(product) {
     const itemStock = product.stock || 0;
     const isOutOfStock = itemStock <= 0;
     
-    // --- Logic to determine Initial Price ---
-    let displayPrice = product.price_egp || 0;
+    let displayPrice = product.price_egp || product.bundlePrice || 0;
     let hasVariants = false;
     
     if (product.variants && product.variants.length > 0) {
@@ -777,12 +734,31 @@ function renderProduct(product) {
         displayPrice = product.variants[0].price;
     }
 
-    // Image Gallery (Scrollable Thumbnails)
     const imageGalleryHTML = (product.imagePaths || []).map((path, idx) => 
         `<img src="${path}" class="thumbnail-image ${idx === 0 ? 'active' : ''}" onclick="swapImage(this)" alt="Thumbnail ${idx + 1}">`
     ).join('');
 
-    // HTML Structure
+    // Fetch reviews count for the summary display
+    let reviewSummaryHtml = '<div class="review-summary-placeholder"></div>';
+    fetch(`${API_BASE_URL}/api/reviews/${product._id}`)
+        .then(res => res.json())
+        .then(reviews => {
+            const reviewCount = reviews.length;
+            const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : 0;
+            const summaryDiv = document.querySelector('#dynamic-review-summary');
+            if (summaryDiv && reviewCount > 0) {
+                summaryDiv.innerHTML = `
+                    <div class="product-review-stars" onclick="document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth' })">
+                        ${renderStarsHtml(avgRating)}
+                        <span class="review-count">(${reviewCount} reviews)</span>
+                    </div>
+                `;
+            } else if (summaryDiv) {
+                summaryDiv.innerHTML = `<div class="product-review-stars" onclick="document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth' })">⭐ 0 reviews</div>`;
+            }
+        })
+        .catch(() => {});
+
     container.innerHTML = `
         <div class="product-detail-grid-new"> 
             <div class="product-image-area-new">
@@ -795,10 +771,13 @@ function renderProduct(product) {
             </div>
 
             <div class="product-info-area-new">
-                <h1 class="product-title-main">${itemName}</h1>
-                <p class="product-category-subtle">${itemCategory}</p> 
+                <h1 class="product-title-main">${escapeHtml(itemName)}</h1>
+                <p class="product-category-subtle">${escapeHtml(itemCategory)}</p> 
                 
                 <p class="product-price-main" id="dynamic-price">${displayPrice.toFixed(2)} EGP</p>
+                
+                <!-- REVIEW SUMMARY - displayed right under price -->
+                <div id="dynamic-review-summary" class="product-review-summary"></div>
 
                 ${!isOutOfStock || hasVariants ? `
                     <div class="product-actions-grid">
@@ -814,13 +793,14 @@ function renderProduct(product) {
                         <div id="bundle-items-container" class="bundle-items-container"></div>
 
                         <button id="add-to-cart-btn" class="action-add-to-cart-btn">Add to Cart</button>
+                        <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
                     </div>
                 ` : `<p class="stock-status out-of-stock">Out of Stock</p>`}
 
                 <div class="product-description-section">
                     <h3>Description</h3>
-                    <p>${(product.isBundle ? product.bundleDescription : product.description_en) || 'No description available.'}</p>
-                    ${product.formattedDescription ? `<div class="formatted-desc">${product.formattedDescription}</div>` : ''}
+                    <div class="rich-text-content">${(product.isBundle ? product.bundleDescription : product.description_en) || 'No description available.'}</div>
+                    ${product.formattedDescription ? `<div class="formatted-desc rich-text-content">${product.formattedDescription}</div>` : ''}
                 </div>
 
                 <div id="product-specifications-section" class="product-specifications-section" style="display:none;">
@@ -843,11 +823,11 @@ function renderProduct(product) {
             </div> 
         </div>
 
-        <!-- Reviews Section -->
+        <!-- Reviews Section (full) -->
         <section class="reviews-section" id="reviews-section">
             <div class="reviews-header">
                 <h3 class="reviews-title"><i class="fas fa-star"></i> Customer Reviews</h3>
-                <button class="write-review-btn" id="write-review-btn" onclick="toggleReviewForm()">
+                <button class="write-review-btn" id="write-review-btn" onclick="smoothScrollToReviews()">
                     <i class="fas fa-pen"></i> Write a Review
                 </button>
             </div>
@@ -892,151 +872,41 @@ function renderProduct(product) {
         </section>
     `;
 
-    // --- Activate Features ---
     if (hasVariants) renderVariantSelector(product.variants);
     renderProductOptions(product);
     if (product.isBundle) renderBundleItems(product);
-    renderProductSpecifications(product); // Show Specs Table
-    fetchAndRenderCare(product.category); // Show Care Instructions
-    fetchAndRenderReviews(product._id);   // Show Reviews
+    renderProductSpecifications(product);
+    fetchAndRenderCare(product.category);
+    fetchAndRenderReviews(product._id);
 
     const addBtn = document.getElementById('add-to-cart-btn');
     if (addBtn) addBtn.addEventListener('click', () => addToCartHandler(product));
+    
+    const buyNowBtn = document.querySelector('.buy-it-now-btn');
+    if (buyNowBtn) buyNowBtn.addEventListener('click', () => buyNowHandler(product));
 }
 
-function renderMainProductDetails(container, product, isBundle, itemName, itemPrice, itemCategory, itemStock, isOutOfStock) {
-    // Attributes for main product display
-    const attributes = [];
-    const category = product.category;
-
-    // NEW: Add all specs as chips
-    if (!isBundle) {
-        // Universal Specs
-        if (product.scents && !product.scentOptions) attributes.push({ label: 'Scent', value: product.scents, icon: '🌸' });
-        if (product.size) attributes.push({ label: 'Size', value: product.size, icon: '📏' });
-
-        // Category-Specific Specs
-        switch (category) {
-            case 'Candles':
-            case 'Pottery Collection':
-                if (product.burnTime) attributes.push({ label: 'Burn Time', value: product.burnTime, icon: '🔥' });
-                if (product.wickType) attributes.push({ label: 'Wick', value: product.wickType, icon: '🕯️' });
-                if (product.coverageSpace) attributes.push({ label: 'Coverage', value: product.coverageSpace, icon: '🏠' });
-                break;
-            case 'Deodorant':
-                if (product.skinType) attributes.push({ label: 'Skin Type', value: product.skinType, icon: '✨' });
-                if (product.keyIngredients) attributes.push({ label: 'Ingredients', value: product.keyIngredients, icon: '🌿' });
-                break;
-            case 'Soap':
-                if (product.soapWeight) attributes.push({ label: 'Weight', value: product.soapWeight, icon: '⚖️' });
-                if (product.featureBenefit) attributes.push({ label: 'Feature', value: product.featureBenefit, icon: '✨' });
-                if (product.keyIngredients) attributes.push({ label: 'Ingredients', value: product.keyIngredients, icon: '🌿' });
-                break;
-            case 'Body Splash':
-                // Already handled by universal 'scents'
-                break;
-            case 'Body Oil':
-                if (product.color) attributes.push({ label: 'Color', value: product.color, icon: '🎨' });
-                if (product.oilWeight) attributes.push({ label: 'Size', value: product.oilWeight, icon: '💧' });
-                break;
-            case 'Massage Candles':
-                if (product.massageWeight) attributes.push({ label: 'Weight', value: product.massageWeight, icon: '⚖️' });
-                break;
-            case 'Wax Burners':
-                if (product.dimensions) attributes.push({ label: 'Dimensions', value: product.dimensions, icon: '📏' });
-                break;
-
-        }
+function renderStarsHtml(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= fullStars) stars += '<i class="fas fa-star star-filled"></i>';
+        else if (i === fullStars + 1 && hasHalfStar) stars += '<i class="fas fa-star-half-alt star-filled"></i>';
+        else stars += '<i class="fas fa-star star-empty"></i>';
     }
-
-    // Descriptions
-    const shortDescription = isBundle ? product.bundleDescription : product.description_en;
-    const formattedDescriptionHTML = product.formattedDescription
-        ? `<div class="formatted-description-box">${product.formattedDescription.replace(/\r?\n/g, '<br>')}</div>`
-        : '';
-
-    // Image Gallery
-    const imagePaths = product.imagePaths || product.images || [];
-    const imageGalleryHTML = imagePaths
-        .map((path, index) => `<img src="${path}" alt="${itemName || 'Product'} image ${index + 1}" class="${index === 0 ? 'main-product-image' : 'thumbnail-image'}" loading="lazy">`)
-        .join('');
-
-    // Update Meta Description & Title
-    document.title = `${itemName || 'Product'} | Siraj Candles`;
-    const metaDesc = (shortDescription || '').substring(0, 150).replace(/<br>/g, ' ');
-    document.querySelector('meta[name="description"]')?.setAttribute('content', metaDesc + (metaDesc.length === 150 ? '...' : ''));
-
-    container.innerHTML = `
-        <div class="product-detail-grid-new"> 
-            <div class="product-image-area-new">
-                <div class="image-gallery">
-                    ${imageGalleryHTML || '<img src="images/placeholder.jpg" alt="Placeholder" class="main-product-image">'}
-                </div>
-            </div>
-
-            <div class="product-info-area-new">
-                <h1 class="product-title-main">${itemName || 'Product Name'}</h1>
-                <p class="product-category-subtle">${itemCategory}</p> 
-                <p class="product-price-main">${itemPrice.toFixed(2)} EGP</p>
-
-                ${!isOutOfStock ? `
-                    <div class="product-actions-grid">
-                        <div class="quantity-selector-box">
-                            <button class="quantity-minus action-btn" data-action="minus" aria-label="Decrease quantity">-</button>
-                            <input type="number" id="quantity" value="1" min="1" max="${itemStock || 10}" readonly class="quantity-input-box" aria-label="Quantity">
-                            <button class="quantity-plus action-btn" data-action="plus" aria-label="Increase quantity">+</button>
-                        </div>
-                        <button id="add-to-cart-btn" class="action-add-to-cart-btn">
-                            <span class="cart-icon" aria-hidden="true">🛒</span> Add to Cart
-                        </button>
-                        <button class="buy-it-now-btn action-buy-now-btn">Buy it Now</button>
-                    </div>
-                ` : `
-                    <p class="stock-status out-of-stock">Out of Stock</p>
-                    <button class="action-add-to-cart-btn out-of-stock-btn" disabled>Notify Me When Available</button>
-                `}
-
-                <div class="product-description-section">
-                    <h3 class="section-subtitle">Description</h3> 
-                    ${shortDescription ? `<p>${shortDescription.replace(/\r?\n/g, '<br>')}</p>` : '<p>No description provided.</p>'}
-                    ${formattedDescriptionHTML} 
-                </div>
-
-                ${attributes.length > 0 ? `
-                    <div class="product-attributes-section"> 
-                        <h3 class="section-subtitle">Quick Details</h3> 
-                        <div class="product-attributes-grid">
-                            ${attributes.map(attr => `
-                                <div class="attribute-chip">
-                                    <span class="attribute-icon" aria-hidden="true">${attr.icon || '🔹'}</span>
-                                    <span class="attribute-label">${attr.label}:</span>
-                                    <span class="attribute-value">${attr.value}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-                
-                ${isOutOfStock ? '' : '<p class="stock-status in-stock" aria-live="polite">In Stock</p>'}
-
-                <div class="shipping-returns-new">
-                    <h3>Shipping & Returns</h3>
-                    <ul>
-                        <li>Orders processed within 1–2 business days.</li>
-                        <li>Delivery across Egypt within 5-7 days.</li>
-                        <li>Due to the handmade nature of our products, returns and exchanges are not accepted</li>
-                    </ul>
-                </div>
-            </div> 
-        </div>
-    `;
+    return stars;
 }
 
-// FIXED: Render product specifications with original table layout
+function smoothScrollToReviews() {
+    const reviewsSection = document.getElementById('reviews-section');
+    if (reviewsSection) {
+        reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        toggleReviewForm();
+    }
+}
+window.smoothScrollToReviews = smoothScrollToReviews;
 
-// --- NEW HELPER FUNCTIONS (Paste at bottom of file) ---
-
-// FIXED: Render Specs as Cute Chips (Badges) instead of Table
 function renderProductSpecifications(product) {
     const section = document.getElementById('product-specifications-section');
     const container = document.getElementById('specifications-container');
@@ -1046,7 +916,6 @@ function renderProductSpecifications(product) {
     const specs = [];
     const category = product.category;
 
-    // Define specs with Icons for the "Cute" look
     switch (category) {
         case 'Candles':
         case 'Pottery Collection':
@@ -1066,19 +935,17 @@ function renderProductSpecifications(product) {
         case 'Wax Burners':
             if (product.dimensions) specs.push({ label: 'Dimensions', value: product.dimensions, icon: '📏' });
             break;
-        // ... Add other categories as needed ...
     }
 
     if (specs.length > 0) {
         section.style.display = 'block';
-        // Render as a Grid of Chips
         container.innerHTML = `
             <div class="product-attributes-grid">
                 ${specs.map(spec => `
                     <div class="attribute-chip">
                         <span class="attribute-icon">${spec.icon || '🔹'}</span>
                         <span class="attribute-label">${spec.label}:</span>
-                        <span class="attribute-value">${spec.value}</span>
+                        <span class="attribute-value">${escapeHtml(spec.value)}</span>
                     </div>
                 `).join('')}
             </div>
@@ -1088,12 +955,10 @@ function renderProductSpecifications(product) {
     }
 }
 
-// 3. Variants Selector
 function renderVariantSelector(variants) {
     const container = document.getElementById('variant-selector-container');
     if (!container) return;
     
-    // Determine label based on variant type
     const variantType = variants[0]?.variantType || 'scent';
     const labelText = variantType === 'scent' ? 'Scent:' : 
                       variantType === 'size' ? 'Size:' : 
@@ -1102,17 +967,16 @@ function renderVariantSelector(variants) {
     container.innerHTML = `
         <div class="option-group variant-selector-group">
             <label for="variant-select" class="variant-label">${labelText}</label>
-            <select id="variant-select" class="variant-selector">
+            <select id="variant-select" class="option-selector unified-dropdown">
                 ${variants.map((v, i) => `
                     <option value="${v.variantName}" data-price="${v.price}" data-stock="${v.stock}" ${i === 0 ? 'selected' : ''}>
-                        ${v.variantName}
+                        ${v.variantName} - ${v.price.toFixed(2)} EGP
                     </option>
                 `).join('')}
             </select>
         </div>
     `;
     
-    // Update price when variant changes
     const variantSelect = document.getElementById('variant-select');
     const priceElement = document.getElementById('dynamic-price');
     
@@ -1123,16 +987,104 @@ function renderVariantSelector(variants) {
             priceElement.textContent = `${parseFloat(price).toFixed(2)} EGP`;
         });
         
-        // Set initial price
         const initialPrice = variantSelect.options[variantSelect.selectedIndex].getAttribute('data-price');
         priceElement.textContent = `${parseFloat(initialPrice).toFixed(2)} EGP`;
     }
 }
 
-// 4. Add to Cart Handler (Variants)
+function renderProductOptions(product) {
+    const container = document.getElementById('options-container');
+    if(!container) return;
+    
+    const createSelect = (label, optionsStr, id) => {
+        if (!optionsStr) return '';
+        const opts = optionsStr.split(',').map(s=>s.trim()).filter(Boolean);
+        if(opts.length === 0) return '';
+        
+        return `
+            <div class="option-group">
+                <label for="${id}">${label}:</label>
+                <select id="${id}" class="option-selector unified-dropdown product-custom-option" required>
+                    <option value="">-- Select --</option>
+                    ${opts.map(o => `<option value="${o}">${escapeHtml(o)}</option>`).join('')}
+                </select>
+            </div>
+        `;
+    };
+
+    let html = '';
+    html += createSelect('Scent', product.scentOptions, 'opt-scent');
+    html += createSelect('Shape', product.shapeOptions, 'opt-shape');
+    html += createSelect('Type', product.typeOptions, 'opt-type');
+    
+    if (!product.variants || product.variants.length === 0) {
+        html += createSelect('Size/Weight', product.sizeOptions || product.weightOptions, 'opt-size');
+    }
+
+    container.innerHTML = html;
+}
+
+function renderBundleItems(product) {
+    const container = document.getElementById('bundle-items-container');
+    
+    if(!container || !product.bundleItems || product.bundleItems.length === 0) {
+        if(container) container.innerHTML = '';
+        return;
+    }
+    
+    const itemsHtml = product.bundleItems.map((item, i) => {
+        const scents = Array.isArray(item.allowedScents) 
+            ? item.allowedScents 
+            : (item.allowedScents || '').split(',');
+        return `
+            <div class="bundle-selector-group">
+                <label for="bundle-item-${i}">
+                    ${escapeHtml(item.subProductName)} (${item.size || ''}):
+                </label>
+                <select id="bundle-item-${i}" class="option-selector unified-dropdown bundle-item-select" required>
+                    <option value="">-- Select a scent --</option>
+                    ${scents.map(s => `<option value="${s.trim()}">${escapeHtml(s.trim())}</option>`).join('')}
+                </select>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="bundle-customization-section" style="margin-top: 0;">
+            <p class="customization-prompt">Choose your scents:</p>
+            ${itemsHtml}
+        </div>
+    `;
+}
+
+function buyNowHandler(product) {
+    const qty = parseInt(document.getElementById('quantity').value);
+    let price = product.price_egp || product.bundlePrice || 0, variant = null;
+    
+    const vSelect = document.getElementById('variant-select');
+    if (vSelect) {
+        const opt = vSelect.options[vSelect.selectedIndex];
+        price = parseFloat(opt.getAttribute('data-price'));
+        variant = vSelect.value;
+    }
+
+    const cartItem = {
+        _id: product._id,
+        name: product.isBundle ? product.bundleName : product.name_en,
+        category: product.category || '',
+        price: price,
+        quantity: qty,
+        imageUrl: product.imagePaths?.[0],
+        variantName: variant,
+        customization: collectAllSelections(product) || []
+    };
+    addToCart(cartItem);
+    window.location.href = 'checkout.html';
+}
+
 function addToCartHandler(product) {
     const qty = parseInt(document.getElementById('quantity').value);
-    let price = product.price_egp || 0, variant = null;
+    let price = product.price_egp || product.bundlePrice || 0, variant = null;
     
     const vSelect = document.getElementById('variant-select');
     if (vSelect) {
@@ -1156,7 +1108,6 @@ function addToCartHandler(product) {
     addToCart(cartItem);
 }
 
-//  Helper: Adjust Qty
 window.adjustQty = (d) => {
     const i = document.getElementById('quantity');
     let n = parseInt(i.value) + d;
@@ -1164,211 +1115,45 @@ window.adjustQty = (d) => {
     i.value = n;
 };
 
-// Helper: Collect All Selections (Options & Bundles)
 function collectAllSelections(product) {
     const selections = [];
     let validationFailed = false;
 
-    // 1. Collect from Standard Options (Scent, Size, Shape, etc.)
-    const optionSelectors = [
-    'opt-scent', 'opt-shape', 'opt-type', 'opt-size'
-];
-
+    const optionSelectors = ['opt-scent', 'opt-shape', 'opt-type', 'opt-size'];
 
     optionSelectors.forEach(selectorId => {
         const selector = document.getElementById(selectorId);
         if (selector) {
-            // Check if it is required but empty
             if (selector.required && !selector.value) {
-                selector.focus(); // Highlight the missing field
+                selector.focus();
                 validationFailed = true;
             } else if (selector.value) {
-                // Format as "Type: Value" (e.g., "scent: Vanilla")
                 selections.push(`${selectorId.replace('-option', '')}: ${selector.value}`);
             }
         }
     });
 
-    // Stop if any standard option is missing
     if (validationFailed) return null;
 
-    // 2. Collect from Bundle Items (if applicable)
     if (product.isBundle) {
         const bundleItems = product.bundleItems || [];
         for (let i = 0; i < bundleItems.length; i++) {
-            const selector = document.getElementById(`bundle-scent-${i}`);
+            const selector = document.getElementById(`bundle-item-${i}`);
             
-            // specific check for bundle selectors
             if (!selector || !selector.value) {
                 selector?.focus();
-                return null; // Stop immediately
+                return null;
             }
             
-            // Format as "SubProduct: Scent"
             selections.push(`${bundleItems[i].subProductName}: ${selector.value}`);
         }
     }
 
     return selections;
 }
-function renderProductOptions(product) {
-    const container = document.getElementById('options-container');
-    if(!container) return;
-    
-    const createSelect = (label, optionsStr, id) => {
-        if (!optionsStr) return '';
-        const opts = optionsStr.split(',').map(s=>s.trim()).filter(Boolean);
-        if(opts.length === 0) return '';
-        
-        return `
-            <div class="option-group">
-                <label for="${id}">${label}:</label>
-                <select id="${id}" class="option-selector product-custom-option" required>
-                    <option value="">-- Select --</option>
-                    ${opts.map(o => `<option value="${o}">${o}</option>`).join('')}
-                </select>
-            </div>
-        `;
-    };
-
-    let html = '';
-    html += createSelect('Scent', product.scentOptions, 'opt-scent');
-    html += createSelect('Shape', product.shapeOptions, 'opt-shape');
-    html += createSelect('Type', product.typeOptions, 'opt-type');
-    
-
-    if (!product.variants || product.variants.length === 0) {
-        html += createSelect('Size/Weight', product.sizeOptions || product.weightOptions, 'opt-size');
-    }
-
-    container.innerHTML = html;
-}
-function renderBundleItems(product) {
-    const container = document.getElementById('bundle-items-container');
-    
-    if(!container || !product.bundleItems || product.bundleItems.length === 0) {
-        if(container) container.innerHTML = '';
-        return;
-    }
-
-    
-    const itemsHtml = product.bundleItems.map((item, i) => {
-        const scents = Array.isArray(item.allowedScents) 
-    ? item.allowedScents 
-    : (item.allowedScents || '').split(',');
-        return `
-            <div class="bundle-selector-group">
-                <label for="bundle-item-${i}">
-                    ${item.subProductName} (${item.size}):
-                </label>
-                <select id="bundle-item-${i}" class="scent-selector bundle-item-select" required>
-                    <option value="">-- Select a scent --</option>
-                    ${scents.map(s => `<option value="${s.trim()}">${s.trim()}</option>`).join('')}
-                </select>
-            </div>
-        `;
-    }).join('');
-
-    
-    container.innerHTML = `
-        <div class="bundle-customization-section" style="margin-top: 0;">
-            <p class="customization-prompt">Choose your scents:</p>
-            ${itemsHtml}
-        </div>
-    `;
-}
-
-
-
-function setupBuyNowButton(product) {
-    const buyNowBtn = document.querySelector('.buy-it-now-btn');
-    if (!buyNowBtn) return;
-
-    buyNowBtn.addEventListener('click', (e) => {
-        const quantity = parseInt(document.getElementById('quantity')?.value || 1);
-        const customization = collectAllSelections(product);
-
-        // This check is now correct because collectAllSelections handles validation
-        if (customization === null) return; // Validation failed
-
-        const itemName = product.isBundle ? product.bundleName : product.name_en;
-      const itemPrice = product.price_egp || product.price || 0;
-
-        const item = {
-            _id: product._id,
-            name: itemName || product.name || 'Product',
-category: product.category || '',
-            price: itemPrice,
-            quantity: quantity,
-            // *** THIS IS THE FIX ***
-            // Only add customization if the array has items.
-            customization: customization.length > 0 ? customization : null,
-            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
-        };
-
-        // ADD the item to cart (don't clear existing items)
-        addToCart(item);
-        
-        // Redirect to checkout
-        window.location.href = 'checkout.html';
-    });
-}
-function attachQuantityButtonListeners(maxStock) {
-    const quantityInput = document.getElementById('quantity');
-    if (!quantityInput) return;
-
-    document.querySelector('.quantity-minus')?.addEventListener('click', () => {
-        let currentVal = parseInt(quantityInput.value);
-        if (currentVal > 1) {
-            quantityInput.value = currentVal - 1;
-        }
-    });
-
-    document.querySelector('.quantity-plus')?.addEventListener('click', () => {
-        let currentVal = parseInt(quantityInput.value);
-        if (currentVal < (maxStock || 10)) {
-            quantityInput.value = currentVal + 1;
-        }
-    });
-}
-
-function attachAddToCartListener(product) {
-    const addToCartBtn = document.getElementById('add-to-cart-btn');
-    const quantityInput = document.getElementById('quantity');
-
-    if (!addToCartBtn || !quantityInput) {
-        return;
-    }
-
-    addToCartBtn.addEventListener('click', (e) => {
-        const quantity = parseInt(quantityInput.value);
-        const customization = collectAllSelections(product);
-
-        // This check is now correct because collectAllSelections handles validation
-        if (customization === null) return; // Validation failed
-
-        const itemName = product.isBundle ? product.bundleName : product.name_en;
-        const itemPrice = product.price_egp || product.price || 0;
-
-        const item = {
-            _id: product._id,
-            name: itemName || product.name || 'Product',
- category: product.category || '',
-            price: itemPrice,
-            quantity: quantity,
-            // *** THIS IS THE FIX ***
-            // Only add customization if the array has items.
-            customization: customization.length > 0 ? customization : null,
-            imageUrl: product.imagePaths?.[0] || product.images?.[0] || 'images/placeholder.jpg'
-        };
-        addToCart(item);
-    });
-}
-
-
 
 // ====================================
-// 8. CART MANAGEMENT (FIXED - ALL ISSUES RESOLVED)
+// CART MANAGEMENT
 // ====================================
 
 let cart = [];
@@ -1390,14 +1175,15 @@ function saveCartToStorage() {
     localStorage.setItem('sirajCart', JSON.stringify(cart));
 }
 
-// FIXED: Improved cart ID generation for bundles
 function getCartUniqueId(product) {
     if (product.customization && product.customization.length > 0) {
-        // For bundles, include all customization options in the ID
         const customizationString = Array.isArray(product.customization) 
             ? product.customization.sort().join('|')
             : product.customization;
         return `${product._id}_${customizationString}`;
+    }
+    if (product.variantName) {
+        return `${product._id}_${product.variantName}`;
     }
     return product._id;
 }
@@ -1426,14 +1212,10 @@ function addToCart(product) {
     }
     saveCartToStorage();
     updateCartUI();
-    
-    // Show success message
     showCartMessage(`${product.name} (x${product.quantity || 1}) added to cart!`);
 }
-// Make addToCart globally available
 window.addToCart = addToCart;
 
-// FIXED: Remove item function with proper ID handling
 function removeItemFromCart(id) {
     cart = cart.filter(item => getCartUniqueId(item) !== id);
     saveCartToStorage();
@@ -1445,20 +1227,16 @@ function removeItemFromCart(id) {
     } else if (page === 'checkout') {
         renderCheckoutSummary(document.getElementById('checkout-summary-container'));
         renderCheckoutCartItems();
-        // Hide form if cart becomes empty
         if (cart.length === 0) {
             const checkoutForm = document.getElementById('checkout-form');
             if (checkoutForm) checkoutForm.style.display = 'none';
         }
     }
     
-    // Show removal message
     showCartMessage('Item removed from cart');
 }
-// Make removeItemFromCart globally available
 window.removeItemFromCart = removeItemFromCart;
 
-// FIXED: Update item quantity with proper validation
 function updateItemQuantity(id, quantity) {
     const item = cart.find(item => getCartUniqueId(item) === id);
     if (item) {
@@ -1468,7 +1246,6 @@ function updateItemQuantity(id, quantity) {
             saveCartToStorage();
             updateCartUI();
             
-            // Update both shopcart and checkout pages if they're active
             if (document.body.getAttribute('data-page') === 'shopcart') {
                 renderShopCartPage();
             } else if (document.body.getAttribute('data-page') === 'checkout') {
@@ -1480,12 +1257,12 @@ function updateItemQuantity(id, quantity) {
         }
     }
 }
-// Make updateItemQuantity globally available
 window.updateItemQuantity = updateItemQuantity;
 
 function getCartTotal() {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 }
+
 function updateCartUI() {
     const countEl = document.querySelector('.cart-count');
     const listEl = document.querySelector('.cart-items-list');
@@ -1501,15 +1278,15 @@ function updateCartUI() {
 
     if(listEl) {
         if(cart.length === 0) {
-            listEl.innerHTML = '<p class="empty-cart">Your cart is empty.</p>';
+            listEl.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
         } else {
             listEl.innerHTML = cart.map(item => `
                 <div class="cart-item">
                     <img src="${item.imageUrl || 'assets/images/placeholder.jpg'}" style="width:50px; height:50px; border-radius:4px; object-fit:cover;">
                     
                     <div class="cart-item-details">
-                        <div class="cart-item-name">${item.name}</div>
-                        <span class="cart-item-variant">${item.variantName || ''}</span>
+                        <div class="cart-item-name">${escapeHtml(item.name)}</div>
+                        <span class="cart-item-variant">${escapeHtml(item.variantName || '')}</span>
                         <div class="cart-item-price">${item.quantity} x ${item.price} EGP</div>
                     </div>
 
@@ -1520,15 +1297,12 @@ function updateCartUI() {
     }
 }
 
-// FIXED: Cart message function
 function showCartMessage(message) {
-    // Remove existing message if any
     const existingMessage = document.querySelector('.cart-message');
     if (existingMessage) {
         existingMessage.remove();
     }
     
-    // Create new message
     const messageElement = document.createElement('div');
     messageElement.className = 'cart-message';
     messageElement.textContent = message;
@@ -1548,7 +1322,6 @@ function showCartMessage(message) {
     
     document.body.appendChild(messageElement);
     
-    // Remove message after 3 seconds
     setTimeout(() => {
         messageElement.style.animation = 'slideOut 0.3s ease-in';
         setTimeout(() => {
@@ -1560,7 +1333,7 @@ function showCartMessage(message) {
 }
 
 // ====================================
-// 9. SHOP CART PAGE LOGIC (FIXED)
+// SHOP CART PAGE
 // ====================================
 
 function renderShopCartPage() {
@@ -1577,11 +1350,10 @@ function renderShopCartPage() {
         return;
     }
 
-    // Render Items Table with proper data attributes
     itemsContainer.innerHTML = cart.map(item => {
         const uniqueId = getCartUniqueId(item);
         const customizationDetail = item.customization ? 
-            `<div class="cart-customization-detail"><small>Options: ${item.customization.join(', ')}</small></div>` 
+            `<div class="cart-customization-detail"><small>Options: ${escapeHtml(item.customization.join(', '))}</small></div>` 
             : '';
         const itemImage = item.imageUrl || 'images/placeholder.jpg';
 
@@ -1590,7 +1362,7 @@ function renderShopCartPage() {
                 <td class="cart-product-col" data-label="Product">
                     <img src="${itemImage}" alt="${item.name}" class="cart-item-img">
                     <div>
-                        <a href="product.html?id=${item._id}">${item.name}</a>
+                        <a href="product.html?id=${item._id}">${escapeHtml(item.name)}</a>
                         ${customizationDetail}
                     </div>
                 </td>
@@ -1613,27 +1385,27 @@ function renderShopCartPage() {
         `;
     }).join('');
 
-   const subtotal = getCartTotal();
-const freeShipping = subtotal >= 2000;
+    const subtotal = getCartTotal();
+    const freeShipping = subtotal >= 2000;
 
-summaryContainer.innerHTML = `
-    <h3>Cart Summary</h3>
-    <p>Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
-    <p>Shipping: <span>${freeShipping ? 'FREE 🎉' : 'Calculated at checkout'}</span></p>
-    <p class="cart-total-final">Total: <span>${subtotal.toFixed(2)} EGP${freeShipping ? '' : ' + shipping'}</span></p>
-    <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
-`;
+    summaryContainer.innerHTML = `
+        <h3>Cart Summary</h3>
+        <p>Subtotal: <span>${subtotal.toFixed(2)} EGP</span></p>
+        <p>Shipping: <span>${freeShipping ? 'FREE 🎉' : 'Calculated at checkout'}</span></p>
+        <p class="cart-total-final">Total: <span>${subtotal.toFixed(2)} EGP${freeShipping ? '' : ' + shipping'}</span></p>
+        <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
+    `;
     const checkoutLink = document.getElementById('checkout-link-bottom');
     if (checkoutLink) checkoutLink.style.display = 'block';
 }
 
 // ====================================
-// 10. CHECKOUT PAGE LOGIC
+// CHECKOUT PAGE
 // ====================================
 
 async function setupCheckoutPage() {
     const summaryContainer = document.getElementById('checkout-summary-container');
-    const checkoutForm = document.getElementById('checkout-form'); // <--- 1. Get the form
+    const checkoutForm = document.getElementById('checkout-form');
     const cartItemsContainer = document.getElementById('checkout-cart-items');
     
     if (cart.length === 0) {
@@ -1645,11 +1417,9 @@ async function setupCheckoutPage() {
     renderCheckoutSummary(summaryContainer);
     renderCheckoutCartItems();
     
-    // 1. Load Cities
     await loadShippingCities(); 
     await checkAndApplyAutomaticDiscounts();
 
-    // 2. Attach Discount Listener
     const applyBtn = document.getElementById('apply-discount-btn');
     if (applyBtn) {
         applyBtn.replaceWith(applyBtn.cloneNode(true));
@@ -1657,49 +1427,43 @@ async function setupCheckoutPage() {
         newBtn.addEventListener('click', handleApplyDiscount);
     }
 
-    // 3. ATTACH CHECKOUT SUBMIT LISTENER (THIS WAS MISSING)
     if (checkoutForm) {
         checkoutForm.addEventListener('submit', processCheckout);
     }
 }
+
 function renderCheckoutSummary(container) {
-    // Initial render structure
     container.innerHTML = `
         <h3>Order Summary</h3>
         <div class="checkout-item-list">
             ${cart.map(item => `
                 <p class="checkout-item">
-                    ${item.name} x ${item.quantity} 
-                    ${item.variantName ? `(${item.variantName})` : ''}
+                    ${escapeHtml(item.name)} x ${item.quantity} 
+                    ${item.variantName ? `(${escapeHtml(item.variantName)})` : ''}
                     <span>${(item.price * item.quantity).toFixed(2)} EGP</span>
                 </p>`).join('')}
         </div>
         <hr>
         <p class="checkout-summary-line">Subtotal: <span id="summary-subtotal">0.00 EGP</span></p>
         <p class="checkout-summary-line">Shipping: <span id="summary-shipping">Select City</span></p>
-      
-    <span class="discount-label">Discount:</span>
-      <p class="checkout-summary-line" id="discount-row" style="display:none; color:green;">
+        <p class="checkout-summary-line" id="discount-row" style="display:none; color:green;">
             <span class="discount-label">Discount:</span>
             <span id="summary-discount">-0.00 EGP</span>
         </p>
-</p>
         <p class="checkout-summary-line final-total">Total: <span id="summary-total">0.00 EGP</span></p>
     `;
     
-    // Calculate initial numbers
     updateCheckoutTotals();
 }
 
 function updateCheckoutTotals() {
     const subtotal = getCartTotal();
  
-    // 1. Shipping Fee
     const citySelect = document.getElementById('city');
     let shippingFee = 0;
  
     if (subtotal >= 2000) {
-        shippingFee = 0; // free shipping threshold
+        shippingFee = 0;
     } else if (citySelect && citySelect.options.length > 0 && citySelect.selectedIndex >= 0) {
         const selectedOption = citySelect.options[citySelect.selectedIndex];
         if (selectedOption && selectedOption.dataset.fee) {
@@ -1707,25 +1471,21 @@ function updateCheckoutTotals() {
         }
     }
  
-    // 2. Discount Amount
     let discountAmount = 0;
     let freeShipping = false;
  
     if (appliedDiscount) {
         if (appliedDiscount.isFreeShipping || appliedDiscount.type === 'free_shipping') {
-            // Free shipping discount — zero out shipping fee
             freeShipping = true;
             shippingFee = 0;
             discountAmount = 0;
         } else {
-            // Use the pre-calculated amount from the backend (already handles category logic)
             discountAmount = appliedDiscount.discountAmount || 0;
         }
     }
  
     const total = Math.max(0, subtotal + shippingFee - discountAmount);
  
-    // 3. Update UI
     const subtotalEl  = document.getElementById('summary-subtotal');
     const shippingEl  = document.getElementById('summary-shipping');
     const discountRow = document.getElementById('discount-row');
@@ -1745,24 +1505,23 @@ function updateCheckoutTotals() {
     }
  
     if (discountRow) {
-    if (discountAmount > 0) {
-        discountRow.style.display = 'flex';
-        const label = appliedDiscount?.appliesTo === 'categories'
-            ? `Discount (${appliedDiscount.categories?.join(', ')} only)`
-            : 'Discount';
-        // Update label text directly — don't touch innerHTML
-        const labelSpan = discountRow.querySelector('.discount-label');
-        const valueSpan = discountRow.querySelector('#summary-discount');
-        if (labelSpan) labelSpan.textContent = label + ':';
-        if (valueSpan) valueSpan.textContent = `-${discountAmount.toFixed(2)} EGP`;
-    } else {
-        discountRow.style.display = 'none';
+        if (discountAmount > 0) {
+            discountRow.style.display = 'flex';
+            const label = appliedDiscount?.appliesTo === 'categories'
+                ? `Discount (${appliedDiscount.categories?.join(', ')} only)`
+                : 'Discount';
+            const labelSpan = discountRow.querySelector('.discount-label');
+            const valueSpan = discountRow.querySelector('#summary-discount');
+            if (labelSpan) labelSpan.textContent = label + ':';
+            if (valueSpan) valueSpan.textContent = `-${discountAmount.toFixed(2)} EGP`;
+        } else {
+            discountRow.style.display = 'none';
+        }
     }
-}
  
     if (totalEl) totalEl.textContent = total.toFixed(2) + ' EGP';
 }
-// FIXED: Checkout cart items with working quantity controls & Variant Display
+
 function renderCheckoutCartItems() {
     const container = document.getElementById('checkout-cart-items');
     if (!container) return;
@@ -1775,13 +1534,12 @@ function renderCheckoutCartItems() {
     container.innerHTML = cart.map(item => {
         const uniqueId = getCartUniqueId(item);
         
-        // --- NEW: Display Variant Name (e.g., "100g") ---
         const variantDisplay = item.variantName 
-            ? `<span style="background:#f3f4f6; color:#374151; padding:2px 6px; border-radius:4px; font-size:0.8em; margin-left:5px; border:1px solid #e5e7eb;">${item.variantName}</span>` 
+            ? `<span style="background:#f3f4f6; color:#374151; padding:2px 6px; border-radius:4px; font-size:0.8em; margin-left:5px; border:1px solid #e5e7eb;">${escapeHtml(item.variantName)}</span>` 
             : '';
 
         const customizationDetail = item.customization && item.customization.length > 0
-            ? `<div class="cart-customization-detail"><small>Options: ${item.customization.join(', ')}</small></div>` 
+            ? `<div class="cart-customization-detail"><small>Options: ${escapeHtml(item.customization.join(', '))}</small></div>` 
             : '';
             
         const itemImage = item.imageUrl || 'assets/images/placeholder.jpg';
@@ -1793,7 +1551,7 @@ function renderCheckoutCartItems() {
                     <img src="${itemImage}" alt="${item.name}" loading="lazy">
                 </div>
                 <div class="checkout-item-details">
-                    <h4>${item.name} ${variantDisplay}</h4>
+                    <h4>${escapeHtml(item.name)} ${variantDisplay}</h4>
                     ${customizationDetail}
                     <div class="checkout-item-price">${item.price.toFixed(2)} EGP each</div>
                 </div>
@@ -1811,7 +1569,7 @@ function renderCheckoutCartItems() {
                 </div>
             </div>
         `;
-    }).join('');
+    }).join();
 }
 
 async function processCheckout(e) {
@@ -1822,16 +1580,12 @@ async function processCheckout(e) {
     const totalAmount = getCartTotal();
     
     if (!formData.get('city')) {
-    alert('Please select your city.');
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalText;
-    return;
-}
+        alert('Please select your city.');
+        return;
+    }
     const citySelect = document.getElementById('city');
     if (!citySelect || !citySelect.value) {
         alert('Please select your city before placing the order.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
         return;
     }
     const selectedOption = citySelect.options[citySelect.selectedIndex];
@@ -1849,17 +1603,14 @@ async function processCheckout(e) {
             city: formData.get('city'),
             notes: formData.get('notes'),
         },
-        // --- CRITICAL UPDATE: Mapping Variant Name ---
         items: cart.map(item => ({
             productId: item._id,
             name: item.name,
             quantity: item.quantity,
             price: item.price,
-            // Send variantName so backend knows which stock to deduct (e.g., "60g")
             variantName: item.variantName || null, 
             customization: item.customization || []
         })),
-        // --------------------------------------------
         totalAmount: totalAmount + shippingFee,
         subtotal: totalAmount,
         shippingFee: shippingFee,
@@ -1883,22 +1634,22 @@ async function processCheckout(e) {
 
         if (response.ok) {
              if (typeof fbq !== 'undefined') {
-            fbq('track', 'Purchase', {
-                value: orderData.totalAmount,
-                currency: 'EGP',
-                content_ids: orderData.items.map(item => item.productId),
-                content_type: 'product'
-            });
-        }
+                fbq('track', 'Purchase', {
+                    value: orderData.totalAmount,
+                    currency: 'EGP',
+                    content_ids: orderData.items.map(item => item.productId),
+                    content_type: 'product'
+                });
+            }
             console.log('Order placed successfully! Your Order ID is: ' + result.orderId);
-           if (appliedDiscount?.code) {
-    fetch(`${API_BASE_URL}/api/discounts/use`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ codes: [appliedDiscount.code] })
-    });
-    appliedDiscount = null;
-}
+            if (appliedDiscount?.code) {
+                fetch(`${API_BASE_URL}/api/discounts/use`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codes: [appliedDiscount.code] })
+                });
+                appliedDiscount = null;
+            }
             cart = []; 
             saveCartToStorage();
             updateCartUI();
@@ -1910,28 +1661,26 @@ async function processCheckout(e) {
 
     } catch (error) {
         console.error('Order failed: ' + error.message);
-        alert('Error: ' + error.message); // Will show stock errors if any
+        alert('Error: ' + error.message);
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
     }
 }
-// NEW: Fetch Cities and Populate Dropdown
+
 async function loadShippingCities() {
     const citySelect = document.getElementById('city');
     if (!citySelect) return;
 
     try {
-        // Clear current options and add loading
         citySelect.innerHTML = '<option value="">Loading cities...</option>';
         
-        const response = await fetch(`${API_BASE_URL}/api/shipping-rates`); // Ensure this route exists in backend
+        const response = await fetch(`${API_BASE_URL}/api/shipping-rates`);
         if (!response.ok) throw new Error('Failed to load cities');
         
         const rates = await response.json();
         
         citySelect.innerHTML = '<option value="">Select your city</option>';
         rates.forEach(rate => {
-            // We store the price in a data attribute to access it easily
             const option = document.createElement('option');
             option.value = rate.city;
             option.textContent = rate.city;
@@ -1939,7 +1688,6 @@ async function loadShippingCities() {
             citySelect.appendChild(option);
         });
 
-        // Update total when city changes
         citySelect.addEventListener('change', updateCheckoutTotals);
 
     } catch (error) {
@@ -1948,11 +1696,6 @@ async function loadShippingCities() {
     }
 }
 
-// ============================================================
-// REPLACE these two functions in your site.js
-// (find "let appliedDiscount = null" and replace from there)
-// ============================================================
- 
 let appliedDiscount = null;
  
 async function handleApplyDiscount() {
@@ -1965,7 +1708,6 @@ async function handleApplyDiscount() {
     messageEl.textContent = 'Checking code...';
     messageEl.className = '';
  
-    // Build cartItems array so backend can do category-based discounts
     const cartItems = cart.map(item => ({
         category: item.category || '',
         price: item.price,
@@ -1979,7 +1721,7 @@ async function handleApplyDiscount() {
             body: JSON.stringify({
                 code,
                 cartTotal: getCartTotal(),
-                cartItems   // ← NEW: send cart items for category checking
+                cartItems
             })
         });
  
@@ -1988,7 +1730,7 @@ async function handleApplyDiscount() {
         if (data.valid) {
             appliedDiscount = {
                 ...data.discount,
-                discountAmount: data.discountAmount  // pre-calculated by backend
+                discountAmount: data.discountAmount
             };
             messageEl.textContent = data.message;
             messageEl.className = 'discount-success';
@@ -2032,7 +1774,6 @@ async function checkAndApplyAutomaticDiscounts() {
                 discountAmount: best.discountAmount
             };
 
-            // Replace the discount code section with a clean auto-discount banner
             const discountSection = document.querySelector('.discount-section');
             if (discountSection) {
                 discountSection.innerHTML = `
@@ -2042,15 +1783,12 @@ async function checkAndApplyAutomaticDiscounts() {
                 `;
             }
 
-            // Update totals FIRST so the discount row appears
             updateCheckoutTotals();
 
-            // Then fix the discount row label to not say "Discount:" twice
-            // Change the summary row label to be silent — just show the amount
             const discountRow = document.getElementById('discount-row');
             if (discountRow) {
                 const labelSpan = discountRow.querySelector('.discount-label');
-                if (labelSpan) labelSpan.textContent = ''; // hide the "Discount:" text in summary since banner already shows it
+                if (labelSpan) labelSpan.textContent = '';
             }
 
         }
@@ -2059,18 +1797,13 @@ async function checkAndApplyAutomaticDiscounts() {
     }
 }
 
-// 3. Helper for Image Swapping
 window.swapImage = function(imgElement) {
-    // 1. Change the main image
     const mainImage = document.getElementById('main-display-image');
     mainImage.src = imgElement.src;
-
-    // 2. Update active styling on thumbnails
     document.querySelectorAll('.thumbnail-image').forEach(thumb => thumb.classList.remove('active'));
     imgElement.classList.add('active');
 }
 
-// --- NEW: Fetch and Render Care Instructions ---
 async function fetchAndRenderCare(categoryName) {
     const section = document.getElementById('care-instructions-section');
     const container = document.getElementById('care-instructions-container');
@@ -2078,13 +1811,11 @@ async function fetchAndRenderCare(categoryName) {
     if (!section || !container || !categoryName) return;
 
     try {
-        // Fetch all care instructions (assuming /api/care returns the list like Admin)
         const response = await fetch(`${API_BASE_URL}/api/care`);
         if (!response.ok) return;
 
         const allInstructions = await response.json();
 
-        // Filter for instructions that match this product's category
         const relevantInstructions = allInstructions.filter(
             item => item.category.toLowerCase() === categoryName.toLowerCase()
         );
@@ -2094,14 +1825,13 @@ async function fetchAndRenderCare(categoryName) {
             return;
         }
 
-        // Render them
         section.style.display = 'block';
         container.innerHTML = relevantInstructions.map(item => `
             <div class="care-card">
                 <div class="care-icon"><i class="fas fa-sparkles"></i></div>
                 <div class="care-content">
-                    <h4>${item.careTitle}</h4>
-                    <div>${item.careContent}</div>
+                    <h4>${escapeHtml(item.careTitle)}</h4>
+                    <div class="rich-text-content">${item.careContent}</div>
                 </div>
             </div>
         `).join('');
@@ -2111,7 +1841,6 @@ async function fetchAndRenderCare(categoryName) {
         section.style.display = 'none';
     }
 }
-
 
 // ── REVIEWS ────────────────────────────────────────────────────────────────────
 
@@ -2187,6 +1916,7 @@ function toggleReviewForm() {
         setupStarInput();
     }
 }
+window.toggleReviewForm = toggleReviewForm;
 
 function setupStarInput() {
     const stars = document.querySelectorAll('#star-input .fa-star');
@@ -2219,6 +1949,7 @@ function previewReviewPhotos(input) {
         </div>`;
     }).join('');
 }
+window.previewReviewPhotos = previewReviewPhotos;
 
 function removeReviewPhoto(idx) {
     _reviewPhotoFiles.splice(idx, 1);
@@ -2227,6 +1958,7 @@ function removeReviewPhoto(idx) {
     document.getElementById('review-photos').files = dt.files;
     previewReviewPhotos({ files: dt.files });
 }
+window.removeReviewPhoto = removeReviewPhoto;
 
 async function submitReview() {
     const name = document.getElementById('review-name')?.value.trim();
@@ -2250,7 +1982,6 @@ async function submitReview() {
     if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
 
     try {
-        // Upload photos first if any
         let uploadedPhotos = [];
         for (const file of _reviewPhotoFiles) {
             const fd = new FormData();
@@ -2270,7 +2001,6 @@ async function submitReview() {
 
         if (res.ok) {
             showMsg('Thank you for your review! 🎉', true);
-            // Reset form
             document.getElementById('review-name').value = '';
             document.getElementById('review-email').value = '';
             document.getElementById('review-comment').value = '';
@@ -2293,6 +2023,7 @@ async function submitReview() {
         if (btn) { btn.disabled = false; btn.textContent = 'Submit Review'; }
     }
 }
+window.submitReview = submitReview;
 
 function openReviewPhoto(url) {
     const overlay = document.createElement('div');
@@ -2304,7 +2035,9 @@ function openReviewPhoto(url) {
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
 }
+window.openReviewPhoto = openReviewPhoto;
 
 function escapeHtml(str) {
+    if (!str) return '';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
