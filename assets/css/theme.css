@@ -1978,7 +1978,7 @@ select#city:focus {
 }
 
 @media (min-width: 768px) {
-    .order-summary-box { margin-top: 0; position: sticky; top: 100px; }
+     .order-summary-box { margin-top: 0; }
 }
 
 .order-summary-box h3 {
