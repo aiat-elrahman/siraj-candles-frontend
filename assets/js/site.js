@@ -149,16 +149,20 @@ function renderProductGrid(containerId, items, endpointType) {
         const itemName = item.name_en || item.bundleName || item['Name (English)'] || 'Unknown Product';
         const itemPrice = item.price_egp || item.bundlePrice || item['Price (EGP)'] || 0;
         const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
-        
-        return `
-            <a href="product.html?id=${item._id}" class="product-card">
-                <img src="${itemImage}" alt="${itemName}" loading="lazy"> 
-                <div class="product-info-minimal">
-                    <p class="product-title">${escapeHtml(itemName)}</p>
-                    <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
-                </div>
-            </a>
-        `;
+        const isOutOfStock = !item.bundleItems && (item.stock !== undefined) && item.stock <= 0;
+    
+    return `
+        <a href="product.html?id=${item._id}" class="product-card">
+            <div style="position:relative;">
+                <img src="${itemImage}" alt="${itemName}" loading="lazy">
+                ${isOutOfStock ? `<span style="position:absolute;top:8px;left:8px;background:#c0392b;color:white;font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;">Out of Stock</span>` : ''}
+            </div>
+            <div class="product-info-minimal">
+                <p class="product-title">${escapeHtml(itemName)}</p>
+                <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
+            </div>
+        </a>
+    `;
     }).join('');
 }
 
