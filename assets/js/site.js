@@ -858,7 +858,8 @@ ${product.isBundle && product.bundleOriginalPrice > displayPrice ? `
                     </div>
                     <div class="review-form-row">
                         <input type="text" id="review-name" placeholder="Your Name *" class="review-input" maxlength="60">
-                        <input type="email" id="review-email" placeholder="Email (not shown publicly)" class="review-input" maxlength="100">
+                        <input type="email" id="review-email" placeholder="Email (required, not shown publicly)" class="review-input" maxlength="100">
+<input type="tel" id="review-phone" placeholder="Phone Number (required, not shown publicly)" class="review-input" maxlength="20">
                     </div>
                     <textarea id="review-comment" placeholder="Tell others about your experience with this product..." class="review-textarea" maxlength="800" rows="4"></textarea>
                     <div class="review-photo-row">
@@ -1971,6 +1972,7 @@ window.removeReviewPhoto = removeReviewPhoto;
 async function submitReview() {
     const name = document.getElementById('review-name')?.value.trim();
     const email = document.getElementById('review-email')?.value.trim();
+    const phone = document.getElementById('review-phone')?.value.trim();
     const comment = document.getElementById('review-comment')?.value.trim();
     const rating = +document.getElementById('review-rating')?.value;
     const msgEl = document.getElementById('review-form-msg');
@@ -1982,6 +1984,8 @@ async function submitReview() {
         msgEl.className = 'review-form-msg ' + (ok ? 'msg-success' : 'msg-error');
     };
 
+if (!email) return showMsg('Please enter your email.', false);
+if (!phone) return showMsg('Please enter your phone number.', false);
     if (!name) return showMsg('Please enter your name.', false);
     if (!rating) return showMsg('Please select a star rating.', false);
     if (!comment) return showMsg('Please write a comment.', false);
@@ -2004,7 +2008,7 @@ async function submitReview() {
         const res = await fetch(`${API_BASE_URL}/api/reviews/${_currentProductId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, rating, comment, photos: uploadedPhotos })
+            body: JSON.stringify({ name, email, phone , rating, comment, photos: uploadedPhotos })
         });
 
         if (res.ok) {
