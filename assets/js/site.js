@@ -1006,22 +1006,33 @@ function renderProductOptions(product) {
     const container = document.getElementById('options-container');
     if(!container) return;
     
-    const createSelect = (label, optionsStr, id) => {
-        if (!optionsStr) return '';
-        const opts = optionsStr.split(',').map(s=>s.trim()).filter(Boolean);
-        if(opts.length === 0) return '';
-        
+   
+const createSelect = (label, optionsStr, id) => {
+    if (!optionsStr) return '';
+    const opts = optionsStr.split(',').map(s=>s.trim()).filter(Boolean);
+    if(opts.length === 0) return '';
+    
+    // If only one option, show it as a static label instead of a dropdown
+    if(opts.length === 1) {
         return `
             <div class="option-group">
-                <label for="${id}">${label}:</label>
-                <select id="${id}" class="option-selector unified-dropdown product-custom-option" required>
-                    <option value="">-- Select --</option>
-                    ${opts.map(o => `<option value="${o}">${escapeHtml(o)}</option>`).join('')}
-                </select>
+                <label>${label}:</label>
+                <p class="single-option-display">${escapeHtml(opts[0])}</p>
+                <input type="hidden" id="${id}" value="${escapeHtml(opts[0])}">
             </div>
         `;
-    };
-
+    }
+    
+    return `
+        <div class="option-group">
+            <label for="${id}">${label}:</label>
+            <select id="${id}" class="option-selector unified-dropdown product-custom-option" required>
+                <option value="">-- Select --</option>
+                ${opts.map(o => `<option value="${o}">${escapeHtml(o)}</option>`).join('')}
+            </select>
+        </div>
+    `;
+};
     let html = '';
     html += createSelect('Scent', product.scentOptions, 'opt-scent');
     html += createSelect('Shape', product.shapeOptions, 'opt-shape');
