@@ -152,11 +152,11 @@ function renderProductGrid(containerId, items, endpointType) {
         const isOutOfStock = !item.bundleItems && (item.stock !== undefined) && item.stock <= 0;
     
     return `
-        <a href="product.html?id=${item._id}" class="product-card">
-            <div style="position:relative;">
-                <img src="${itemImage}" alt="${itemName}" loading="lazy">
-                ${isOutOfStock ? `<span style="position:absolute;top:8px;left:8px;background:#c0392b;color:white;font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;">Out of Stock</span>` : ''}
-            </div>
+    <a href="product.html?id=${item._id}" class="product-card">
+        ${isOutOfStock ? `<span class="oos-badge">Out of Stock</span>` : ''}
+        <div>
+            <img src="${itemImage}" alt="${itemName}" loading="lazy">
+        </div>
             <div class="product-info-minimal">
                 <p class="product-title">${escapeHtml(itemName)}</p>
                 <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
@@ -979,10 +979,12 @@ function renderVariantSelector(variants) {
         <div class="option-group variant-selector-group">
             <label for="variant-select" class="variant-label">${labelText}</label>
             <select id="variant-select" class="option-selector unified-dropdown">
-                ${variants.map((v, i) => `
-                    <option value="${v.variantName}" data-price="${v.price}" data-stock="${v.stock}" ${i === 0 ? 'selected' : ''}>
-                        ${v.variantName}
-                `).join('')}
+                ${variants.map((v, i) => {
+    const outOfStock = (v.stock !== undefined && v.stock <= 0);
+    return `<option value="${v.variantName}" data-price="${v.price}" data-stock="${v.stock}" ${outOfStock ? 'disabled' : ''} ${!outOfStock && i === 0 ? 'selected' : ''}>
+        ${v.variantName}${outOfStock ? ' — Out of Stock' : ''}
+    </option>`;
+}).join('')}
             </select>
         </div>
     `;
