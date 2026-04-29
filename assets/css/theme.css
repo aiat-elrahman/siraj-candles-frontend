@@ -1667,7 +1667,16 @@ body.mobile-menu-open::before {
     font-size: 1rem;
     flex-shrink: 0;
 }
-
+.single-option-display {
+    display: inline-block;
+    padding: 8px 14px;
+    background: var(--cream-dark);
+    border: 1px solid var(--cream-mid);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    color: var(--text);
+    margin: 0;
+}
 .care-content h4 {
     font-size: 0.95rem;
     font-family: var(--font-body);
