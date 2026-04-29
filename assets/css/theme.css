@@ -1667,8 +1667,23 @@ body.mobile-menu-open::before {
     font-size: 1rem;
     flex-shrink: 0;
 }
+.oos-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #c0392b;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    z-index: 3;
+    pointer-events: none;
+}
 .single-option-display {
-    display: inline-block;
+    display: block;
+    width: 100%;
     padding: 8px 14px;
     background: var(--cream-dark);
     border: 1px solid var(--cream-mid);
@@ -1676,6 +1691,7 @@ body.mobile-menu-open::before {
     font-size: 0.9rem;
     color: var(--text);
     margin: 0;
+    box-sizing: border-box;
 }
 .care-content h4 {
     font-size: 0.95rem;
