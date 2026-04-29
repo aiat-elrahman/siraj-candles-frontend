@@ -1774,14 +1774,13 @@ async function checkAndApplyAutomaticDiscounts() {
                 discountAmount: best.discountAmount
             };
 
-            const discountSection = document.querySelector('.discount-section');
-            if (discountSection) {
-                discountSection.innerHTML = `
-                    <div class="auto-discount-banner">
-                        🎉 ${best.message}
-                    </div>
-                `;
-            }
+           const discountSection = document.querySelector('.discount-section');
+if (discountSection) {
+    const banner = document.createElement('div');
+    banner.className = 'auto-discount-banner';
+    banner.textContent = `🎉 ${best.message}`;
+    discountSection.insertBefore(banner, discountSection.firstChild);
+}
 
             updateCheckoutTotals();
 
