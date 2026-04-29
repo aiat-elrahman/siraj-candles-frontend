@@ -778,7 +778,13 @@ function renderProduct(product) {
                 <h1 class="product-title-main">${escapeHtml(itemName)}</h1>
                 <p class="product-category-subtle">${escapeHtml(itemCategory)}</p> 
                 
-                <p class="product-price-main" id="dynamic-price">${displayPrice.toFixed(2)} EGP</p>
+               <p class="product-price-main" id="dynamic-price">${displayPrice.toFixed(2)} EGP</p>
+${product.isBundle && product.bundleOriginalPrice > displayPrice ? `
+    <p class="bundle-savings-line">
+        <span class="bundle-original-price">${product.bundleOriginalPrice.toFixed(2)} EGP</span>
+        <span class="bundle-savings-badge">Save ${(product.bundleOriginalPrice - displayPrice).toFixed(2)} EGP</span>
+    </p>
+` : ''}
                 
                 <!-- REVIEW SUMMARY - displayed right under price -->
                 <div id="dynamic-review-summary" class="product-review-summary"></div>
