@@ -970,8 +970,7 @@ function renderVariantSelector(variants) {
             <select id="variant-select" class="option-selector unified-dropdown">
                 ${variants.map((v, i) => `
                     <option value="${v.variantName}" data-price="${v.price}" data-stock="${v.stock}" ${i === 0 ? 'selected' : ''}>
-                        ${v.variantName} - ${v.price.toFixed(2)} EGP
-                    </option>
+                        ${v.variantName}
                 `).join('')}
             </select>
         </div>
