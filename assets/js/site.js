@@ -610,7 +610,7 @@ async function loadProducts(page) {
     
     // CRITICAL FIX: Send subcategory to backend if present
     if (subCategory) {
-        query += `&subcategory=${encodeURIComponent(subCategory)}`;
+       query += `&sub=${encodeURIComponent(subCategory)}`;
     }
     
     if (searchQuery) {
