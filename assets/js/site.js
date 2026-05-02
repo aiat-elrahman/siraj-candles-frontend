@@ -990,18 +990,22 @@ function renderVariantSelector(variants) {
     `;
     
     const variantSelect = document.getElementById('variant-select');
-    const priceElement = document.getElementById('dynamic-price');
-    
-    if (variantSelect && priceElement) {
-        variantSelect.addEventListener('change', (e) => {
-            const selectedOption = e.target.options[e.target.selectedIndex];
-            const price = selectedOption.getAttribute('data-price');
-            priceElement.textContent = `${parseFloat(price).toFixed(2)} EGP`;
-        });
-        
+const priceElement = document.getElementById('dynamic-price');
+
+if (variantSelect && priceElement) {
+    variantSelect.addEventListener('change', (e) => {
+        const selectedOption = e.target.options[e.target.selectedIndex];
+        if (!selectedOption) return;
+        const price = selectedOption.getAttribute('data-price');
+        if (price) priceElement.textContent = `${parseFloat(price).toFixed(2)} EGP`;
+    });
+
+    // Guard: only read price if a valid option is selected
+    if (variantSelect.selectedIndex >= 0 && variantSelect.options[variantSelect.selectedIndex]) {
         const initialPrice = variantSelect.options[variantSelect.selectedIndex].getAttribute('data-price');
-        priceElement.textContent = `${parseFloat(initialPrice).toFixed(2)} EGP`;
+        if (initialPrice) priceElement.textContent = `${parseFloat(initialPrice).toFixed(2)} EGP`;
     }
+}
 }
 
 function renderProductOptions(product) {
