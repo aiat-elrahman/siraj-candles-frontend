@@ -473,7 +473,7 @@ body.mobile-menu-open::before {
 
 /* ── CART DROPDOWN ──────────────────────────────────────────────── */
 .cart-dropdown {
-     position: fixed;
+   position: fixed;
     right: 1rem;
     top: 80px;
     width: 340px;
@@ -485,8 +485,25 @@ body.mobile-menu-open::before {
     box-shadow: var(--shadow-lg);
     z-index: 600;
     display: none;
+    max-height: 80vh; /* Limits height to 80% of the screen */
+    display: flex;
+    flex-direction: column;
+}
+.cart-items-list {
+    overflow-y: auto; /* Enables vertical scrolling */
+    flex-grow: 1;     /* Allows it to take up available space */
+    margin-bottom: 1rem;
+    padding-right: 5px; /* Space for the scrollbar */
 }
 
+/* Optional: Make the scrollbar look cleaner (Luxury feel) */
+.cart-items-list::-webkit-scrollbar {
+    width: 4px;
+}
+.cart-items-list::-webkit-scrollbar-thumb {
+    background: var(--brand-light);
+    border-radius: 10px;
+}
 .dropdown-header {
     font-family: var(--font-display);
     font-size: 1.1rem;
