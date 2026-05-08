@@ -1604,7 +1604,7 @@ async function processCheckout(e) {
     
     const checkoutForm = e.target;
     const formData = new FormData(checkoutForm);
-    const totalAmount = getCartTotal();
+    const cartSubtotal = getCartTotal();
     
     if (!formData.get('city')) {
         alert('Please select your city.');
@@ -1616,10 +1616,28 @@ async function processCheckout(e) {
         return;
     }
     const selectedOption = citySelect.options[citySelect.selectedIndex];
+    
+    // Base shipping fee
     let shippingFee = 0;
-    if (totalAmount < 2000) {
+    if (cartSubtotal < 2000) {
         shippingFee = parseFloat(selectedOption.dataset.fee) || 50.00;
     }
+
+    // --- NEW: Calculate final numbers including the applied discount ---
+    let finalDiscountAmount = 0;
+    let finalShippingFee = shippingFee;
+    let usedDiscountCode = null;
+
+    if (appliedDiscount) {
+        usedDiscountCode = appliedDiscount.code || 'AUTO_DISCOUNT';
+        if (appliedDiscount.isFreeShipping || appliedDiscount.type === 'free_shipping') {
+            finalShippingFee = 0;
+        } else {
+            finalDiscountAmount = appliedDiscount.discountAmount || 0;
+        }
+    }
+
+    const finalTotalAmount = Math.max(0, cartSubtotal + finalShippingFee - finalDiscountAmount);
 
     const orderData = {
         customerInfo: {
@@ -1638,9 +1656,11 @@ async function processCheckout(e) {
             variantName: item.variantName || null, 
             customization: item.customization || []
         })),
-        totalAmount: totalAmount + shippingFee,
-        subtotal: totalAmount,
-        shippingFee: shippingFee,
+        totalAmount: finalTotalAmount,           // Fixed: Uses post-discount total
+        subtotal: cartSubtotal,                  // Fixed: Uses raw cart total
+        shippingFee: finalShippingFee,           // Fixed: Free shipping respected
+        discountAmount: finalDiscountAmount,     // Added: Saves discount amount
+        discountCode: usedDiscountCode,          // Added: Saves code used
         paymentMethod: formData.get('payment-method'),
     };
     
