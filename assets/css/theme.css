@@ -473,7 +473,7 @@ body.mobile-menu-open::before {
 
 /* ── CART DROPDOWN ──────────────────────────────────────────────── */
 .cart-dropdown {
-   position: fixed;
+    position: fixed;
     right: 1rem;
     top: 80px;
     width: 340px;
@@ -483,27 +483,73 @@ body.mobile-menu-open::before {
     border: 1px solid var(--cream-mid);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
-    z-index: 600;
-    display: none;
+    z-index: 1000; /* Increased to ensure it stays above ALL text/products */
+    display: none; 
     max-height: 80vh; /* Limits height to 80% of the screen */
-    display: flex;
     flex-direction: column;
+    /* Smooth animation prep */
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
+
+/* Enhances display block with a smooth appearance if handled via JS */
+.cart-dropdown[style*="display: block"] {
+    animation: cartFadeIn 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes cartFadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .cart-items-list {
     overflow-y: auto; /* Enables vertical scrolling */
     flex-grow: 1;     /* Allows it to take up available space */
     margin-bottom: 1rem;
-    padding-right: 5px; /* Space for the scrollbar */
+    padding-right: 8px; /* Space for the scrollbar */
+    overscroll-behavior: contain; /* Prevents background page from scrolling */
 }
 
-/* Optional: Make the scrollbar look cleaner (Luxury feel) */
+/* Scrollbar styling - Luxury feel */
 .cart-items-list::-webkit-scrollbar {
-    width: 4px;
+    width: 5px;
+}
+.cart-items-list::-webkit-scrollbar-track {
+    background: var(--cream);
+    border-radius: 10px;
 }
 .cart-items-list::-webkit-scrollbar-thumb {
     background: var(--brand-light);
     border-radius: 10px;
 }
+.cart-items-list::-webkit-scrollbar-thumb:hover {
+    background: var(--brand);
+}
+
+/* Cart Count Badge Settings */
+.cart-icon-button {
+    position: relative; /* Keeps the badge attached to the icon */
+}
+
+.cart-count {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: var(--brand); 
+    color: var(--white);
+    border-radius: 50%;
+    font-size: 0.65rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
 .dropdown-header {
     font-family: var(--font-display);
     font-size: 1.1rem;
@@ -744,7 +790,6 @@ body.mobile-menu-open::before {
     from { transform: translateX(0);   opacity: 1; }
     to   { transform: translateX(110%); opacity: 0; }
 }
-
 /* ── HERO SECTION — elevated ────────────────────────────────────── */
 .hero-section {
     background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1765150425/Your_paragraph_text_1_ck0hsl.png');
