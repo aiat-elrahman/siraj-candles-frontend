@@ -339,7 +339,10 @@ async function buildMobileMenu() {
         }
     });
  
-    html += `</div></div><a href="bundles.html" class="mobile-nav-link">Bundles</a></nav>`;
+    html += `</div></div>
+    <a href="bundles.html" class="mobile-nav-link">Bundles</a>
+    <a href="order-tracking.html" class="mobile-nav-link">Track Order</a>
+</nav>`;
     mobileMenu.innerHTML = html;
  
     mobileMenu.querySelectorAll('.mobile-nav-parent').forEach(btn => {
