@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
         case 'category-landing':
             initCategoryLandingPage();
             break;
+            case 'order-tracking':
+                 break;
             case 'stores':
             setupStoresPage(); 
             break;
@@ -74,16 +76,22 @@ function setupEventListeners() {
                 if (!orders || orders.length === 0) {
                     resultDiv.innerHTML = '<p class="empty-message">No orders found for this phone number.</p>';
                 } else {
-                    resultDiv.innerHTML = orders.map(o => `
-                        <div style="background: var(--white); border: 1px solid var(--cream-mid); padding: 15px; border-radius: var(--radius-md); margin-bottom: 15px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <strong style="color: var(--text);">Order #${o._id.slice(-8)}</strong>
-                                <span class="order-status-badge status-${o.status.toLowerCase()}">${o.status}</span>
-                            </div>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Date: ${new Date(o.createdAt).toLocaleDateString()}</p>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0;">Total: <strong>${o.totalAmount.toFixed(2)} EGP</strong></p>
-                        </div>
-                    `).join('');
+                   resultDiv.innerHTML = orders.map(o => `
+    <div class="tracking-order-card">
+        <div class="tracking-order-header">
+            <span class="tracking-order-id">Order #${o._id.slice(-8)}</span>
+            <span class="order-status-badge status-${o.status.toLowerCase()}">${o.status}</span>
+        </div>
+        <p class="tracking-order-meta">📅 ${new Date(o.createdAt).toLocaleDateString('en-EG', { year:'numeric', month:'long', day:'numeric' })}</p>
+        ${o.items && o.items.length > 0 ? `
+        <div class="tracking-order-items">
+            ${o.items.map(item => `
+                <div class="tracking-order-item">• ${escapeHtml(item.name)} × ${item.quantity}</div>
+            `).join('')}
+        </div>` : ''}
+        <p class="tracking-order-total">Total: ${o.totalAmount.toFixed(2)} EGP</p>
+    </div>
+`).join('');
                 }
             } catch (err) {
                 resultDiv.innerHTML = '<p class="error-message">Could not connect to tracking server. Please try again.</p>';
