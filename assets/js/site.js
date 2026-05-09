@@ -113,7 +113,7 @@ function setupEventListeners() {
         cToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             const dropdown = document.getElementById('cart-dropdown');
-            if(dropdown) dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            if(dropdown) dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
         });
     }
 
