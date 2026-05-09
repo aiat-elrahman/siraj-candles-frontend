@@ -1160,16 +1160,12 @@ function renderBundleItems(product) {
     `;
 }
 
+
+
 function buyNowHandler(product) {
     const qtyInput = document.getElementById('quantity');
     const qty = parseInt(qtyInput.value);
     const maxStock = parseInt(qtyInput.getAttribute('max')) || 999;
-
-    if (qty > maxStock) {
-        showCartMessage(`Sorry, we only have ${maxStock} available!`);
-        qtyInput.value = maxStock;
-        return;
-    }
 
     let price = product.price_egp || product.bundlePrice || 0, variant = null;
     
@@ -1188,6 +1184,7 @@ function buyNowHandler(product) {
         quantity: qty,
         imageUrl: product.imagePaths?.[0],
         variantName: variant,
+        maxStock: maxStock, // <-- NEW: Save the stock limit to the cart
         customization: collectAllSelections(product) || []
     };
     addToCart(cartItem);
@@ -1199,12 +1196,6 @@ function addToCartHandler(product) {
     const qty = parseInt(qtyInput.value);
     const maxStock = parseInt(qtyInput.getAttribute('max')) || 999;
 
-    if (qty > maxStock) {
-        showCartMessage(`Sorry, we only have ${maxStock} available!`);
-        qtyInput.value = maxStock;
-        return;
-    }
-
     let price = product.price_egp || product.bundlePrice || 0, variant = null;
     
     const vSelect = document.getElementById('variant-select');
@@ -1222,11 +1213,11 @@ function addToCartHandler(product) {
         quantity: qty,
         imageUrl: product.imagePaths?.[0],
         variantName: variant,
+        maxStock: maxStock, // <-- NEW: Save the stock limit to the cart
         customization: collectAllSelections(product) || []
     };
     addToCart(cartItem);
 }
-
 window.adjustQty = (d) => {
     const i = document.getElementById('quantity');
     if (!i) return;
@@ -1322,14 +1313,38 @@ function addToCart(product) {
     const existingItem = cart.find(item => getCartUniqueId(item) === uniqueId);
     
     if (existingItem) {
-        existingItem.quantity += product.quantity || 1;
+        // Calculate what the new quantity WOULD be after this click
+        const proposedQty = existingItem.quantity + (product.quantity || 1);
+        const max = product.maxStock || existingItem.maxStock || 999;
+        
+        // Block it if it exceeds stock
+        if (proposedQty > max) {
+            showCartMessage(`Sorry, we only have ${max} of this item in stock!`);
+            existingItem.quantity = max; // Cap it at the maximum
+        } else {
+            existingItem.quantity = proposedQty;
+            showCartMessage(`${product.name} (x${product.quantity || 1}) added to cart!`);
+        }
     } else {
+        // Block it if the initial addition exceeds stock
+        const max = product.maxStock || 999;
+        let qtyToAdd = product.quantity || 1;
+        
+        if (qtyToAdd > max) {
+            showCartMessage(`Sorry, we only have ${max} available!`);
+            qtyToAdd = max;
+        } else {
+            showCartMessage(`${product.name} (x${qtyToAdd}) added to cart!`);
+        }
+
         cart.push({ 
             ...product, 
             cartItemId: uniqueId, 
-            quantity: product.quantity || 1 
+            quantity: qtyToAdd,
+            maxStock: max // Ensure the cart remembers the limit for later
         });
     }
+    
     if (typeof fbq !== 'undefined') {
         fbq('track', 'AddToCart', {
             content_name: product.name,
@@ -1341,7 +1356,6 @@ function addToCart(product) {
     }
     saveCartToStorage();
     updateCartUI();
-    showCartMessage(`${product.name} (x${product.quantity || 1}) added to cart!`);
 }
 window.addToCart = addToCart;
 
@@ -1369,7 +1383,15 @@ window.removeItemFromCart = removeItemFromCart;
 function updateItemQuantity(id, quantity) {
     const item = cart.find(item => getCartUniqueId(item) === id);
     if (item) {
-        const newQuantity = parseInt(quantity);
+        let newQuantity = parseInt(quantity);
+        const max = item.maxStock || 999;
+        
+        // <-- NEW: Hard stop if they hit the + button too many times
+        if (newQuantity > max) {
+            showCartMessage(`Only ${max} available in stock!`);
+            newQuantity = max; 
+        }
+        
         if (newQuantity > 0 && !isNaN(newQuantity)) {
             item.quantity = newQuantity;
             saveCartToStorage();
@@ -1380,12 +1402,14 @@ function updateItemQuantity(id, quantity) {
             } else if (document.body.getAttribute('data-page') === 'checkout') {
                 renderCheckoutSummary(document.getElementById('checkout-summary-container'));
                 renderCheckoutCartItems();
+                updateCheckoutTotals(); // Ensures totals update immediately
             }
         } else if (newQuantity <= 0) {
             removeItemFromCart(id);
         }
     }
 }
+window.updateItemQuantity = updateItemQuantity;
 window.updateItemQuantity = updateItemQuantity;
 
 function getCartTotal() {
