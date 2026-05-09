@@ -46,7 +46,46 @@ function setupEventListeners() {
             if(input) input.focus();
         });
     }
-
+// Order Tracking Form Logic
+    const trackingForm = document.getElementById('order-tracking-form');
+    if (trackingForm) {
+        trackingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('tracking-phone').value.trim();
+            const resultDiv = document.getElementById('tracking-result');
+            
+            if (phone.length < 8) {
+                resultDiv.innerHTML = '<p class="error-message">Please enter a valid phone number.</p>';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p class="loading-message">Searching for your orders...</p>';
+            resultDiv.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/orders/track/${encodeURIComponent(phone)}`);
+                const orders = await response.json();
+                
+                if (!orders || orders.length === 0) {
+                    resultDiv.innerHTML = '<p class="empty-message">No orders found for this phone number.</p>';
+                } else {
+                    resultDiv.innerHTML = orders.map(o => `
+                        <div style="background: var(--white); border: 1px solid var(--cream-mid); padding: 15px; border-radius: var(--radius-md); margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <strong style="color: var(--text);">Order #${o._id.slice(-8)}</strong>
+                                <span class="order-status-badge status-${o.status.toLowerCase()}">${o.status}</span>
+                            </div>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Date: ${new Date(o.createdAt).toLocaleDateString()}</p>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0;">Total: <strong>${o.totalAmount.toFixed(2)} EGP</strong></p>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                resultDiv.innerHTML = '<p class="error-message">Could not connect to tracking server. Please try again.</p>';
+            }
+        });
+    }
     const cSearch = document.querySelector('.close-search');
     if (cSearch) {
         cSearch.addEventListener('click', () => {
