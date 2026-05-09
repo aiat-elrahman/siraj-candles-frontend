@@ -3034,3 +3034,153 @@ body.scrolled .navbar {
 .status-shipped    { background: #e8f5e9; color: #2e7d32; }
 .status-delivered  { background: #e8f5e9; color: #1b5e20; }
 .status-cancelled  { background: #ffebee; color: #c62828; }
+/* ── ADD THESE TO THE BOTTOM OF theme.css ── */
+
+/* Stores Page */
+.stores-main { padding: 2rem 0 4rem; }
+
+.stores-hero {
+    text-align: center;
+    padding: 3rem 1rem 2.5rem;
+    border-bottom: 1px solid var(--cream-mid);
+    margin-bottom: 3rem;
+}
+
+.stores-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.04em;
+}
+
+.stores-hero-subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.stores-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+}
+
+@media (min-width: 900px) {
+    .stores-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.store-card {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.store-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.store-map {
+    width: 100%;
+    height: 260px;
+    border: none;
+    display: block;
+    background: var(--cream-light);
+}
+
+.store-map-placeholder {
+    width: 100%;
+    height: 260px;
+    background: var(--cream-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    gap: 0.5rem;
+}
+
+.store-map-placeholder i { font-size: 2rem; color: var(--brand); }
+
+.store-info {
+    padding: 1.75rem;
+    flex: 1;
+}
+
+.store-name {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+}
+
+.store-detail {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-mid);
+    line-height: 1.5;
+}
+
+.store-detail i {
+    color: var(--brand);
+    font-size: 0.9rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+    width: 16px;
+    text-align: center;
+}
+
+.store-photos {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 1.75rem 1.75rem;
+    flex-wrap: wrap;
+}
+
+.store-photo {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--cream-mid);
+}
+
+/* Footer stores link */
+.footer-stores-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--brand);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    transition: opacity 0.2s;
+}
+
+.footer-stores-link:hover { opacity: 0.75; }
+
+/* Dynamic ribbon rotating messages */
+.announcement-ribbon .ribbon-msg {
+    display: none;
+    animation: ribbonFade 0.5s ease;
+}
+
+.announcement-ribbon .ribbon-msg.active { display: inline; }
+
+@keyframes ribbonFade {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
