@@ -478,19 +478,16 @@ body.mobile-menu-open::before {
     top: 80px;
     width: 340px;
     max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 100px);  /* ← never taller than the screen */
+    display: none;
+    flex-direction: column;           /* ← children stack vertically */
     padding: 1.25rem;
     background-color: var(--white);
     border: 1px solid var(--cream-mid);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
-    z-index: 1000; /* Increased to ensure it stays above ALL text/products */
-    display: none; 
-    max-height: 80vh; /* Limits height to 80% of the screen */
-    flex-direction: column;
-    /* Smooth animation prep */
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 600;
+    overflow: hidden;                 /* ← clip the outer container */
 }
 
 /* Enhances display block with a smooth appearance if handled via JS */
@@ -504,11 +501,11 @@ body.mobile-menu-open::before {
 }
 
 .cart-items-list {
-    overflow-y: auto; /* Enables vertical scrolling */
-    flex-grow: 1;     /* Allows it to take up available space */
-    margin-bottom: 1rem;
-    padding-right: 8px; /* Space for the scrollbar */
-    overscroll-behavior: contain; /* Prevents background page from scrolling */
+    flex: 1;                          /* ← takes remaining space between header and footer */
+    overflow-y: auto;                 /* ← THIS is what scrolls */
+    -webkit-overflow-scrolling: touch; /* ← smooth scroll on iOS */
+    overscroll-behavior: contain;     /* ← prevents page scroll leaking through */
+    padding-right: 4px;               /* ← small gap so scrollbar doesn't overlap content */
 }
 
 /* Scrollbar styling - Luxury feel */
