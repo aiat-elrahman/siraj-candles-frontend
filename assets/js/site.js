@@ -188,11 +188,28 @@ function renderProductGrid(containerId, items, endpointType) {
         const itemName = item.name_en || item.bundleName || item['Name (English)'] || 'Unknown Product';
         const itemPrice = item.price_egp || item.bundlePrice || item['Price (EGP)'] || 0;
         const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
-        const isOutOfStock = !item.bundleItems && (item.stock !== undefined) && item.stock <= 0;
+        
+        // Stock Logic
+        let isOutOfStock = false;
+        let lowStockCount = null;
+
+        if (!isBundle) {
+            // Check variants if they exist, otherwise check global stock
+            if (item.variants && item.variants.length > 0) {
+                const totalVariantStock = item.variants.reduce((sum, v) => sum + v.stock, 0);
+                isOutOfStock = totalVariantStock <= 0;
+            } else {
+                isOutOfStock = item.stock <= 0;
+                if (item.stock > 0 && item.stock <= 5) {
+                    lowStockCount = item.stock;
+                }
+            }
+        }
     
     return `
-    <a href="product.html?id=${item._id}" class="product-card">
-        ${isOutOfStock ? `<span class="oos-badge">Out of Stock</span>` : ''}
+    <a href="product.html?id=${item._id}" class="product-card" ${isOutOfStock ? 'style="opacity: 0.6; pointer-events: none;"' : ''}>
+        ${isOutOfStock ? `<span class="oos-badge" style="background: var(--error); color: white;">Out of Stock</span>` : ''}
+        ${!isOutOfStock && lowStockCount ? `<span class="oos-badge" style="background: #f59e0b; color: white;">Only ${lowStockCount} Left!</span>` : ''}
         <div>
             <img src="${itemImage}" alt="${itemName}" loading="lazy">
         </div>
@@ -1031,23 +1048,40 @@ function renderVariantSelector(variants) {
         </div>
     `;
     
-    const variantSelect = document.getElementById('variant-select');
-const priceElement = document.getElementById('dynamic-price');
+   const variantSelect = document.getElementById('variant-select');
+    const priceElement = document.getElementById('dynamic-price');
+    const qtyInput = document.getElementById('quantity');
 
-if (variantSelect && priceElement) {
-    variantSelect.addEventListener('change', (e) => {
-        const selectedOption = e.target.options[e.target.selectedIndex];
-        if (!selectedOption) return;
-        const price = selectedOption.getAttribute('data-price');
-        if (price) priceElement.textContent = `${parseFloat(price).toFixed(2)} EGP`;
-    });
+    if (variantSelect) {
+        variantSelect.addEventListener('change', (e) => {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            if (!selectedOption) return;
+            
+            // Update Price
+            const price = selectedOption.getAttribute('data-price');
+            if (price && priceElement) priceElement.textContent = `${parseFloat(price).toFixed(2)} EGP`;
+            
+            // Update Max Stock Limit dynamically
+            const stock = parseInt(selectedOption.getAttribute('data-stock')) || 0;
+            if (qtyInput) {
+                qtyInput.setAttribute('max', stock);
+                // If they had 3 selected but the new variant only has 1, drop it to 1
+                if (parseInt(qtyInput.value) > stock) {
+                    qtyInput.value = stock > 0 ? stock : 1; 
+                }
+            }
+        });
 
-    // Guard: only read price if a valid option is selected
-    if (variantSelect.selectedIndex >= 0 && variantSelect.options[variantSelect.selectedIndex]) {
-        const initialPrice = variantSelect.options[variantSelect.selectedIndex].getAttribute('data-price');
-        if (initialPrice) priceElement.textContent = `${parseFloat(initialPrice).toFixed(2)} EGP`;
+        // Trigger the logic once on load to set the initial max stock
+        if (variantSelect.selectedIndex >= 0 && variantSelect.options[variantSelect.selectedIndex]) {
+            const initialOpt = variantSelect.options[variantSelect.selectedIndex];
+            const initialPrice = initialOpt.getAttribute('data-price');
+            const initialStock = initialOpt.getAttribute('data-stock');
+            
+            if (initialPrice && priceElement) priceElement.textContent = `${parseFloat(initialPrice).toFixed(2)} EGP`;
+            if (initialStock && qtyInput) qtyInput.setAttribute('max', initialStock);
+        }
     }
-}
 }
 
 function renderProductOptions(product) {
@@ -1127,7 +1161,16 @@ function renderBundleItems(product) {
 }
 
 function buyNowHandler(product) {
-    const qty = parseInt(document.getElementById('quantity').value);
+    const qtyInput = document.getElementById('quantity');
+    const qty = parseInt(qtyInput.value);
+    const maxStock = parseInt(qtyInput.getAttribute('max')) || 999;
+
+    if (qty > maxStock) {
+        showCartMessage(`Sorry, we only have ${maxStock} available!`);
+        qtyInput.value = maxStock;
+        return;
+    }
+
     let price = product.price_egp || product.bundlePrice || 0, variant = null;
     
     const vSelect = document.getElementById('variant-select');
@@ -1152,7 +1195,16 @@ function buyNowHandler(product) {
 }
 
 function addToCartHandler(product) {
-    const qty = parseInt(document.getElementById('quantity').value);
+    const qtyInput = document.getElementById('quantity');
+    const qty = parseInt(qtyInput.value);
+    const maxStock = parseInt(qtyInput.getAttribute('max')) || 999;
+
+    if (qty > maxStock) {
+        showCartMessage(`Sorry, we only have ${maxStock} available!`);
+        qtyInput.value = maxStock;
+        return;
+    }
+
     let price = product.price_egp || product.bundlePrice || 0, variant = null;
     
     const vSelect = document.getElementById('variant-select');
@@ -1160,8 +1212,6 @@ function addToCartHandler(product) {
         const opt = vSelect.options[vSelect.selectedIndex];
         price = parseFloat(opt.getAttribute('data-price'));
         variant = vSelect.value;
-        const stock = parseInt(opt.getAttribute('data-stock'));
-        if(stock < qty) { alert(`Only ${stock} left!`); return; }
     }
 
     const cartItem = {
@@ -1179,11 +1229,21 @@ function addToCartHandler(product) {
 
 window.adjustQty = (d) => {
     const i = document.getElementById('quantity');
+    if (!i) return;
+    
+    let max = parseInt(i.getAttribute('max'));
+    if (isNaN(max)) max = 999; // Fallback for bundles
+    
     let n = parseInt(i.value) + d;
-    if(n < 1) n = 1;
+    
+    if (n < 1) n = 1;
+    if (n > max) {
+        n = max;
+        // Flash a warning using your existing toast message
+        showCartMessage(`Only ${max} available in stock!`);
+    }
     i.value = n;
 };
-
 function collectAllSelections(product) {
     const selections = [];
     let validationFailed = false;
