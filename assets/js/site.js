@@ -57,7 +57,7 @@ function setupEventListeners() {
     if (trackingForm) {
         trackingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const phone = document.getElementById('tracking-phone').value.trim();
+            const phone = document.getElementById('tracking-phone').value.trim().replace(/[\s\-]/g, '');
             const resultDiv = document.getElementById('tracking-result');
             
             if (phone.length < 8) {
@@ -70,7 +70,7 @@ function setupEventListeners() {
             resultDiv.style.display = 'block';
             
             try {
-                const response = await fetch(`${API_BASE_URL}/api/orders/track/${encodeURIComponent(phone)}`);
+                const response = await fetch(`${API_BASE_URL}/api/orders/track/${encodeURIComponent(phone.replace(/\+/g, ''))}`);
                 const orders = await response.json();
                 
                 if (!orders || orders.length === 0) {
