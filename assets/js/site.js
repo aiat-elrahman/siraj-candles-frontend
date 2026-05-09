@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadCartFromStorage();
     loadHeroSettings();
+    loadSiteSettings();
     buildMobileMenu();
 
     const pageName = document.body.getAttribute('data-page');
@@ -30,6 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
             break;
         case 'category-landing':
             initCategoryLandingPage();
+            break;
+            case 'stores':
+            setupStoresPage(); 
             break;
         default:
             break;
@@ -2215,4 +2219,183 @@ window.openReviewPhoto = openReviewPhoto;
 function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+
+// ── Load site-wide settings (ribbon, nav, footer) ─────────────────────────
+async function loadSiteSettings() {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/site-settings`);
+        if (!res.ok) return;
+        const settings = await res.json();
+
+        updateRibbon(settings);
+        updateNav(settings);
+        updateFooter(settings);
+    } catch (e) {
+        console.error('Failed to load site settings:', e);
+    }
+}
+
+// ── Ribbon: rotating messages ─────────────────────────────────────────────
+function updateRibbon(settings) {
+    const ribbon = document.getElementById('announcement-ribbon');
+    if (!ribbon) return;
+
+    if (!settings.ribbonEnabled) {
+        ribbon.style.display = 'none';
+        return;
+    }
+
+    ribbon.style.display = '';
+
+    const msgs = settings.ribbonMessages || [];
+    if (msgs.length === 0) return; // keep default HTML content
+
+    // Build rotating spans
+    ribbon.innerHTML = `<p>${msgs.map((m, i) =>
+        `<span class="ribbon-msg${i === 0 ? ' active' : ''}">${escapeHtml(m)}</span>`
+    ).join('')}</p>`;
+
+    if (msgs.length <= 1) return; // no rotation needed
+
+    let current = 0;
+    const speed = settings.ribbonSpeed || 4000;
+
+    setInterval(() => {
+        const all = ribbon.querySelectorAll('.ribbon-msg');
+        all[current].classList.remove('active');
+        current = (current + 1) % msgs.length;
+        all[current].classList.add('active');
+    }, speed);
+}
+
+// ── Nav: show/hide links based on settings ────────────────────────────────
+function updateNav(settings) {
+    if (!settings.navLinks) return;
+
+    const navMap = {
+        home:       'index.html',
+        products:   'products.html',
+        bundles:    'bundles.html',
+        trackOrder: 'order-tracking.html',
+        stores:     'stores.html',
+    };
+
+    // Desktop nav
+    const navLinks = document.querySelectorAll('.nav-links li a');
+    navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        const key = Object.keys(navMap).find(k => href && href.includes(navMap[k]));
+        if (!key) return;
+        const visible = settings.navLinks[key] !== false;
+        link.parentElement.style.display = visible ? '' : 'none';
+    });
+
+    // Add stores link to desktop nav if enabled and not already there
+    if (settings.navLinks.stores) {
+        const navList = document.querySelector('.nav-links');
+        if (navList && !navList.querySelector('a[href="stores.html"]')) {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="stores.html"><i class="fas fa-map-marker-alt"></i> Our Stores</a>`;
+            // Mark active if on stores page
+            if (window.location.pathname.includes('stores.html')) {
+                li.querySelector('a').classList.add('active');
+            }
+            navList.appendChild(li);
+        }
+    }
+}
+
+// ── Footer: update from settings ─────────────────────────────────────────
+function updateFooter(settings) {
+    const footer = document.querySelector('.footer');
+    if (!footer) return;
+
+    // Build footer HTML from settings
+    const hasStores = settings.navLinks?.stores;
+
+    footer.innerHTML = `
+        <p>Email us for <strong>bulk orders</strong> and <strong>customized gifts</strong>:
+            <a href="mailto:${escapeHtml(settings.footerEmail || 'orders@sirajcandles.com')}" class="email-btn">
+                ${escapeHtml(settings.footerEmail || 'orders@sirajcandles.com')}
+            </a>
+        </p>
+        <p style="margin-top: 15px;">
+            <a href="order-tracking.html" style="font-weight: 600; text-decoration: underline;">Track Your Order Here</a>
+        </p>
+        ${hasStores ? `
+        <p style="margin-top: 8px;">
+            <a href="stores.html" class="footer-stores-link">
+                <i class="fas fa-map-marker-alt"></i> Visit Our Stores
+            </a>
+        </p>` : ''}
+        <p>${escapeHtml(settings.footerCopyright || '© 2025 Siraj Candles. All rights reserved.')}</p>
+        <div class="social-links">
+            ${settings.footerInstagram ? `<a href="${settings.footerInstagram}" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>` : ''}
+            ${settings.footerFacebook  ? `<a href="${settings.footerFacebook}"  target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>` : ''}
+            ${settings.footerTiktok    ? `<a href="${settings.footerTiktok}"    target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>` : ''}
+        </div>
+        <p>${escapeHtml(settings.footerTagline || 'From our Home to Yours ❤️')}</p>
+    `;
+}
+
+// ── Stores Page ───────────────────────────────────────────────────────────
+async function setupStoresPage() {
+    const container = document.getElementById('stores-container');
+    if (!container) return;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/stores`);
+        if (!res.ok) throw new Error('Failed to load stores');
+        const stores = await res.json();
+
+        if (stores.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding: 4rem 1rem; color: var(--text-muted);">
+                    <i class="fas fa-map-marker-alt" style="font-size:3rem; color:var(--brand); margin-bottom:1rem; display:block;"></i>
+                    <p style="font-size:1.1rem;">Store locations coming soon!</p>
+                    <p style="margin-top:0.5rem; font-size:0.9rem;">Check back here for updates on where to find us in person.</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = stores.map(store => `
+            <div class="store-card">
+                ${store.mapsEmbedUrl
+                    ? `<iframe class="store-map" src="${store.mapsEmbedUrl}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`
+                    : `<div class="store-map-placeholder">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Map coming soon</span>
+                       </div>`
+                }
+                <div class="store-info">
+                    <h2 class="store-name">${escapeHtml(store.name)}</h2>
+                    ${store.address ? `
+                    <div class="store-detail">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${escapeHtml(store.address)}</span>
+                    </div>` : ''}
+                    ${store.phone ? `
+                    <div class="store-detail">
+                        <i class="fas fa-phone"></i>
+                        <span><a href="tel:${escapeHtml(store.phone)}" style="color:inherit;">${escapeHtml(store.phone)}</a></span>
+                    </div>` : ''}
+                    ${store.hours ? `
+                    <div class="store-detail">
+                        <i class="fas fa-clock"></i>
+                        <span>${escapeHtml(store.hours)}</span>
+                    </div>` : ''}
+                </div>
+                ${store.photos && store.photos.length > 0 ? `
+                <div class="store-photos">
+                    ${store.photos.map(p => `<img src="${p}" alt="${escapeHtml(store.name)}" class="store-photo" loading="lazy">`).join('')}
+                </div>` : ''}
+            </div>
+        `).join('');
+
+    } catch (e) {
+        container.innerHTML = `<p class="error-message" style="text-align:center;">Could not load store locations. Please try again later.</p>`;
+        console.error(e);
+    }
 }
