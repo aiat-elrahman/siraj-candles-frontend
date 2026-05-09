@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Stores | Siraj Candles</title>
+    <meta name="description" content="Find a Siraj Candles store near you. Visit us in person to explore our full collection.">
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body data-page="stores">
+
+    <div class="announcement-ribbon" id="announcement-ribbon">
+        <p>🎉 Free delivery on orders over 2000 EGP. 💖</p>
+    </div>
+
+    <nav class="navbar">
+        <div class="container">
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Open navigation menu">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="index.html" class="logo">
+                <span class="logo-siraj">SIRAJ</span>
+                <span class="logo-candles">CANDLES</span>
+            </a>
+            <ul class="nav-links" id="main-nav-links">
+                <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="products.html"><i class="fas fa-box-open"></i> Products</a></li>
+                <li><a href="bundles.html"><i class="fas fa-gift"></i> Bundles</a></li>
+                <li><a href="order-tracking.html"><i class="fas fa-truck"></i> Track Order</a></li>
+                <li><a href="stores.html" class="active"><i class="fas fa-map-marker-alt"></i> Our Stores</a></li>
+            </ul>
+            <div class="nav-icons">
+                <button id="search-toggle" aria-label="Search"><i class="fas fa-search"></i></button>
+                <button id="cart-toggle" class="cart-icon-button" aria-label="View cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" style="visibility: hidden; opacity: 0;">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mobile-nav-menu" id="mobile-nav-menu"></div>
+
+    <div id="cart-dropdown" class="cart-dropdown">
+        <h3 class="dropdown-header">Your Cart</h3>
+        <div class="cart-items-list"></div>
+        <div class="cart-summary"><p>Total: <span id="cart-total">0.00 EGP</span></p></div>
+        <div class="cart-dropdown-actions">
+            <a href="shopcart.html" class="view-cart-btn">View Cart</a>
+            <a href="checkout.html" class="checkout-btn-small">Checkout</a>
+        </div>
+    </div>
+
+    <div id="search-modal" class="search-modal">
+        <div class="search-content">
+            <button class="close-search">&times;</button>
+            <input type="text" id="search-input" placeholder="Search for product name or category...">
+            <div id="search-results" class="search-results"></div>
+        </div>
+    </div>
+
+    <main class="stores-main container">
+        <!-- Page Header -->
+        <div class="stores-hero">
+            <h1 class="stores-hero-title">Visit Us In Store</h1>
+            <p class="stores-hero-subtitle">Experience the full Siraj Candles collection in person. Our team is here to help you find your perfect scent.</p>
+        </div>
+
+        <!-- Stores Grid -->
+        <div class="stores-grid" id="stores-container">
+            <p class="loading-message">Loading store locations...</p>
+        </div>
+    </main>
+
+    <footer class="footer" id="site-footer">
+        <p>Email us for <strong>bulk orders</strong> and <strong>customized gifts</strong>: <a href="mailto:orders@sirajcandles.com" class="email-btn">orders@sirajcandles.com</a></p>
+        <p style="margin-top: 15px;"><a href="order-tracking.html" style="font-weight: 600; text-decoration: underline;">Track Your Order Here</a></p>
+        <p>&copy; 2025 Siraj Candles. All rights reserved.</p>
+        <div class="social-links">
+            <a href="https://www.instagram.com/siraj_candles_eg" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.facebook.com/people/sirajcandles/61576576972784/" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://www.tiktok.com/@sirajcandles" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+        </div>
+        <p>From our Home to Yours ❤️</p>
+    </footer>
+
+    <script type="module" src="assets/js/site.js"></script>
+</body>
+</html>
