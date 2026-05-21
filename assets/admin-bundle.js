@@ -572,7 +572,7 @@ Bundle,Gift Set Deluxe,BODY SPLASHES,800,950,15,Active,false,The perfect luxury 
             border-radius: 12px !important;
           }
         }
-      `})]})}const kt="#1E1023",St="#F472B6",Ye="#BE185D",Rt="#FFF0F6",ct="#6B4A6E",Ut="#D8B4D8",ds="#FCE7F3",cs="https://siraj-backend.onrender.com",Js=[{id:"analytics",name:"Dashboard",icon:gn},{id:"products",name:"Products",icon:mt},{id:"orders",name:"Orders",icon:Cs},{id:"categories",name:"Categories",icon:wn},{id:"discounts",name:"Discounts",icon:Tn},{id:"shipping",name:"Shipping",icon:Mn},{id:"care",name:"Product Care",icon:Cn},{id:"content",name:"Content Planner",icon:Ht},{id:"homepage",name:"Homepage",icon:It},{id:"reviews",name:"Reviews",icon:Jt},{id:"bulk",name:"Bulk Upload",icon:xt},{id:"bazaar",name:"🎪 Bazaar",icon:Dt}],Br=`
+      `})]})}const kt="#1E1023",St="#F472B6",Ye="#BE185D",Rt="#FFF0F6",ct="#6B4A6E",Ut="#D8B4D8",ds="#FCE7F3",cs="https://siraj-backend.onrender.com",Js=[{id:"analytics",name:"Dashboard",icon:gn},{id:"products",name:"Products",icon:mt},{id:"orders",name:"Orders",icon:Cs},{id:"categories",name:"Categories",icon:wn},{id:"discounts",name:"Discounts",icon:Tn},{id:"shipping",name:"Shipping",icon:Mn},{id:"care",name:"Product Care",icon:Cn},{id:"content",name:"Content Planner",icon:Ht},{id:"homepage",name:"Homepage",icon:It},{id:"reviews",name:"Reviews",icon:Jt},{id:"bulk",name:"Bulk Upload",icon:xt},{id:"bazaar",name:" Bazaar",icon:Dt}],Br=`
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
 
   .admin-root * { box-sizing: border-box; }
