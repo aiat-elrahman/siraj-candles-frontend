@@ -778,7 +778,7 @@ Bundle,Gift Set Deluxe,BODY SPLASHES,800,950,15,Active,false,The perfect luxury 
         z-index: 200;
         background: ${pt};
     display: flex; flex-direction: column;
-    flex-shrink: 0; 
+    flex-shrink: unset;
     }
     .admin-sidebar.mobile-open { transform: translateX(0); }
     .admin-main { padding: 16px; width: 100%; }
