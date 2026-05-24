@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCartFromStorage();
     loadHeroSettings();
     loadSiteSettings();
-    buildMobileMenu();
+
 
     const pageName = document.body.getAttribute('data-page');
     switch (pageName) {
@@ -798,8 +798,18 @@ function renderProduct(product) {
     const container = document.getElementById('product-detail-container');
     const itemName = product.isBundle ? product.bundleName : product.name_en;
     const itemCategory = product.category;
-    const itemStock = product.stock || 0;
-    const isOutOfStock = itemStock <= 0;
+    
+
+    let itemStock = product.stock || 0;
+let isOutOfStock = false;
+
+if (product.variants && product.variants.length > 0) {
+    const totalVariantStock = product.variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+    isOutOfStock = totalVariantStock <= 0;
+    itemStock = totalVariantStock;
+} else {
+    isOutOfStock = itemStock <= 0;
+}
     
     let displayPrice = product.price_egp || product.bundlePrice || 0;
     let hasVariants = false;
@@ -860,7 +870,7 @@ ${product.isBundle && product.bundleOriginalPrice > displayPrice ? `
                 <!-- REVIEW SUMMARY - displayed right under price -->
                 <div id="dynamic-review-summary" class="product-review-summary"></div>
 
-                ${!isOutOfStock || hasVariants ? `
+                ${!isOutOfStock ? `
                     <div class="product-actions-grid">
                         <div id="variant-selector-container"></div>
                         
@@ -1043,55 +1053,62 @@ function renderVariantSelector(variants) {
     
     const variantType = variants[0]?.variantType || 'scent';
     const labelText = variantType === 'scent' ? 'Scent:' : 
-                      variantType === 'size' ? 'Size:' : 
-                      variantType === 'weight' ? 'Weight:' : 'Option:';
+                      variantType === 'size'  ? 'Size:'  : 
+                      variantType === 'weight'? 'Weight:': 'Option:';
     
     container.innerHTML = `
         <div class="option-group variant-selector-group">
             <label for="variant-select" class="variant-label">${labelText}</label>
             <select id="variant-select" class="option-selector unified-dropdown">
                 ${variants.map((v, i) => {
-    const outOfStock = (v.stock !== undefined && v.stock <= 0);
-    return `<option value="${v.variantName}" data-price="${v.price}" data-stock="${v.stock}" ${outOfStock ? 'disabled' : ''} ${!outOfStock && i === 0 ? 'selected' : ''}>
-        ${v.variantName}${outOfStock ? ' — Out of Stock' : ''}
-    </option>`;
-}).join('')}
+                    const outOfStock = (v.stock !== undefined && v.stock <= 0);
+                    return `<option value="${v.variantName}" data-price="${v.price}" data-stock="${v.stock}"
+                        ${outOfStock ? 'disabled' : ''}
+                        ${!outOfStock && i === 0 ? 'selected' : ''}>
+                        ${v.variantName}${outOfStock ? ' — Out of Stock' : ''}
+                    </option>`;
+                }).join('')}
             </select>
         </div>
     `;
     
-   const variantSelect = document.getElementById('variant-select');
-    const priceElement = document.getElementById('dynamic-price');
-    const qtyInput = document.getElementById('quantity');
+    const variantSelect = document.getElementById('variant-select');
+    const priceElement  = document.getElementById('dynamic-price');
+    const qtyInput      = document.getElementById('quantity'); // ← declared ONCE here
 
     if (variantSelect) {
         variantSelect.addEventListener('change', (e) => {
             const selectedOption = e.target.options[e.target.selectedIndex];
             if (!selectedOption) return;
             
-            // Update Price
             const price = selectedOption.getAttribute('data-price');
             if (price && priceElement) priceElement.textContent = `${parseFloat(price).toFixed(2)} EGP`;
             
-            // Update Max Stock Limit dynamically
             const stock = parseInt(selectedOption.getAttribute('data-stock')) || 0;
             if (qtyInput) {
                 qtyInput.setAttribute('max', stock);
-                // If they had 3 selected but the new variant only has 1, drop it to 1
                 if (parseInt(qtyInput.value) > stock) {
-                    qtyInput.value = stock > 0 ? stock : 1; 
+                    qtyInput.value = stock > 0 ? stock : 1;
                 }
             }
         });
 
-        // Trigger the logic once on load to set the initial max stock
+        // Set initial price and stock from the first selected option
         if (variantSelect.selectedIndex >= 0 && variantSelect.options[variantSelect.selectedIndex]) {
-            const initialOpt = variantSelect.options[variantSelect.selectedIndex];
+            const initialOpt   = variantSelect.options[variantSelect.selectedIndex];
             const initialPrice = initialOpt.getAttribute('data-price');
             const initialStock = initialOpt.getAttribute('data-stock');
             
             if (initialPrice && priceElement) priceElement.textContent = `${parseFloat(initialPrice).toFixed(2)} EGP`;
             if (initialStock && qtyInput) qtyInput.setAttribute('max', initialStock);
+        }
+
+        // Override with first AVAILABLE (non-disabled) option's stock
+        // This handles the case where the first option is out of stock
+        const firstAvailableOpt = Array.from(variantSelect.options).find(o => !o.disabled);
+        if (firstAvailableOpt && qtyInput) {
+            const initStock = parseInt(firstAvailableOpt.getAttribute('data-stock')) || 0;
+            if (initStock > 0) qtyInput.setAttribute('max', initStock);
         }
     }
 }
@@ -2240,6 +2257,7 @@ async function loadSiteSettings() {
         updateRibbon(settings);
         updateNav(settings);
         updateFooter(settings);
+        buildMobileMenu();
     } catch (e) {
         console.error('Failed to load site settings:', e);
     }
