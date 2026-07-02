@@ -760,6 +760,7 @@ async function loadProductDetails() {
         product.isBundle = product.productType === 'Bundle';
 
         renderProduct(product);
+        window.SirajTracking?.trackViewContent(product);
 
         const relatedContainer = document.getElementById('related-products-container');
         if (relatedContainer) {
@@ -1374,15 +1375,7 @@ function addToCart(product) {
         });
     }
     
-    if (typeof fbq !== 'undefined') {
-        fbq('track', 'AddToCart', {
-            content_name: product.name,
-            content_ids: [product._id],
-            content_type: 'product',
-            value: product.price,
-            currency: 'EGP'
-        });
-    }
+    window.SirajTracking?.trackAddToCart(product);
     saveCartToStorage();
     updateCartUI();
 }
@@ -1601,6 +1594,7 @@ async function setupCheckoutPage() {
     
     await loadShippingCities(); 
     await checkAndApplyAutomaticDiscounts();
+    window.SirajTracking?.trackBeginCheckout(cart, getCartTotal());
 
     const applyBtn = document.getElementById('apply-discount-btn');
     if (applyBtn) {
@@ -1835,14 +1829,7 @@ async function processCheckout(e) {
         const result = await response.json();
 
         if (response.ok) {
-             if (typeof fbq !== 'undefined') {
-                fbq('track', 'Purchase', {
-                    value: orderData.totalAmount,
-                    currency: 'EGP',
-                    content_ids: orderData.items.map(item => item.productId),
-                    content_type: 'product'
-                });
-            }
+            window.SirajTracking?.trackPurchase({ ...orderData, orderId: result.orderId });
             console.log('Order placed successfully! Your Order ID is: ' + result.orderId);
             if (appliedDiscount?.code) {
                 fetch(`${API_BASE_URL}/api/discounts/use`, {
@@ -2417,7 +2404,7 @@ function updateNav(settings) {
         products:   'products.html',
         bundles:    'bundles.html',
         trackOrder: 'order-tracking.html',
-        stores:     'stores.html',
+        stores:     'Stores.html',
     };
 
     // Desktop nav
@@ -2433,11 +2420,11 @@ function updateNav(settings) {
     // Add stores link to desktop nav if enabled and not already there
     if (settings.navLinks.stores) {
         const navList = document.querySelector('.nav-links');
-        if (navList && !navList.querySelector('a[href="stores.html"]')) {
+        if (navList && !navList.querySelector('a[href="Stores.html"]')) {
             const li = document.createElement('li');
-            li.innerHTML = `<a href="stores.html"><i class="fas fa-map-marker-alt"></i> Our Stores</a>`;
+            li.innerHTML = `<a href="Stores.html"><i class="fas fa-map-marker-alt"></i> Our Stores</a>`;
             // Mark active if on stores page
-            if (window.location.pathname.includes('stores.html')) {
+            if (window.location.pathname.includes('Stores.html')) {
                 li.querySelector('a').classList.add('active');
             }
             navList.appendChild(li);
@@ -2464,7 +2451,7 @@ function updateFooter(settings) {
         </p>
         ${hasStores ? `
         <p style="margin-top: 8px;">
-            <a href="stores.html" class="footer-stores-link">
+            <a href="Stores.html" class="footer-stores-link">
                 <i class="fas fa-map-marker-alt"></i> Visit Our Stores
             </a>
         </p>` : ''}
