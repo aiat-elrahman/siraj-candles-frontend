@@ -1,0 +1,24 @@
+{
+  "name": "Siraj Candles",
+  "short_name": "Siraj",
+  "description": "Handmade candles & self-care — Siraj Candles",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1E1023",
+  "theme_color": "#BE185D",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
