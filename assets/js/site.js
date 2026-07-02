@@ -1855,7 +1855,9 @@ async function processCheckout(e) {
             cart = []; 
             saveCartToStorage();
             updateCartUI();
-            alert(`Order placed successfully! \nOrder ID: ${result.orderId}`);
+
+            // Show WhatsApp confirmation screen instead of alert
+            await showOrderSuccessWithWhatsApp(result.orderId, orderData);
             window.location.href = 'index.html'; 
         } else {
             throw new Error(result.message || 'Failed to place order.');
@@ -1867,6 +1869,116 @@ async function processCheckout(e) {
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
     }
+}
+
+// ── WhatsApp order confirmation ───────────────────────────────────────────────
+async function showOrderSuccessWithWhatsApp(orderId, orderData) {
+    return new Promise(async (resolve) => {
+        try {
+            // Fetch WhatsApp template from site settings
+            const res      = await fetch(`${API_BASE_URL}/api/site-settings`);
+            const settings = res.ok ? await res.json() : {};
+
+            const template    = settings.whatsappOrderTemplate || '';
+            const waPhone     = (settings.whatsappPhone || '+201001775793').replace(/\D/g, '');
+            const shortId     = '#' + orderId.toString().slice(-8).toUpperCase();
+
+            // Build items list
+            const itemLines = (orderData.items || []).map(i =>
+                `• ${i.name}${i.variantName ? ` (${i.variantName})` : ''} × ${i.quantity}`
+            ).join('\n');
+
+            // Replace placeholders
+            const message = template
+                .replace(/\{\{name\}\}/g,    orderData.customerInfo?.name || 'عزيزتي')
+                .replace(/\{\{orderId\}\}/g, shortId)
+                .replace(/\{\{total\}\}/g,   orderData.totalAmount?.toFixed(2) || '0')
+                .replace(/\{\{items\}\}/g,   itemLines)
+                .replace(/\{\{city\}\}/g,    orderData.customerInfo?.city || '');
+
+            const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
+
+            // Build overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position:fixed; inset:0; background:rgba(30,16,35,0.85);
+                display:flex; align-items:center; justify-content:center;
+                z-index:99999; padding:16px; backdrop-filter:blur(6px);
+            `;
+
+            overlay.innerHTML = `
+                <div style="
+                    background:#fff; border-radius:20px; padding:32px 28px;
+                    max-width:480px; width:100%; text-align:center;
+                    box-shadow:0 24px 60px rgba(0,0,0,0.3);
+                    font-family: 'Montserrat', sans-serif;
+                ">
+                    <div style="font-size:48px; margin-bottom:12px;">🎉</div>
+                    <h2 style="color:#1E1023; font-size:22px; font-weight:800; margin:0 0 6px;">
+                        تم استلام طلبك!
+                    </h2>
+                    <p style="color:#6B4A6E; font-size:14px; margin:0 0 6px;">
+                        Order ID: <strong style="color:#BE185D;">${shortId}</strong>
+                    </p>
+                    <p style="color:#6B4A6E; font-size:13px; margin:0 0 20px;">
+                        Total: <strong>${orderData.totalAmount?.toFixed(2)} EGP</strong>
+                    </p>
+
+                    <div style="
+                        background:#f0fdf4; border:1px solid #bbf7d0;
+                        border-radius:12px; padding:14px 16px; margin-bottom:20px;
+                        text-align:right; direction:rtl;
+                    ">
+                        <p style="color:#065f46; font-size:12px; font-weight:700; margin:0 0 8px;">
+                            📱 رسالة التأكيد جاهزة على واتساب:
+                        </p>
+                        <p style="color:#374151; font-size:11px; margin:0; white-space:pre-wrap; line-height:1.6; text-align:right;">
+                            ${message.slice(0, 200)}${message.length > 200 ? '...' : ''}
+                        </p>
+                    </div>
+
+                    <a href="${waUrl}" target="_blank" onclick="setTimeout(() => { document.getElementById('siraj-order-overlay').remove(); }, 500);" style="
+                        display:block; padding:14px; margin-bottom:12px;
+                        background:linear-gradient(135deg, #25D366, #128C7E);
+                        color:#fff; border-radius:12px; text-decoration:none;
+                        font-weight:800; font-size:15px;
+                        box-shadow:0 4px 14px rgba(37,211,102,0.35);
+                    ">
+                        📱 إرسال تأكيد الطلب على واتساب
+                    </a>
+
+                    <button onclick="document.getElementById('siraj-order-overlay').remove();" style="
+                        display:block; width:100%; padding:11px;
+                        background:#FCE7F3; color:#BE185D; border:none;
+                        border-radius:12px; font-weight:700; font-size:14px;
+                        cursor:pointer; font-family:inherit;
+                    ">
+                        متابعة التسوق
+                    </button>
+                </div>
+            `;
+
+            overlay.id = 'siraj-order-overlay';
+            document.body.appendChild(overlay);
+
+            // Auto-resolve after 60 seconds so page doesn't stay stuck
+            const autoResolve = setTimeout(resolve, 60000);
+
+            // Resolve when overlay is removed (button clicked or WhatsApp opened)
+            const observer = new MutationObserver(() => {
+                if (!document.getElementById('siraj-order-overlay')) {
+                    clearTimeout(autoResolve);
+                    observer.disconnect();
+                    setTimeout(resolve, 500);
+                }
+            });
+            observer.observe(document.body, { childList: true });
+
+        } catch (e) {
+            console.error('WhatsApp screen error:', e);
+            resolve(); // never block the flow
+        }
+    });
 }
 
 async function loadShippingCities() {
