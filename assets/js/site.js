@@ -200,6 +200,7 @@ function renderProductGrid(containerId, items, endpointType) {
         const itemName = item.name_en || item.bundleName || item['Name (English)'] || 'Unknown Product';
         const itemPrice = item.price_egp || item.bundlePrice || item['Price (EGP)'] || 0;
         const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
+        const onSale = !isBundle && item.salePrice && item.salePrice < itemPrice;
         
         // Stock Logic
         let isOutOfStock = false;
@@ -222,12 +223,15 @@ function renderProductGrid(containerId, items, endpointType) {
     <a href="product.html?id=${item._id}" class="product-card" ${isOutOfStock ? 'style="opacity: 0.6; pointer-events: none;"' : ''}>
         ${isOutOfStock ? `<span class="oos-badge" style="background: var(--error); color: white;">Out of Stock</span>` : ''}
         ${!isOutOfStock && lowStockCount ? `<span class="oos-badge" style="background: #f59e0b; color: white;">Only ${lowStockCount} Left!</span>` : ''}
+        ${onSale ? `<span class="sale-badge">SALE</span>` : ''}
         <div>
             <img src="${itemImage}" alt="${itemName}" loading="lazy">
         </div>
             <div class="product-info-minimal">
                 <p class="product-title">${escapeHtml(itemName)}</p>
-                <p class="product-price">${itemPrice.toFixed(2)} EGP</p>
+                <p class="product-price">${onSale
+                    ? `<span class="price-original">${itemPrice.toFixed(2)} EGP</span> <span class="price-sale">${item.salePrice.toFixed(2)} EGP</span>`
+                    : `${itemPrice.toFixed(2)} EGP`}</p>
             </div>
         </a>
     `;
@@ -483,47 +487,84 @@ async function initCategoryLandingPage() {
     }
 }
 
+let heroCarouselTimer = null;
+
 async function loadHeroSettings() {
+    const heroSection = document.getElementById('dynamic-hero');
+    if (!heroSection) return;
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/settings/hero`);
         const heroData = await response.json();
 
-        const heroSection = document.querySelector('.hero-section');
-        const heroButton = document.getElementById('hero-button');
-        const heroTitle = document.getElementById('hero-title');
-        const heroSubtitle = document.getElementById('hero-subtitle');
+        // Normalize: support both the new { slides: [...] } shape and the
+        // legacy single-slide shape { backgroundImage, title, subtitle, buttonText, buttonLink }
+        let slides = Array.isArray(heroData.slides) && heroData.slides.length > 0
+            ? heroData.slides
+            : [heroData];
 
-        if (heroData.backgroundImage && heroSection) {
-            heroSection.style.backgroundImage = `url(${heroData.backgroundImage})`;
-            heroSection.style.backgroundSize = 'cover';
-            heroSection.style.backgroundPosition = 'center';
-        }
+        slides = slides.filter(s => s && (s.backgroundImage || s.title));
+        if (slides.length === 0) throw new Error('No hero slides configured');
 
-        if (heroData.title && heroTitle) {
-            heroTitle.textContent = heroData.title;
-            heroTitle.style.display = 'block';
-        }
-
-        if (heroData.subtitle && heroSubtitle) {
-            heroSubtitle.textContent = heroData.subtitle;
-            heroSubtitle.style.display = 'block';
-        }
-
-        if (heroData.buttonText && heroButton) {
-            heroButton.textContent = heroData.buttonText;
-        }
-
-        if (heroData.buttonLink && heroButton) {
-            heroButton.href = heroData.buttonLink;
-        }
+        renderHeroCarousel(heroSection, slides, heroData.autoplaySpeed || 5000);
 
     } catch (error) {
         console.error('Failed to load hero settings:', error);
-        const heroSection = document.querySelector('.hero-section');
-        if (heroSection) {
-            heroSection.style.backgroundImage = "url('https://res.cloudinary.com/dvr195vfw/image/upload/v1776209850/Gemini_Generated_Image__3_bylucb.png')";
-        }
+        heroSection.style.backgroundImage = "url('https://res.cloudinary.com/dvr195vfw/image/upload/v1776209850/Gemini_Generated_Image__3_bylucb.png')";
+        heroSection.style.backgroundSize = 'cover';
+        heroSection.style.backgroundPosition = 'center';
     }
+}
+
+function renderHeroCarousel(heroSection, slides, autoplaySpeed) {
+    heroSection.classList.add('hero-carousel');
+    heroSection.innerHTML = `
+        <div class="hero-slides-track">
+            ${slides.map((s, i) => `
+                <div class="hero-slide ${i === 0 ? 'active' : ''}" style="background-image:url('${s.backgroundImage || ''}')">
+                    <div class="hero-content">
+                        ${s.title ? `<h1 class="hero-title">${escapeHtml(s.title)}</h1>` : ''}
+                        ${s.subtitle ? `<p class="hero-subtitle">${escapeHtml(s.subtitle)}</p>` : ''}
+                        <a href="${s.buttonLink || '/products.html'}" class="shop-now-btn">${escapeHtml(s.buttonText || 'Shop Now')}</a>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        ${slides.length > 1 ? `
+        <button class="hero-arrow hero-arrow--prev" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
+        <button class="hero-arrow hero-arrow--next" aria-label="Next slide"><i class="fas fa-chevron-right"></i></button>
+        <div class="hero-dots">
+            ${slides.map((_, i) => `<button class="hero-dot ${i === 0 ? 'active' : ''}" data-index="${i}" aria-label="Go to slide ${i + 1}"></button>`).join('')}
+        </div>` : ''}
+    `;
+
+    if (slides.length <= 1) return;
+
+    let current = 0;
+    const slideEls = heroSection.querySelectorAll('.hero-slide');
+    const dotEls = heroSection.querySelectorAll('.hero-dot');
+
+    const goTo = (index) => {
+        slideEls[current].classList.remove('active');
+        dotEls[current].classList.remove('active');
+        current = (index + slides.length) % slides.length;
+        slideEls[current].classList.add('active');
+        dotEls[current].classList.add('active');
+    };
+
+    const startAutoplay = () => {
+        clearInterval(heroCarouselTimer);
+        heroCarouselTimer = setInterval(() => goTo(current + 1), autoplaySpeed);
+    };
+
+    heroSection.querySelector('.hero-arrow--prev').addEventListener('click', () => { goTo(current - 1); startAutoplay(); });
+    heroSection.querySelector('.hero-arrow--next').addEventListener('click', () => { goTo(current + 1); startAutoplay(); });
+    dotEls.forEach(dot => dot.addEventListener('click', () => { goTo(parseInt(dot.dataset.index)); startAutoplay(); }));
+
+    heroSection.addEventListener('mouseenter', () => clearInterval(heroCarouselTimer));
+    heroSection.addEventListener('mouseleave', startAutoplay);
+
+    startAutoplay();
 }
 
 async function fetchBestsellers() {
@@ -860,7 +901,11 @@ if (product.variants && product.variants.length > 0) {
                 <h1 class="product-title-main">${escapeHtml(itemName)}</h1>
                 <p class="product-category-subtle">${escapeHtml(itemCategory)}</p> 
                 
-               <p class="product-price-main" id="dynamic-price">${displayPrice.toFixed(2)} EGP</p>
+               <p class="product-price-main" id="dynamic-price">
+                    ${!product.isBundle && product.salePrice && product.salePrice < displayPrice && !hasVariants
+                        ? `<span class="price-original">${displayPrice.toFixed(2)} EGP</span> <span class="price-sale">${product.salePrice.toFixed(2)} EGP</span> <span class="sale-badge sale-badge--inline">SALE</span>`
+                        : `${displayPrice.toFixed(2)} EGP`}
+                </p>
 ${product.isBundle && product.bundleOriginalPrice > displayPrice ? `
     <p class="bundle-savings-line">
         <span class="bundle-original-price">${product.bundleOriginalPrice.toFixed(2)} EGP</span>
@@ -1197,7 +1242,8 @@ function buyNowHandler(product) {
     const qty = parseInt(qtyInput.value);
     const maxStock = parseInt(qtyInput.getAttribute('max')) || 999;
 
-    let price = product.price_egp || product.bundlePrice || 0, variant = null;
+    let price = (product.salePrice && product.salePrice < (product.price_egp || Infinity)) ? product.salePrice : (product.price_egp || product.bundlePrice || 0);
+    let variant = null;
     
     const vSelect = document.getElementById('variant-select');
     if (vSelect) {
@@ -1226,7 +1272,8 @@ function addToCartHandler(product) {
     const qty = parseInt(qtyInput.value);
     const maxStock = parseInt(qtyInput.getAttribute('max')) || 999;
 
-    let price = product.price_egp || product.bundlePrice || 0, variant = null;
+    let price = (product.salePrice && product.salePrice < (product.price_egp || Infinity)) ? product.salePrice : (product.price_egp || product.bundlePrice || 0);
+    let variant = null;
     
     const vSelect = document.getElementById('variant-select');
     if (vSelect) {
@@ -1247,6 +1294,10 @@ function addToCartHandler(product) {
         customization: collectAllSelections(product) || []
     };
     addToCart(cartItem);
+
+    if (product.pairedProduct) {
+        setTimeout(() => showPairingPopup(product.pairedProduct), 500);
+    }
 }
 window.adjustQty = (d) => {
     const i = document.getElementById('quantity');
@@ -1307,6 +1358,8 @@ function collectAllSelections(product) {
 // ====================================
 
 let cart = [];
+let siteFreeGiftSettings = null; // { enabled, threshold, giftProducts: [...] }
+let freeGiftDeclined = false;    // true after the customer manually removes their gift
 
 function loadCartFromStorage() {
     const cartData = localStorage.getItem('sirajCart');
@@ -1326,6 +1379,9 @@ function saveCartToStorage() {
 }
 
 function getCartUniqueId(product) {
+    if (product.isFreeGift) {
+        return `${product._id}_freegift`;
+    }
     if (product.customization && product.customization.length > 0) {
         const customizationString = Array.isArray(product.customization) 
             ? product.customization.sort().join('|')
@@ -1382,6 +1438,8 @@ function addToCart(product) {
 window.addToCart = addToCart;
 
 function removeItemFromCart(id) {
+    const removedItem = cart.find(item => getCartUniqueId(item) === id);
+    if (removedItem && removedItem.isFreeGift) freeGiftDeclined = true;
     cart = cart.filter(item => getCartUniqueId(item) !== id);
     saveCartToStorage();
     updateCartUI();
@@ -1462,7 +1520,7 @@ function updateCartUI() {
                     <div class="cart-item-details">
                         <div class="cart-item-name">${escapeHtml(item.name)}</div>
                         <span class="cart-item-variant">${escapeHtml(item.variantName || '')}</span>
-                        <div class="cart-item-price">${item.quantity} x ${item.price} EGP</div>
+                        <div class="cart-item-price">${item.isFreeGift ? '<span class="free-gift-tag">🎁 FREE GIFT</span>' : `${item.quantity} x ${item.price} EGP`}</div>
                     </div>
 
                     <button class="remove-item-btn" onclick="removeItemFromCart('${getCartUniqueId(item)}')">&times;</button>
@@ -1470,7 +1528,201 @@ function updateCartUI() {
             `).join('');
         }
     }
+
+    updateFreeGiftBar();
 }
+
+// ── Free Gift Progress Bar ─────────────────────────────────────────────────
+function ensureFreeGiftBarMarkup() {
+    if (document.getElementById('free-gift-bar')) return;
+    const summary = document.querySelector('#cart-dropdown .cart-summary');
+    if (!summary) return;
+    const bar = document.createElement('div');
+    bar.id = 'free-gift-bar';
+    bar.className = 'free-gift-bar';
+    bar.style.display = 'none';
+    bar.innerHTML = `
+        <p class="free-gift-message"></p>
+        <div class="free-gift-track"><div class="free-gift-fill"></div></div>
+    `;
+    summary.insertAdjacentElement('afterend', bar);
+}
+
+function updateFreeGiftBar() {
+    ensureFreeGiftBarMarkup();
+    const bar = document.getElementById('free-gift-bar');
+    const fg = siteFreeGiftSettings;
+
+    if (!bar) return;
+    if (!fg || !fg.enabled || !fg.threshold || !(fg.giftProducts && fg.giftProducts.length)) {
+        bar.style.display = 'none';
+        return;
+    }
+
+    bar.style.display = '';
+    const paidSubtotal = cart.filter(i => !i.isFreeGift).reduce((s, i) => s + (i.price * i.quantity), 0);
+    const remaining = fg.threshold - paidSubtotal;
+    const pct = Math.max(0, Math.min(100, (paidSubtotal / fg.threshold) * 100));
+
+    const fill = bar.querySelector('.free-gift-fill');
+    const msg = bar.querySelector('.free-gift-message');
+    if (fill) fill.style.width = pct + '%';
+
+    if (remaining > 0) {
+        bar.classList.remove('unlocked');
+        freeGiftDeclined = false; // dropped below threshold, offer again if they cross it later
+        if (msg) msg.textContent = `Add ${remaining.toFixed(0)} EGP more to unlock a free gift 🎁`;
+        const hadGift = cart.some(i => i.isFreeGift);
+        if (hadGift) {
+            cart = cart.filter(i => !i.isFreeGift);
+            saveCartToStorage();
+        }
+    } else {
+        bar.classList.add('unlocked');
+        if (msg) msg.textContent = `🎉 You've unlocked a free gift!`;
+        if (!freeGiftDeclined) ensureFreeGiftInCart(fg.giftProducts);
+    }
+}
+
+function ensureFreeGiftInCart(giftProducts) {
+    if (cart.some(i => i.isFreeGift)) return;
+    if (giftProducts.length === 1) {
+        addFreeGiftToCart(giftProducts[0]);
+    } else {
+        showGiftChoiceModal(giftProducts);
+    }
+}
+
+function addFreeGiftToCart(gift) {
+    if (cart.some(i => i.isFreeGift)) return;
+    cart.push({
+        _id: gift._id,
+        name: gift.name_en,
+        category: gift.category || '',
+        price: 0,
+        quantity: 1,
+        imageUrl: gift.imagePaths?.[0],
+        variantName: null,
+        isFreeGift: true,
+        maxStock: 999,
+        customization: []
+    });
+    saveCartToStorage();
+    updateCartUI();
+    showCartMessage(`🎁 ${gift.name_en} added as your free gift!`);
+}
+
+function showGiftChoiceModal(giftProducts) {
+    document.querySelectorAll('.branded-modal-overlay').forEach(el => el.remove());
+    const overlay = document.createElement('div');
+    overlay.className = 'branded-modal-overlay';
+    overlay.innerHTML = `
+        <div class="branded-modal gift-choice-popup">
+            <button class="branded-modal-close" aria-label="Close">&times;</button>
+            <h3 class="branded-modal-title">🎁 Choose Your Free Gift</h3>
+            <div class="gift-choice-grid">
+                ${giftProducts.map(g => `
+                    <button type="button" class="gift-choice-card" data-id="${g._id}">
+                        <img src="${g.imagePaths?.[0] || 'assets/images/placeholder.jpg'}" alt="${escapeHtml(g.name_en || '')}">
+                        <span>${escapeHtml(g.name_en || '')}</span>
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector('.branded-modal-close').addEventListener('click', () => overlay.remove());
+    overlay.querySelectorAll('.gift-choice-card').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const gift = giftProducts.find(g => g._id === btn.dataset.id);
+            overlay.remove();
+            if (gift) addFreeGiftToCart(gift);
+        });
+    });
+    document.body.appendChild(overlay);
+}
+
+// ── Product Pairing Popup ────────────────────────────────────────────────
+function showPairingPopup(paired) {
+    if (!paired || !paired._id) return;
+    const sessionKey = 'pairingShown_' + paired._id;
+    if (sessionStorage.getItem(sessionKey)) return;
+    sessionStorage.setItem(sessionKey, '1');
+
+    const hasSale = paired.salePrice && paired.salePrice < paired.price_egp;
+    const price = hasSale ? paired.salePrice : (paired.price_egp || 0);
+
+    document.querySelectorAll('.branded-modal-overlay').forEach(el => el.remove());
+    const overlay = document.createElement('div');
+    overlay.className = 'branded-modal-overlay';
+    overlay.innerHTML = `
+        <div class="branded-modal pairing-popup">
+            <button class="branded-modal-close" aria-label="Close">&times;</button>
+            <h3 class="branded-modal-title">Pairs Beautifully With...</h3>
+            <div class="pairing-product-preview">
+                <img src="${paired.imagePaths?.[0] || 'assets/images/placeholder.jpg'}" alt="${escapeHtml(paired.name_en || '')}">
+                <div class="pairing-product-info">
+                    <p class="pairing-product-name">${escapeHtml(paired.name_en || '')}</p>
+                    <p class="pairing-product-price">
+                        ${hasSale
+                            ? `<span class="price-original">${paired.price_egp.toFixed(2)} EGP</span> <span class="price-sale">${paired.salePrice.toFixed(2)} EGP</span>`
+                            : `${price.toFixed(2)} EGP`}
+                    </p>
+                </div>
+            </div>
+            <div class="branded-modal-actions">
+                <button type="button" class="branded-modal-btn branded-modal-btn--ghost" data-action="cancel">No Thanks</button>
+                <button type="button" class="branded-modal-btn branded-modal-btn--primary" data-action="confirm">Add to Cart</button>
+            </div>
+        </div>
+    `;
+    const close = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    overlay.querySelector('.branded-modal-close').addEventListener('click', close);
+    overlay.querySelector('[data-action="cancel"]').addEventListener('click', close);
+    overlay.querySelector('[data-action="confirm"]').addEventListener('click', () => {
+        addToCart({
+            _id: paired._id,
+            name: paired.name_en,
+            category: paired.category || '',
+            price: price,
+            quantity: 1,
+            imageUrl: paired.imagePaths?.[0],
+            variantName: null,
+            maxStock: paired.stock || 999,
+            customization: []
+        });
+        close();
+    });
+    document.body.appendChild(overlay);
+}
+
+// ── Reusable Branded Modal (replaces plain browser alerts) ─────────────────
+function showBrandedModal({ title = '', message = '', type = 'info', confirmText = 'OK', onConfirm = null, cancelText = null, onCancel = null } = {}) {
+    document.querySelectorAll('.branded-modal-overlay').forEach(el => el.remove());
+    const overlay = document.createElement('div');
+    overlay.className = 'branded-modal-overlay';
+    overlay.innerHTML = `
+        <div class="branded-modal branded-modal--${type}">
+            <button class="branded-modal-close" aria-label="Close">&times;</button>
+            ${title ? `<h3 class="branded-modal-title">${escapeHtml(title)}</h3>` : ''}
+            <p class="branded-modal-message">${escapeHtml(message)}</p>
+            <div class="branded-modal-actions">
+                ${cancelText ? `<button type="button" class="branded-modal-btn branded-modal-btn--ghost" data-action="cancel">${escapeHtml(cancelText)}</button>` : ''}
+                <button type="button" class="branded-modal-btn branded-modal-btn--primary" data-action="confirm">${escapeHtml(confirmText)}</button>
+            </div>
+        </div>
+    `;
+    const close = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    overlay.querySelector('.branded-modal-close').addEventListener('click', close);
+    overlay.querySelector('[data-action="confirm"]').addEventListener('click', () => { close(); if (onConfirm) onConfirm(); });
+    const cancelBtn = overlay.querySelector('[data-action="cancel"]');
+    if (cancelBtn) cancelBtn.addEventListener('click', () => { close(); if (onCancel) onCancel(); });
+    document.body.appendChild(overlay);
+    return overlay;
+}
+window.showBrandedModal = showBrandedModal;
 
 function showCartMessage(message) {
     const existingMessage = document.querySelector('.cart-message');
@@ -1541,16 +1793,17 @@ function renderShopCartPage() {
                         ${customizationDetail}
                     </div>
                 </td>
-                <td data-label="Price">${item.price.toFixed(2)} EGP</td>
+                <td data-label="Price">${item.isFreeGift ? '<span class="free-gift-tag">🎁 FREE</span>' : item.price.toFixed(2) + ' EGP'}</td>
                 <td data-label="Quantity">
+                    ${item.isFreeGift ? `<span class="free-gift-tag">Qty: 1</span>` : `
                     <div class="quantity-controls">
                         <button class="quantity-btn minus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity - 1})">-</button>
                         <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
                                onchange="updateItemQuantity('${uniqueId}', this.value)">
                         <button class="quantity-btn plus" onclick="updateItemQuantity('${uniqueId}', ${item.quantity + 1})">+</button>
-                    </div>
+                    </div>`}
                 </td>
-                <td data-label="Total">${(item.price * item.quantity).toFixed(2)} EGP</td>
+                <td data-label="Total">${item.isFreeGift ? '<span class="free-gift-tag">🎁 FREE</span>' : (item.price * item.quantity).toFixed(2) + ' EGP'}</td>
                 <td data-label="Remove">
                     <button class="remove-item-btn" onclick="removeItemFromCart('${uniqueId}')" aria-label="Remove item">
                         <i class="fas fa-times"></i>
@@ -1729,16 +1982,17 @@ function renderCheckoutCartItems() {
                 <div class="checkout-item-details">
                     <h4>${escapeHtml(item.name)} ${variantDisplay}</h4>
                     ${customizationDetail}
-                    <div class="checkout-item-price">${item.price.toFixed(2)} EGP each</div>
+                    <div class="checkout-item-price">${item.isFreeGift ? '<span class="free-gift-tag">🎁 FREE</span>' : item.price.toFixed(2) + ' EGP each'}</div>
                 </div>
                 <div class="checkout-item-controls">
+                    ${item.isFreeGift ? `<span class="free-gift-tag">Qty: 1</span>` : `
                     <div class="quantity-controls">
                         <button class="quantity-btn minus" type="button" onclick="updateItemQuantity('${uniqueId}', ${item.quantity - 1})">-</button>
                         <input type="number" value="${item.quantity}" min="1" class="item-quantity-input" 
                                onchange="updateItemQuantity('${uniqueId}', this.value)">
                         <button class="quantity-btn plus" type="button" onclick="updateItemQuantity('${uniqueId}', ${item.quantity + 1})">+</button>
-                    </div>
-                    <div class="checkout-item-total">${itemTotal} EGP</div>
+                    </div>`}
+                    <div class="checkout-item-total">${item.isFreeGift ? '<span class="free-gift-tag">🎁 FREE</span>' : itemTotal + ' EGP'}</div>
                     <button class="remove-item-btn" type="button" onclick="removeItemFromCart('${uniqueId}')" aria-label="Remove item">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1756,12 +2010,12 @@ async function processCheckout(e) {
     const cartSubtotal = getCartTotal();
     
     if (!formData.get('city')) {
-        alert('Please select your city.');
+        showBrandedModal({ title: 'Almost there!', message: 'Please select your city to continue.' });
         return;
     }
     const citySelect = document.getElementById('city');
     if (!citySelect || !citySelect.value) {
-        alert('Please select your city before placing the order.');
+        showBrandedModal({ title: 'Almost there!', message: 'Please select your city before placing the order.' });
         return;
     }
     const selectedOption = citySelect.options[citySelect.selectedIndex];
@@ -1852,7 +2106,7 @@ async function processCheckout(e) {
 
     } catch (error) {
         console.error('Order failed: ' + error.message);
-        alert('Error: ' + error.message);
+        showBrandedModal({ title: 'Order Failed', message: error.message || 'Something went wrong. Please try again.', type: 'error' });
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
     }
@@ -2357,6 +2611,9 @@ async function loadSiteSettings() {
         updateNav(settings);
         updateFooter(settings);
         buildMobileMenu();
+
+        siteFreeGiftSettings = settings.freeGift || null;
+        updateFreeGiftBar();
     } catch (e) {
         console.error('Failed to load site settings:', e);
     }
