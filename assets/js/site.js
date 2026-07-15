@@ -219,8 +219,9 @@ function renderProductGrid(containerId, items, endpointType) {
             }
         }
     
+    // 🔥 NEW: Uses item.slug for SEO-friendly URLs, falls back to _id if slug is missing
     return `
-    <a href="product.html?id=${item._id}" class="product-card" ${isOutOfStock ? 'style="opacity: 0.6; pointer-events: none;"' : ''}>
+    <a href="product.html?slug=${item.slug || item._id}" class="product-card" ${isOutOfStock ? 'style="opacity: 0.6; pointer-events: none;"' : ''}>
         ${isOutOfStock ? `<span class="oos-badge" style="background: var(--error); color: white;">Out of Stock</span>` : ''}
         ${!isOutOfStock && lowStockCount ? `<span class="oos-badge" style="background: #f59e0b; color: white;">Only ${lowStockCount} Left!</span>` : ''}
         ${onSale ? `<span class="sale-badge">SALE</span>` : ''}
@@ -401,7 +402,7 @@ async function buildMobileMenu() {
     });
 }
  
-// ── Category Landing Page (UPDATED: Fixed Banner + Logic) ─────────────────────────────────────
+// ── Category Landing Page ─────────────────────────────────────
 async function initCategoryLandingPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const categoryName = urlParams.get('category');
@@ -475,7 +476,6 @@ async function initCategoryLandingPage() {
             }).join('');
         }
 
-        // HIDE the "All Products" section when there are subcategories (per your request)
         const allProductsSection = document.getElementById('category-all-products-section');
         if (allProductsSection) {
             allProductsSection.style.display = 'none';
@@ -497,8 +497,6 @@ async function loadHeroSettings() {
         const response = await fetch(`${API_BASE_URL}/api/settings/hero`);
         const heroData = await response.json();
 
-        // Normalize: support both the new { slides: [...] } shape and the
-        // legacy single-slide shape { backgroundImage, title, subtitle, buttonText, buttonLink }
         let slides = Array.isArray(heroData.slides) && heroData.slides.length > 0
             ? heroData.slides
             : [heroData];
@@ -567,6 +565,7 @@ function renderHeroCarousel(heroSection, slides, autoplaySpeed) {
     startAutoplay();
 }
 
+// 🔥 NEW: Bestsellers now automatically filter out out-of-stock items via &inStock=true
 async function fetchBestsellers() {
     const container = document.getElementById('bestsellers-container');
     if (!container) return;
@@ -574,7 +573,7 @@ async function fetchBestsellers() {
     container.innerHTML = '<p class="loading-message">Loading bestsellers...</p>';
 
     try {
-        const { items } = await fetchGridData('/products', 1, 6, '&featured=true');
+        const { items } = await fetchGridData('/products', 1, 6, '&featured=true&inStock=true');
         renderProductGrid('bestsellers-container', items, 'bestsellers');
 
     } catch (error) {
@@ -610,8 +609,9 @@ async function handleSearch() {
                     price = Math.min(...product.variants.map(v => v.price));
                 }
                 
+                // 🔥 NEW: Uses item.slug for SEO-friendly URLs in search dropdown
                 return `
-                    <a href="product.html?id=${product._id}" class="search-result-item">
+                    <a href="product.html?slug=${product.slug || product._id}" class="search-result-item">
                         <span class="search-item-title">${escapeHtml(productName)}</span>
                         <span class="search-item-price">${price.toFixed(2)} EGP</span>
                     </a>
@@ -625,7 +625,7 @@ async function handleSearch() {
 }
 
 // ====================================
-// PRODUCTS PAGE (UPDATED: Parent category includes subcategories)
+// PRODUCTS PAGE
 // ====================================
 
 async function initProductsPage() {
@@ -720,7 +720,6 @@ async function loadProducts(page) {
         query += `&category=${encodeURIComponent(activeCategory)}`;
     }
     
-    // CRITICAL FIX: Send subcategory to backend if present
     if (subCategory) {
        query += `&sub=${encodeURIComponent(subCategory)}`;
     }
@@ -772,7 +771,7 @@ async function loadBundles(page) {
 }
 
 // ====================================
-// SINGLE PRODUCT PAGE (UPDATED: Unified dropdowns, Reviews near price, Rich text)
+// SINGLE PRODUCT PAGE 
 // ====================================
 
 async function loadProductDetails() {
@@ -783,14 +782,15 @@ async function loadProductDetails() {
     }
     container.innerHTML = '<p class="loading-message">Loading product details...</p>';
 
+    // 🔥 NEW: Check for SEO slug first, fallback to standard ID
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-    if (!id) { 
-        container.innerHTML = '<p class="error-message">No product ID found in URL.</p>'; 
+    const idOrSlug = urlParams.get('slug') || urlParams.get('id');
+    if (!idOrSlug) { 
+        container.innerHTML = '<p class="error-message">No product ID or link found in URL.</p>'; 
         return; 
     }
 
-    const endpoint = `/products/${id}`;
+    const endpoint = `/products/${idOrSlug}`;
     try {
         const response = await fetch(`${API_BASE_URL}/api${endpoint}`);
         if (!response.ok) {
@@ -809,7 +809,7 @@ async function loadProductDetails() {
         }
 
     } catch (error) {
-        console.error(`Error fetching product details for ID ${id}:`, error);
+        console.error(`Error fetching product details for ${idOrSlug}:`, error);
         container.innerHTML = `<p class="error-message">Could not load product details. ${error.message}. Please try again later.</p>`;
     }
 }
@@ -1120,7 +1120,7 @@ function renderVariantSelector(variants) {
     
     const variantSelect = document.getElementById('variant-select');
     const priceElement  = document.getElementById('dynamic-price');
-    const qtyInput      = document.getElementById('quantity'); // ← declared ONCE here
+    const qtyInput      = document.getElementById('quantity'); 
 
     if (variantSelect) {
         variantSelect.addEventListener('change', (e) => {
@@ -1150,7 +1150,6 @@ function renderVariantSelector(variants) {
         }
 
         // Override with first AVAILABLE (non-disabled) option's stock
-        // This handles the case where the first option is out of stock
         const firstAvailableOpt = Array.from(variantSelect.options).find(o => !o.disabled);
         if (firstAvailableOpt && qtyInput) {
             const initStock = parseInt(firstAvailableOpt.getAttribute('data-stock')) || 0;
@@ -1235,8 +1234,6 @@ function renderBundleItems(product) {
     `;
 }
 
-
-
 function buyNowHandler(product) {
     const qtyInput = document.getElementById('quantity');
     const qty = parseInt(qtyInput.value);
@@ -1260,8 +1257,9 @@ function buyNowHandler(product) {
         quantity: qty,
         imageUrl: product.imagePaths?.[0],
         variantName: variant,
-        maxStock: maxStock, // <-- NEW: Save the stock limit to the cart
-        customization: collectAllSelections(product) || []
+        maxStock: maxStock, 
+        customization: collectAllSelections(product) || [],
+        slug: product.slug || product._id
     };
     addToCart(cartItem);
     window.location.href = 'checkout.html';
@@ -1290,8 +1288,9 @@ function addToCartHandler(product) {
         quantity: qty,
         imageUrl: product.imagePaths?.[0],
         variantName: variant,
-        maxStock: maxStock, // <-- NEW: Save the stock limit to the cart
-        customization: collectAllSelections(product) || []
+        maxStock: maxStock, 
+        customization: collectAllSelections(product) || [],
+        slug: product.slug || product._id
     };
     addToCart(cartItem);
 
@@ -1466,7 +1465,6 @@ function updateItemQuantity(id, quantity) {
         let newQuantity = parseInt(quantity);
         const max = item.maxStock || 999;
         
-        // <-- NEW: Hard stop if they hit the + button too many times
         if (newQuantity > max) {
             showCartMessage(`Only ${max} available in stock!`);
             newQuantity = max; 
@@ -1482,14 +1480,13 @@ function updateItemQuantity(id, quantity) {
             } else if (document.body.getAttribute('data-page') === 'checkout') {
                 renderCheckoutSummary(document.getElementById('checkout-summary-container'));
                 renderCheckoutCartItems();
-                updateCheckoutTotals(); // Ensures totals update immediately
+                updateCheckoutTotals(); 
             }
         } else if (newQuantity <= 0) {
             removeItemFromCart(id);
         }
     }
 }
-window.updateItemQuantity = updateItemQuantity;
 window.updateItemQuantity = updateItemQuantity;
 
 function getCartTotal() {
@@ -1570,7 +1567,7 @@ function updateFreeGiftBar() {
 
     if (remaining > 0) {
         bar.classList.remove('unlocked');
-        freeGiftDeclined = false; // dropped below threshold, offer again if they cross it later
+        freeGiftDeclined = false; 
         if (msg) msg.textContent = `Add ${remaining.toFixed(0)} EGP more to unlock a free gift 🎁`;
         const hadGift = cart.some(i => i.isFreeGift);
         if (hadGift) {
@@ -1690,14 +1687,15 @@ function showPairingPopup(paired) {
             imageUrl: paired.imagePaths?.[0],
             variantName: null,
             maxStock: paired.stock || 999,
-            customization: []
+            customization: [],
+            slug: paired.slug || paired._id
         });
         close();
     });
     document.body.appendChild(overlay);
 }
 
-// ── Reusable Branded Modal (replaces plain browser alerts) ─────────────────
+// ── Reusable Branded Modal ─────────────────
 function showBrandedModal({ title = '', message = '', type = 'info', confirmText = 'OK', onConfirm = null, cancelText = null, onCancel = null } = {}) {
     document.querySelectorAll('.branded-modal-overlay').forEach(el => el.remove());
     const overlay = document.createElement('div');
@@ -1789,7 +1787,7 @@ function renderShopCartPage() {
                 <td class="cart-product-col" data-label="Product">
                     <img src="${itemImage}" alt="${item.name}" class="cart-item-img">
                     <div>
-                        <a href="product.html?id=${item._id}">${escapeHtml(item.name)}</a>
+                        <a href="product.html?slug=${item.slug || item._id}">${escapeHtml(item.name)}</a>
                         ${customizationDetail}
                     </div>
                 </td>
@@ -1999,7 +1997,7 @@ function renderCheckoutCartItems() {
                 </div>
             </div>
         `;
-    }).join();
+    }).join('');
 }
 
 async function processCheckout(e) {
@@ -2026,7 +2024,6 @@ async function processCheckout(e) {
         shippingFee = parseFloat(selectedOption.dataset.fee) || 50.00;
     }
 
-    // --- NEW: Calculate final numbers including the applied discount ---
     let finalDiscountAmount = 0;
     let finalShippingFee = shippingFee;
     let usedDiscountCode = null;
@@ -2059,11 +2056,11 @@ async function processCheckout(e) {
             variantName: item.variantName || null, 
             customization: item.customization || []
         })),
-        totalAmount: finalTotalAmount,           // Fixed: Uses post-discount total
-        subtotal: cartSubtotal,                  // Fixed: Uses raw cart total
-        shippingFee: finalShippingFee,           // Fixed: Free shipping respected
-        discountAmount: finalDiscountAmount,     // Added: Saves discount amount
-        discountCode: usedDiscountCode,          // Added: Saves code used
+        totalAmount: finalTotalAmount,           
+        subtotal: cartSubtotal,                  
+        shippingFee: finalShippingFee,           
+        discountAmount: finalDiscountAmount,     
+        discountCode: usedDiscountCode,          
         paymentMethod: formData.get('payment-method'),
     };
     
@@ -2097,7 +2094,6 @@ async function processCheckout(e) {
             saveCartToStorage();
             updateCartUI();
 
-            // Show WhatsApp confirmation screen instead of alert
             await showOrderSuccessWithWhatsApp(result.orderId, orderData);
             window.location.href = 'index.html'; 
         } else {
@@ -2112,11 +2108,9 @@ async function processCheckout(e) {
     }
 }
 
-// ── WhatsApp order confirmation ───────────────────────────────────────────────
 async function showOrderSuccessWithWhatsApp(orderId, orderData) {
     return new Promise(async (resolve) => {
         try {
-            // Fetch WhatsApp template from site settings
             const res      = await fetch(`${API_BASE_URL}/api/site-settings`);
             const settings = res.ok ? await res.json() : {};
 
@@ -2124,12 +2118,10 @@ async function showOrderSuccessWithWhatsApp(orderId, orderData) {
             const waPhone     = (settings.whatsappPhone || '+201001775793').replace(/\D/g, '');
             const shortId     = '#' + orderId.toString().slice(-8).toUpperCase();
 
-            // Build items list
             const itemLines = (orderData.items || []).map(i =>
                 `• ${i.name}${i.variantName ? ` (${i.variantName})` : ''} × ${i.quantity}`
             ).join('\n');
 
-            // Replace placeholders
             const message = template
                 .replace(/\{\{name\}\}/g,    orderData.customerInfo?.name || 'عزيزتي')
                 .replace(/\{\{orderId\}\}/g, shortId)
@@ -2139,7 +2131,6 @@ async function showOrderSuccessWithWhatsApp(orderId, orderData) {
 
             const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
 
-            // Build overlay
             const overlay = document.createElement('div');
             overlay.style.cssText = `
                 position:fixed; inset:0; background:rgba(30,16,35,0.85);
@@ -2202,10 +2193,8 @@ async function showOrderSuccessWithWhatsApp(orderId, orderData) {
             overlay.id = 'siraj-order-overlay';
             document.body.appendChild(overlay);
 
-            // Auto-resolve after 60 seconds so page doesn't stay stuck
             const autoResolve = setTimeout(resolve, 60000);
 
-            // Resolve when overlay is removed (button clicked or WhatsApp opened)
             const observer = new MutationObserver(() => {
                 if (!document.getElementById('siraj-order-overlay')) {
                     clearTimeout(autoResolve);
@@ -2217,7 +2206,7 @@ async function showOrderSuccessWithWhatsApp(orderId, orderData) {
 
         } catch (e) {
             console.error('WhatsApp screen error:', e);
-            resolve(); // never block the flow
+            resolve();
         }
     });
 }
@@ -2600,7 +2589,7 @@ function escapeHtml(str) {
 }
 
 
-// ── Load site-wide settings (ribbon, nav, footer) ─────────────────────────
+// ── Load site-wide settings ─────────────────────────
 async function loadSiteSettings() {
     try {
         const res = await fetch(`${API_BASE_URL}/api/site-settings`);
@@ -2614,8 +2603,159 @@ async function loadSiteSettings() {
 
         siteFreeGiftSettings = settings.freeGift || null;
         updateFreeGiftBar();
+
+        // 🔥 NEW: Inject Favicon dynamically from admin settings
+        if (settings.faviconUrl) {
+            let link = document.querySelector("link[rel~='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.href = settings.faviconUrl;
+        }
+
+        // 🔥 NEW: Trigger Dynamic Homepage Builder Engine
+        if (document.body.getAttribute('data-page') === 'home') {
+            renderDynamicHomepage(settings.homepageSections);
+        }
+
     } catch (e) {
         console.error('Failed to load site settings:', e);
+    }
+}
+
+// 🔥 NEW: DYNAMIC HOMEPAGE ENGINE 
+function renderDynamicHomepage(sections) {
+    const heroSection = document.getElementById('dynamic-hero');
+    const main = document.querySelector('main');
+    
+    if (!sections || sections.length === 0) return;
+
+    let dynamicContainer = document.getElementById('dynamic-sections-container');
+    if (!dynamicContainer) {
+        dynamicContainer = document.createElement('div');
+        dynamicContainer.id = 'dynamic-sections-container';
+        if (heroSection) {
+            heroSection.parentNode.insertBefore(dynamicContainer, heroSection.nextSibling);
+        } else if (main) {
+            main.appendChild(dynamicContainer);
+        }
+
+        // Hide legacy static sections to avoid duplication if builder is active
+        const staticCat = document.querySelector('.category-grid-section');
+        const staticBest = document.querySelector('.bestsellers-section');
+        if (staticCat) staticCat.style.display = 'none';
+        if (staticBest) staticBest.style.display = 'none';
+    }
+
+    dynamicContainer.innerHTML = '';
+
+    const activeSections = sections.filter(s => s.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+
+    activeSections.forEach(sec => {
+        const sectionEl = document.createElement('section');
+        sectionEl.className = `dynamic-section layout-${sec.imageAlignment}`;
+        if (sec.backgroundColor && sec.backgroundColor !== 'transparent') {
+            sectionEl.style.backgroundColor = sec.backgroundColor;
+        }
+
+        let innerHtml = '';
+        
+        // Construct Text Block
+        const textHtml = `
+            <div class="dyn-text">
+                ${sec.headline ? `<h2 class="dyn-title">${escapeHtml(sec.headline)}</h2>` : ''}
+                ${sec.subheadline ? `<h3 class="dyn-subtitle">${escapeHtml(sec.subheadline)}</h3>` : ''}
+                ${sec.bodyText ? `<div class="dyn-body">${escapeHtml(sec.bodyText).replace(/\n/g, '<br>')}</div>` : ''}
+                ${sec.buttonText && sec.buttonLink ? `<a href="${sec.buttonLink}" class="dyn-btn">${escapeHtml(sec.buttonText)}</a>` : ''}
+            </div>
+        `;
+        
+        // Construct Image Block
+        const imgHtml = sec.imageUrl ? `<div class="dyn-image"><img src="${sec.imageUrl}" alt="${escapeHtml(sec.headline || 'Section Image')}" loading="lazy"></div>` : '';
+
+        // Process Layout Types
+        if (sec.type === 'bestsellers') {
+            innerHtml = `
+                <div class="container text-center">
+                    ${textHtml}
+                    <div class="product-grid bestsellers-grid" id="dyn-bestsellers-${sec._id}">
+                        <p class="loading-message">Loading bestsellers...</p>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => fetchDynamicBestsellers(`dyn-bestsellers-${sec._id}`), 0);
+        } else if (sec.type === 'collections' || sec.imageAlignment === 'grid') {
+            innerHtml = `
+                <div class="container text-center">
+                    ${textHtml}
+                    <div class="category-grid" id="dyn-categories-${sec._id}">
+                        <p class="loading-message">Loading collections...</p>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => fetchDynamicCategories(`dyn-categories-${sec._id}`), 0);
+        } else {
+            // Visual Structural Alignments
+            if (sec.imageAlignment === 'left') {
+                innerHtml = `<div class="container dyn-flex-row">${imgHtml}${textHtml}</div>`;
+            } else if (sec.imageAlignment === 'right') {
+                innerHtml = `<div class="container dyn-flex-row">${textHtml}${imgHtml}</div>`;
+            } else if (sec.imageAlignment === 'background') {
+                sectionEl.style.backgroundImage = `url(${sec.imageUrl})`;
+                sectionEl.classList.add('dyn-bg-cover');
+                innerHtml = `<div class="container dyn-overlay-content">${textHtml}</div>`;
+            } else {
+                // Default Center
+                innerHtml = `<div class="container text-center">${imgHtml}${textHtml}</div>`;
+            }
+        }
+
+        sectionEl.innerHTML = innerHtml;
+        dynamicContainer.appendChild(sectionEl);
+    });
+}
+
+// Support function for Dynamic Homepage
+async function fetchDynamicBestsellers(containerId) {
+    try {
+        const { items } = await fetchGridData('/products', 1, 6, '&featured=true&inStock=true');
+        renderProductGrid(containerId, items, 'bestsellers');
+    } catch (e) {
+        document.getElementById(containerId).innerHTML = '<p class="error-message">Could not load products.</p>';
+    }
+}
+
+// Support function for Dynamic Homepage
+async function fetchDynamicCategories(containerId) {
+     try {
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
+        if (!response.ok) throw new Error('Failed to load categories');
+        const categories = await response.json();
+        categories.sort((a, b) => a.sortOrder - b.sortOrder);
+        const container = document.getElementById(containerId);
+        container.innerHTML = categories.map(cat => {
+            let imageSrc = cat.image || 'assets/images/placeholder.jpg';
+            if (imageSrc.includes('res.cloudinary.com')) {
+                imageSrc = imageSrc.replace('/upload/', '/upload/f_auto,q_auto,w_400/');
+            }
+            const url = getCategoryUrl(cat);
+            const hasSubcats = cat.subcategories && cat.subcategories.length > 0;
+            return `
+                <a href="${url}" class="category-card-item">
+                    <div class="category-image-wrapper">
+                        <img src="${imageSrc}" alt="${cat.name}" class="category-image" loading="lazy">
+                    </div>
+                    <div class="category-info">
+                        <p class="category-name">${escapeHtml(cat.name)}</p>
+                        <span class="category-arrow">${hasSubcats ? '›' : '→'}</span>
+                    </div>
+                </a>
+            `;
+        }).join('');
+    } catch (e) {
+        document.getElementById(containerId).innerHTML = '<p class="error-message">Could not load categories.</p>';
     }
 }
 
@@ -2632,14 +2772,14 @@ function updateRibbon(settings) {
     ribbon.style.display = '';
 
     const msgs = settings.ribbonMessages || [];
-    if (msgs.length === 0) return; // keep default HTML content
+    if (msgs.length === 0) return; 
 
     // Build rotating spans
     ribbon.innerHTML = `<p>${msgs.map((m, i) =>
         `<span class="ribbon-msg${i === 0 ? ' active' : ''}">${escapeHtml(m)}</span>`
     ).join('')}</p>`;
 
-    if (msgs.length <= 1) return; // no rotation needed
+    if (msgs.length <= 1) return; 
 
     let current = 0;
     const speed = settings.ribbonSpeed || 4000;
