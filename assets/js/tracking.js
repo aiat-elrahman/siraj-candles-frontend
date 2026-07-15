@@ -1,10 +1,8 @@
-const TRACKING_CONFIG = {
-  metaPixelId: 'REPLACE_WITH_META_PIXEL_ID',
-  googleMeasurementId: 'REPLACE_WITH_GA4_MEASUREMENT_ID',
-};
+let metaPixelId = '';
+let googleMeasurementId = '';
 
 const TRACKING_API_BASE_URL = 'https://siraj-backend.onrender.com';
-const hasRealId = (value, placeholder) => value && value !== placeholder && !value.includes('REPLACE_WITH');
+
 const getSessionId = () => {
   const key = 'sirajTrackingSessionId';
   let sessionId = localStorage.getItem(key);
@@ -49,18 +47,22 @@ const postTrackingEvent = (type, payload = {}) => {
 };
 
 window.SirajTracking = {
-  metaPixelId: TRACKING_CONFIG.metaPixelId,
-  googleMeasurementId: TRACKING_CONFIG.googleMeasurementId,
-
   trackMeta(eventName, payload = {}) {
     if (typeof window.fbq === 'function') {
       window.fbq('track', eventName, payload);
+    } else {
+        // Queue events if pixel hasn't loaded yet
+        window._fbqQueue = window._fbqQueue || [];
+        window._fbqQueue.push(['track', eventName, payload]);
     }
   },
 
   trackGoogle(eventName, payload = {}) {
     if (typeof window.gtag === 'function') {
       window.gtag('event', eventName, payload);
+    } else {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: eventName, ...payload });
     }
   },
 
@@ -210,36 +212,59 @@ window.SirajTracking = {
   },
 };
 
-if (hasRealId(TRACKING_CONFIG.googleMeasurementId, 'REPLACE_WITH_GA4_MEASUREMENT_ID')) {
-  const gtagScript = document.createElement('script');
-  gtagScript.async = true;
-  gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${TRACKING_CONFIG.googleMeasurementId}`;
-  document.head.appendChild(gtagScript);
+// NEW: Dynamic Fetch Engine
+async function initializeExternalTracking() {
+    try {
+        const res = await fetch(`${TRACKING_API_BASE_URL}/api/site-settings`);
+        if(res.ok) {
+            const settings = await res.json();
+            metaPixelId = settings.metaPixelId;
+            googleMeasurementId = settings.googleAnalyticsId;
 
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = function gtag(){ window.dataLayer.push(arguments); };
-  window.gtag('js', new Date());
-  window.gtag('config', TRACKING_CONFIG.googleMeasurementId);
+            // Init Google
+            if (googleMeasurementId) {
+              const gtagScript = document.createElement('script');
+              gtagScript.async = true;
+              gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${googleMeasurementId}`;
+              document.head.appendChild(gtagScript);
+
+              window.dataLayer = window.dataLayer || [];
+              window.gtag = function gtag(){ window.dataLayer.push(arguments); };
+              window.gtag('js', new Date());
+              window.gtag('config', googleMeasurementId);
+            }
+
+            // Init Meta
+            if (metaPixelId) {
+              !function(f,b,e,v,n,t,s) {
+                if (f.fbq) return;
+                n = f.fbq = function(){ n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+                if (!f._fbq) f._fbq = n;
+                n.push = n;
+                n.loaded = true;
+                n.version = '2.0';
+                n.queue = [];
+                t = b.createElement(e);
+                t.async = true;
+                t.src = v;
+                s = b.getElementsByTagName(e)[0];
+                s.parentNode.insertBefore(t, s);
+              }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+              window.fbq('init', metaPixelId);
+              window.fbq('track', 'PageView');
+              
+              // Flush any queued Meta events safely
+              if(window._fbqQueue) {
+                  window._fbqQueue.forEach(args => window.fbq(...args));
+                  window._fbqQueue = [];
+              }
+            }
+        }
+    } catch(e) { console.error('Tracking init failed', e); }
 }
 
-if (hasRealId(TRACKING_CONFIG.metaPixelId, 'REPLACE_WITH_META_PIXEL_ID')) {
-  !function(f,b,e,v,n,t,s) {
-    if (f.fbq) return;
-    n = f.fbq = function(){ n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
-    if (!f._fbq) f._fbq = n;
-    n.push = n;
-    n.loaded = true;
-    n.version = '2.0';
-    n.queue = [];
-    t = b.createElement(e);
-    t.async = true;
-    t.src = v;
-    s = b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t, s);
-  }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-
-  window.fbq('init', TRACKING_CONFIG.metaPixelId);
-  window.fbq('track', 'PageView');
-}
-
+// Trigger standard local DB tracking instantly
 postTrackingEvent('page_view');
+// Fetch and initialize external platforms asynchronously
+initializeExternalTracking();
