@@ -2094,7 +2094,9 @@ async function processCheckout(e) {
             saveCartToStorage();
             updateCartUI();
 
-            await showOrderSuccessWithWhatsApp(result.orderId, orderData);
+            // Show a simple order-success screen (no WhatsApp — that's now admin-side only,
+            // since the customer-facing WhatsApp flow was what misdirected messages before)
+            await showOrderSuccessScreen(result.orderId, orderData);
             window.location.href = 'index.html'; 
         } else {
             throw new Error(result.message || 'Failed to place order.');
@@ -2108,28 +2110,11 @@ async function processCheckout(e) {
     }
 }
 
-async function showOrderSuccessWithWhatsApp(orderId, orderData) {
-    return new Promise(async (resolve) => {
+// ── Order success screen (no WhatsApp here — confirmation is sent by the admin) ──
+async function showOrderSuccessScreen(orderId, orderData) {
+    return new Promise((resolve) => {
         try {
-            const res      = await fetch(`${API_BASE_URL}/api/site-settings`);
-            const settings = res.ok ? await res.json() : {};
-
-            const template    = settings.whatsappOrderTemplate || '';
-            const waPhone     = (settings.whatsappPhone || '+201001775793').replace(/\D/g, '');
-            const shortId     = '#' + orderId.toString().slice(-8).toUpperCase();
-
-            const itemLines = (orderData.items || []).map(i =>
-                `• ${i.name}${i.variantName ? ` (${i.variantName})` : ''} × ${i.quantity}`
-            ).join('\n');
-
-            const message = template
-                .replace(/\{\{name\}\}/g,    orderData.customerInfo?.name || 'عزيزتي')
-                .replace(/\{\{orderId\}\}/g, shortId)
-                .replace(/\{\{total\}\}/g,   orderData.totalAmount?.toFixed(2) || '0')
-                .replace(/\{\{items\}\}/g,   itemLines)
-                .replace(/\{\{city\}\}/g,    orderData.customerInfo?.city || '');
-
-            const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
+            const shortId = '#' + orderId.toString().slice(-8).toUpperCase();
 
             const overlay = document.createElement('div');
             overlay.style.cssText = `
@@ -2155,35 +2140,15 @@ async function showOrderSuccessWithWhatsApp(orderId, orderData) {
                     <p style="color:#6B4A6E; font-size:13px; margin:0 0 20px;">
                         Total: <strong>${orderData.totalAmount?.toFixed(2)} EGP</strong>
                     </p>
-
-                    <div style="
-                        background:#f0fdf4; border:1px solid #bbf7d0;
-                        border-radius:12px; padding:14px 16px; margin-bottom:20px;
-                        text-align:right; direction:rtl;
-                    ">
-                        <p style="color:#065f46; font-size:12px; font-weight:700; margin:0 0 8px;">
-                            📱 رسالة التأكيد جاهزة على واتساب:
-                        </p>
-                        <p style="color:#374151; font-size:11px; margin:0; white-space:pre-wrap; line-height:1.6; text-align:right;">
-                            ${message.slice(0, 200)}${message.length > 200 ? '...' : ''}
-                        </p>
-                    </div>
-
-                    <a href="${waUrl}" target="_blank" onclick="setTimeout(() => { document.getElementById('siraj-order-overlay').remove(); }, 500);" style="
-                        display:block; padding:14px; margin-bottom:12px;
-                        background:linear-gradient(135deg, #25D366, #128C7E);
-                        color:#fff; border-radius:12px; text-decoration:none;
-                        font-weight:800; font-size:15px;
-                        box-shadow:0 4px 14px rgba(37,211,102,0.35);
-                    ">
-                        📱 إرسال تأكيد الطلب على واتساب
-                    </a>
+                    <p style="color:#374151; font-size:13px; margin:0 0 22px; line-height:1.6;">
+                        هنتواصل معاكي قريب على واتساب لتأكيد الطلب وتفاصيل الدفع 🤍
+                    </p>
 
                     <button onclick="document.getElementById('siraj-order-overlay').remove();" style="
-                        display:block; width:100%; padding:11px;
-                        background:#FCE7F3; color:#BE185D; border:none;
-                        border-radius:12px; font-weight:700; font-size:14px;
-                        cursor:pointer; font-family:inherit;
+                        display:block; width:100%; padding:14px;
+                        background:linear-gradient(135deg, #BE185D, #6B4A6E);
+                        color:#fff; border:none; border-radius:12px;
+                        font-weight:800; font-size:15px; cursor:pointer; font-family:inherit;
                     ">
                         متابعة التسوق
                     </button>
@@ -2193,20 +2158,19 @@ async function showOrderSuccessWithWhatsApp(orderId, orderData) {
             overlay.id = 'siraj-order-overlay';
             document.body.appendChild(overlay);
 
-            const autoResolve = setTimeout(resolve, 60000);
-
+            const autoResolve = setTimeout(resolve, 15000);
             const observer = new MutationObserver(() => {
                 if (!document.getElementById('siraj-order-overlay')) {
                     clearTimeout(autoResolve);
                     observer.disconnect();
-                    setTimeout(resolve, 500);
+                    setTimeout(resolve, 300);
                 }
             });
             observer.observe(document.body, { childList: true });
 
         } catch (e) {
-            console.error('WhatsApp screen error:', e);
-            resolve();
+            console.error('Order success screen error:', e);
+            resolve(); // never block the flow
         }
     });
 }
@@ -2604,15 +2568,17 @@ async function loadSiteSettings() {
         siteFreeGiftSettings = settings.freeGift || null;
         updateFreeGiftBar();
 
-        // 🔥 NEW: Inject Favicon dynamically from admin settings
+        // Inject favicon dynamically from admin settings (tab icon + iOS homescreen icon)
         if (settings.faviconUrl) {
-            let link = document.querySelector("link[rel~='icon']");
-            if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.head.appendChild(link);
-            }
-            link.href = settings.faviconUrl;
+            ['icon', 'shortcut icon', 'apple-touch-icon'].forEach(rel => {
+                let link = document.querySelector(`link[rel="${rel}"]`);
+                if (!link) {
+                    link = document.createElement('link');
+                    link.rel = rel;
+                    document.head.appendChild(link);
+                }
+                link.href = settings.faviconUrl;
+            });
         }
 
         // 🔥 NEW: Trigger Dynamic Homepage Builder Engine
