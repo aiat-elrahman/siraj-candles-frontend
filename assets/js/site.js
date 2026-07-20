@@ -2652,7 +2652,8 @@ function renderDynamicHomepage(sections) {
                 </div>
             `;
             setTimeout(() => fetchDynamicBestsellers(`dyn-bestsellers-${sec._id}`), 0);
-        } else if (sec.type === 'collections' || sec.imageAlignment === 'grid') {
+
+        } else if (sec.type === 'collections') {
             innerHtml = `
                 <div class="container text-center">
                     ${textHtml}
@@ -2662,8 +2663,62 @@ function renderDynamicHomepage(sections) {
                 </div>
             `;
             setTimeout(() => fetchDynamicCategories(`dyn-categories-${sec._id}`), 0);
+
+        } else if (sec.type === 'trust' || sec.type === 'why_siraj') {
+            const items = sec.items || [];
+            innerHtml = `
+                <div class="container text-center">
+                    ${textHtml}
+                    <div class="dyn-trust-grid">
+                        ${items.length > 0 ? items.map(item => `
+                            <div class="dyn-trust-item">
+                                <span class="dyn-trust-icon">${escapeHtml(item.icon || '✨')}</span>
+                                <span class="dyn-trust-label">${escapeHtml(item.label || '')}</span>
+                            </div>
+                        `).join('') : '<p class="dyn-empty-note">No icons added yet — add some in the admin dashboard.</p>'}
+                    </div>
+                </div>
+            `;
+
+        } else if (sec.type === 'instagram') {
+            const items = sec.items || [];
+            innerHtml = `
+                <div class="container text-center">
+                    ${textHtml}
+                    <div class="dyn-instagram-grid">
+                        ${items.length > 0 ? items.map(item => `
+                            <a href="${item.link || '#'}" target="${item.link ? '_blank' : '_self'}" class="dyn-instagram-item">
+                                <img src="${item.imageUrl || 'assets/images/placeholder.jpg'}" alt="Instagram post" loading="lazy">
+                            </a>
+                        `).join('') : '<p class="dyn-empty-note">No images added yet — add some in the admin dashboard.</p>'}
+                    </div>
+                </div>
+            `;
+
+        } else if (sec.type === 'reviews') {
+            const items = sec.items || [];
+            if (items.length > 0) {
+                innerHtml = `
+                    <div class="container text-center">
+                        ${textHtml}
+                        <div class="dyn-review-grid">
+                            ${items.map(item => `
+                                <div class="dyn-review-card">
+                                    <div class="dyn-review-stars">${'★'.repeat(Math.max(1, Math.min(5, item.rating || 5)))}${'☆'.repeat(5 - Math.max(1, Math.min(5, item.rating || 5)))}</div>
+                                    <p class="dyn-review-quote">"${escapeHtml(item.quote || '')}"</p>
+                                    ${item.author ? `<p class="dyn-review-author">— ${escapeHtml(item.author)}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // No manual reviews added — fall back to the generic text+image layout
+                innerHtml = `<div class="container text-center">${imgHtml}${textHtml}</div>`;
+            }
+
         } else {
-            // Visual Structural Alignments
+            // Visual Structural Alignments (about, bundle_promo, scents, final_cta, custom_text_image)
             if (sec.imageAlignment === 'left') {
                 innerHtml = `<div class="container dyn-flex-row">${imgHtml}${textHtml}</div>`;
             } else if (sec.imageAlignment === 'right') {
@@ -2701,6 +2756,12 @@ async function fetchDynamicCategories(containerId) {
         const categories = await response.json();
         categories.sort((a, b) => a.sortOrder - b.sortOrder);
         const container = document.getElementById(containerId);
+
+        if (categories.length === 0) {
+            container.innerHTML = '<p class="dyn-empty-note">No categories yet — add some in Category Manager.</p>';
+            return;
+        }
+
         container.innerHTML = categories.map(cat => {
             let imageSrc = cat.image || 'assets/images/placeholder.jpg';
             if (imageSrc.includes('res.cloudinary.com')) {
@@ -2721,6 +2782,7 @@ async function fetchDynamicCategories(containerId) {
             `;
         }).join('');
     } catch (e) {
+        console.error('fetchDynamicCategories error:', e);
         document.getElementById(containerId).innerHTML = '<p class="error-message">Could not load categories.</p>';
     }
 }
@@ -2802,6 +2864,7 @@ function updateFooter(settings) {
 
     // Build footer HTML from settings
     const hasStores = settings.navLinks?.stores;
+    const footerLinks = settings.footerLinks || [];
 
     footer.innerHTML = `
         <p>Email us for <strong>bulk orders</strong> and <strong>customized gifts</strong>:
@@ -2818,6 +2881,10 @@ function updateFooter(settings) {
                 <i class="fas fa-map-marker-alt"></i> Visit Our Stores
             </a>
         </p>` : ''}
+        ${footerLinks.length > 0 ? `
+        <div class="footer-links-row">
+            ${footerLinks.map(l => l.label && l.url ? `<a href="${l.url}">${escapeHtml(l.label)}</a>` : '').join('')}
+        </div>` : ''}
         <p>${escapeHtml(settings.footerCopyright || '© 2025 Siraj Candles. All rights reserved.')}</p>
         <div class="social-links">
             ${settings.footerInstagram ? `<a href="${settings.footerInstagram}" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>` : ''}
