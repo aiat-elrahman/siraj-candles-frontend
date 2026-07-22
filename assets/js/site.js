@@ -2672,7 +2672,9 @@ function renderDynamicHomepage(sections) {
                     <div class="dyn-trust-grid">
                         ${items.length > 0 ? items.map(item => `
                             <div class="dyn-trust-item">
-                                <span class="dyn-trust-icon">${escapeHtml(item.icon || '✨')}</span>
+                                ${item.imageUrl
+                                    ? `<img class="dyn-trust-icon-img" src="${item.imageUrl}" alt="${escapeHtml(item.label || '')}" loading="lazy">`
+                                    : `<span class="dyn-trust-icon">${escapeHtml(item.icon || '✨')}</span>`}
                                 <span class="dyn-trust-label">${escapeHtml(item.label || '')}</span>
                             </div>
                         `).join('') : '<p class="dyn-empty-note">No icons added yet — add some in the admin dashboard.</p>'}
