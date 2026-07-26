@@ -573,7 +573,7 @@ async function fetchBestsellers() {
     container.innerHTML = '<p class="loading-message">Loading bestsellers...</p>';
 
     try {
-        const { items } = await fetchGridData('/products', 1, 6, '&featured=true&inStock=true');
+        const { items } = await fetchGridData('/products', 1, 6, '&isBestSeller=true&inStock=true');
         renderProductGrid('bestsellers-container', items, 'bestsellers');
 
     } catch (error) {
@@ -2651,7 +2651,7 @@ function renderDynamicHomepage(sections) {
                     </div>
                 </div>
             `;
-            setTimeout(() => fetchDynamicBestsellers(`dyn-bestsellers-${sec._id}`), 0);
+            setTimeout(() => fetchDynamicBestsellers(`dyn-bestsellers-${sec._id}`, sec.items), 0);
 
         } else if (sec.type === 'collections') {
             innerHtml = `
@@ -2741,10 +2741,13 @@ function renderDynamicHomepage(sections) {
 }
 
 // Support function for Dynamic Homepage
-async function fetchDynamicBestsellers(containerId) {
+async function fetchDynamicBestsellers(containerId, items) {
     try {
-        const { items } = await fetchGridData('/products', 1, 6, '&featured=true&inStock=true');
-        renderProductGrid(containerId, items, 'bestsellers');
+        const manualIds = (items || []).map(i => i.productId).filter(Boolean);
+        const { items: products } = manualIds.length > 0
+            ? await fetchGridData('/products', 1, manualIds.length, `&ids=${manualIds.join(',')}`)
+            : await fetchGridData('/products', 1, 6, '&isBestSeller=true&inStock=true');
+        renderProductGrid(containerId, products, 'bestsellers');
     } catch (e) {
         document.getElementById(containerId).innerHTML = '<p class="error-message">Could not load products.</p>';
     }
