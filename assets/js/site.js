@@ -113,7 +113,22 @@ function setupEventListeners() {
         cToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             const dropdown = document.getElementById('cart-dropdown');
-            if(dropdown) dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+            }
+        });
+    }
+
+    const cartDropdown = document.getElementById('cart-dropdown');
+    if (cartDropdown) {
+        cartDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+        cartDropdown.querySelectorAll('a[href]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = link.getAttribute('href');
+            });
         });
     }
 
@@ -133,7 +148,7 @@ function setupEventListeners() {
         const toggle = document.getElementById('cart-toggle');
         const modal = document.getElementById('search-modal');
         
-        if (dropdown && dropdown.style.display === 'block' && !dropdown.contains(e.target) && e.target !== toggle && !toggle.contains(e.target)) {
+        if (dropdown && dropdown.style.display === 'flex' && !dropdown.contains(e.target) && e.target !== toggle && !toggle?.contains(e.target)) {
             dropdown.style.display = 'none';
         }
         if (modal && modal.style.display === 'flex' && !modal.contains(e.target) && e.target.id !== 'search-toggle' && !e.target.closest('#search-toggle')) {
