@@ -579,7 +579,7 @@ body.mobile-menu-open::before {
 }
 
 /* Enhances display block with a smooth appearance if handled via JS */
-.cart-dropdown[style*="display: block"] {
+.cart-dropdown[style*="display: flex"] {
     animation: cartFadeIn 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
