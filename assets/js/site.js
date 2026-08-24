@@ -1,5 +1,67 @@
 const API_BASE_URL = 'https://siraj-backend.onrender.com'; 
 const ITEMS_PER_PAGE = 12; 
+let storefrontAutomaticDiscountsPromise = null;
+
+const isDisplayableStorefrontDiscount = (discount) => (
+    discount?.isAutomatic &&
+    discount.type === 'percentage' &&
+    Number(discount.value) > 0 &&
+    Number(discount.minOrderValue || 0) === 0
+);
+
+async function getStorefrontAutomaticDiscounts() {
+    if (!storefrontAutomaticDiscountsPromise) {
+        storefrontAutomaticDiscountsPromise = fetch(`${API_BASE_URL}/api/discounts/automatic`)
+            .then(response => response.ok ? response.json() : [])
+            .then(discounts => Array.isArray(discounts) ? discounts.filter(isDisplayableStorefrontDiscount) : [])
+            .catch(() => []);
+    }
+    return storefrontAutomaticDiscountsPromise;
+}
+
+function discountAppliesToProduct(discount, product) {
+    if (discount.appliesTo !== 'categories') return true;
+
+    const productCategory = (product.category || '').toLowerCase();
+    const productSubcategory = (product.subcategory || '').toLowerCase();
+    const categoryMatches = (discount.categories || []).some(category => category.toLowerCase() === productCategory);
+    const subcategories = discount.subcategories || [];
+    const subcategoryMatches = subcategories.length === 0 || subcategories.some(subcategory => subcategory.toLowerCase() === productSubcategory);
+    return categoryMatches && subcategoryMatches;
+}
+
+function salePriceFor(originalPrice, product, discounts) {
+    const applicable = discounts.filter(discount => discountAppliesToProduct(discount, product));
+    if (!applicable.length) return null;
+    const highestPercentage = Math.max(...applicable.map(discount => Number(discount.value) || 0));
+    const discountedPrice = Math.round(originalPrice * (1 - highestPercentage / 100) * 100) / 100;
+    return discountedPrice < originalPrice ? discountedPrice : null;
+}
+
+async function applyStorefrontSalePricing(products) {
+    const discounts = await getStorefrontAutomaticDiscounts();
+    if (!discounts.length) return products;
+
+    return products.map(product => {
+        const pricedProduct = { ...product };
+        const basePrice = Number(product.price_egp || product.bundlePrice || product.price || 0);
+        const automaticSalePrice = salePriceFor(basePrice, product, discounts);
+        if (automaticSalePrice && (!product.salePrice || automaticSalePrice < product.salePrice)) {
+            pricedProduct.salePrice = automaticSalePrice;
+            pricedProduct.storefrontSale = true;
+        }
+
+        if (product.variants?.length) {
+            pricedProduct.variants = product.variants.map(variant => {
+                const automaticVariantSalePrice = salePriceFor(Number(variant.price || 0), product, discounts);
+                return automaticVariantSalePrice
+                    ? { ...variant, salePrice: automaticVariantSalePrice, storefrontSale: true }
+                    : { ...variant };
+            });
+        }
+        return pricedProduct;
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
@@ -184,7 +246,8 @@ async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query =
         }
         const result = await response.json(); 
         
-        const items = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
+        const rawItems = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
+        const items = await applyStorefrontSalePricing(rawItems);
         
         return {
             items: items,
@@ -215,7 +278,7 @@ function renderProductGrid(containerId, items, endpointType) {
         const itemName = item.name_en || item.bundleName || item['Name (English)'] || 'Unknown Product';
         const itemPrice = item.price_egp || item.bundlePrice || item['Price (EGP)'] || 0;
         const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
-        const onSale = !isBundle && item.salePrice && item.salePrice < itemPrice;
+        const onSale = item.salePrice && item.salePrice < itemPrice;
         
         // Stock Logic
         let isOutOfStock = false;
@@ -812,7 +875,7 @@ async function loadProductDetails() {
             const errorData = await response.json();
             throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Not Found'}`);
         }
-        const product = await response.json();
+        const [product] = await applyStorefrontSalePricing([await response.json()]);
         product.isBundle = product.productType === 'Bundle';
 
         renderProduct(product);
@@ -869,11 +932,15 @@ if (product.variants && product.variants.length > 0) {
 }
     
     let displayPrice = product.price_egp || product.bundlePrice || 0;
+    let displaySalePrice = product.salePrice && product.salePrice < displayPrice ? product.salePrice : null;
     let hasVariants = false;
     
     if (product.variants && product.variants.length > 0) {
         hasVariants = true;
         displayPrice = product.variants[0].price;
+        displaySalePrice = product.variants[0].salePrice && product.variants[0].salePrice < displayPrice
+            ? product.variants[0].salePrice
+            : null;
     }
 
     const imageGalleryHTML = (product.imagePaths || []).map((path, idx) => 
@@ -917,8 +984,8 @@ if (product.variants && product.variants.length > 0) {
                 <p class="product-category-subtle">${escapeHtml(itemCategory)}</p> 
                 
                <p class="product-price-main" id="dynamic-price">
-                    ${!product.isBundle && product.salePrice && product.salePrice < displayPrice && !hasVariants
-                        ? `<span class="price-original">${displayPrice.toFixed(2)} EGP</span> <span class="price-sale">${product.salePrice.toFixed(2)} EGP</span> <span class="sale-badge sale-badge--inline">SALE</span>`
+                    ${displaySalePrice
+                        ? `<span class="price-original">${displayPrice.toFixed(2)} EGP</span> <span class="price-sale">${displaySalePrice.toFixed(2)} EGP</span> <span class="sale-badge sale-badge--inline">SALE</span>`
                         : `${displayPrice.toFixed(2)} EGP`}
                 </p>
 ${product.isBundle && product.bundleOriginalPrice > displayPrice ? `
@@ -1123,7 +1190,8 @@ function renderVariantSelector(variants) {
             <select id="variant-select" class="option-selector unified-dropdown">
                 ${variants.map((v, i) => {
                     const outOfStock = (v.stock !== undefined && v.stock <= 0);
-                    return `<option value="${v.variantName}" data-price="${v.price}" data-stock="${v.stock}"
+                    const salePrice = v.salePrice && v.salePrice < v.price ? v.salePrice : '';
+                    return `<option value="${v.variantName}" data-price="${salePrice || v.price}" data-original-price="${v.price}" data-sale-price="${salePrice}" data-stock="${v.stock}"
                         ${outOfStock ? 'disabled' : ''}
                         ${!outOfStock && i === 0 ? 'selected' : ''}>
                         ${v.variantName}${outOfStock ? ' — Out of Stock' : ''}
@@ -1143,7 +1211,13 @@ function renderVariantSelector(variants) {
             if (!selectedOption) return;
             
             const price = selectedOption.getAttribute('data-price');
-            if (price && priceElement) priceElement.textContent = `${parseFloat(price).toFixed(2)} EGP`;
+            const originalPrice = selectedOption.getAttribute('data-original-price');
+            const salePrice = selectedOption.getAttribute('data-sale-price');
+            if (price && priceElement) {
+                priceElement.innerHTML = salePrice
+                    ? `<span class="price-original">${parseFloat(originalPrice).toFixed(2)} EGP</span> <span class="price-sale">${parseFloat(salePrice).toFixed(2)} EGP</span> <span class="sale-badge sale-badge--inline">SALE</span>`
+                    : `${parseFloat(price).toFixed(2)} EGP`;
+            }
             
             const stock = parseInt(selectedOption.getAttribute('data-stock')) || 0;
             if (qtyInput) {
@@ -1158,9 +1232,15 @@ function renderVariantSelector(variants) {
         if (variantSelect.selectedIndex >= 0 && variantSelect.options[variantSelect.selectedIndex]) {
             const initialOpt   = variantSelect.options[variantSelect.selectedIndex];
             const initialPrice = initialOpt.getAttribute('data-price');
+            const initialOriginalPrice = initialOpt.getAttribute('data-original-price');
+            const initialSalePrice = initialOpt.getAttribute('data-sale-price');
             const initialStock = initialOpt.getAttribute('data-stock');
             
-            if (initialPrice && priceElement) priceElement.textContent = `${parseFloat(initialPrice).toFixed(2)} EGP`;
+            if (initialPrice && priceElement) {
+                priceElement.innerHTML = initialSalePrice
+                    ? `<span class="price-original">${parseFloat(initialOriginalPrice).toFixed(2)} EGP</span> <span class="price-sale">${parseFloat(initialSalePrice).toFixed(2)} EGP</span> <span class="sale-badge sale-badge--inline">SALE</span>`
+                    : `${parseFloat(initialPrice).toFixed(2)} EGP`;
+            }
             if (initialStock && qtyInput) qtyInput.setAttribute('max', initialStock);
         }
 
@@ -2292,8 +2372,9 @@ async function checkAndApplyAutomaticDiscounts() {
 
         const data = await response.json();
 
-        if (data.applied && data.applied.length > 0) {
-            const best = data.applied[0];
+        const cartOnlyDiscounts = (data.applied || []).filter(discount => !isDisplayableStorefrontDiscount(discount));
+        if (cartOnlyDiscounts.length > 0) {
+            const best = cartOnlyDiscounts[0];
             appliedDiscount = {
                 ...best,
                 discountAmount: best.discountAmount
