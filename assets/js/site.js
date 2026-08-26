@@ -1,67 +1,5 @@
 const API_BASE_URL = 'https://siraj-backend.onrender.com'; 
 const ITEMS_PER_PAGE = 12; 
-let storefrontAutomaticDiscountsPromise = null;
-
-const isDisplayableStorefrontDiscount = (discount) => (
-    discount?.isAutomatic &&
-    discount.type === 'percentage' &&
-    Number(discount.value) > 0 &&
-    Number(discount.minOrderValue || 0) === 0
-);
-
-async function getStorefrontAutomaticDiscounts() {
-    if (!storefrontAutomaticDiscountsPromise) {
-        storefrontAutomaticDiscountsPromise = fetch(`${API_BASE_URL}/api/discounts/automatic`)
-            .then(response => response.ok ? response.json() : [])
-            .then(discounts => Array.isArray(discounts) ? discounts.filter(isDisplayableStorefrontDiscount) : [])
-            .catch(() => []);
-    }
-    return storefrontAutomaticDiscountsPromise;
-}
-
-function discountAppliesToProduct(discount, product) {
-    if (discount.appliesTo !== 'categories') return true;
-
-    const productCategory = (product.category || '').toLowerCase();
-    const productSubcategory = (product.subcategory || '').toLowerCase();
-    const categoryMatches = (discount.categories || []).some(category => category.toLowerCase() === productCategory);
-    const subcategories = discount.subcategories || [];
-    const subcategoryMatches = subcategories.length === 0 || subcategories.some(subcategory => subcategory.toLowerCase() === productSubcategory);
-    return categoryMatches && subcategoryMatches;
-}
-
-function salePriceFor(originalPrice, product, discounts) {
-    const applicable = discounts.filter(discount => discountAppliesToProduct(discount, product));
-    if (!applicable.length) return null;
-    const highestPercentage = Math.max(...applicable.map(discount => Number(discount.value) || 0));
-    const discountedPrice = Math.round(originalPrice * (1 - highestPercentage / 100) * 100) / 100;
-    return discountedPrice < originalPrice ? discountedPrice : null;
-}
-
-async function applyStorefrontSalePricing(products) {
-    const discounts = await getStorefrontAutomaticDiscounts();
-    if (!discounts.length) return products;
-
-    return products.map(product => {
-        const pricedProduct = { ...product };
-        const basePrice = Number(product.price_egp || product.bundlePrice || product.price || 0);
-        const automaticSalePrice = salePriceFor(basePrice, product, discounts);
-        if (automaticSalePrice && (!product.salePrice || automaticSalePrice < product.salePrice)) {
-            pricedProduct.salePrice = automaticSalePrice;
-            pricedProduct.storefrontSale = true;
-        }
-
-        if (product.variants?.length) {
-            pricedProduct.variants = product.variants.map(variant => {
-                const automaticVariantSalePrice = salePriceFor(Number(variant.price || 0), product, discounts);
-                return automaticVariantSalePrice
-                    ? { ...variant, salePrice: automaticVariantSalePrice, storefrontSale: true }
-                    : { ...variant };
-            });
-        }
-        return pricedProduct;
-    });
-}
 
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
@@ -175,22 +113,7 @@ function setupEventListeners() {
         cToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             const dropdown = document.getElementById('cart-dropdown');
-            if (dropdown) {
-                dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
-            }
-        });
-    }
-
-    const cartDropdown = document.getElementById('cart-dropdown');
-    if (cartDropdown) {
-        cartDropdown.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-        cartDropdown.querySelectorAll('a[href]').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.location.href = link.getAttribute('href');
-            });
+            if(dropdown) dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
         });
     }
 
@@ -210,7 +133,7 @@ function setupEventListeners() {
         const toggle = document.getElementById('cart-toggle');
         const modal = document.getElementById('search-modal');
         
-        if (dropdown && dropdown.style.display === 'flex' && !dropdown.contains(e.target) && e.target !== toggle && !toggle?.contains(e.target)) {
+        if (dropdown && dropdown.style.display === 'block' && !dropdown.contains(e.target) && e.target !== toggle && !toggle.contains(e.target)) {
             dropdown.style.display = 'none';
         }
         if (modal && modal.style.display === 'flex' && !modal.contains(e.target) && e.target.id !== 'search-toggle' && !e.target.closest('#search-toggle')) {
@@ -246,8 +169,7 @@ async function fetchGridData(endpoint, page = 1, limit = ITEMS_PER_PAGE, query =
         }
         const result = await response.json(); 
         
-        const rawItems = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
-        const items = await applyStorefrontSalePricing(rawItems);
+        const items = result.results || result.bundles || (Array.isArray(result) ? result : result.data || []);
         
         return {
             items: items,
@@ -278,7 +200,7 @@ function renderProductGrid(containerId, items, endpointType) {
         const itemName = item.name_en || item.bundleName || item['Name (English)'] || 'Unknown Product';
         const itemPrice = item.price_egp || item.bundlePrice || item['Price (EGP)'] || 0;
         const itemImage = item.imagePaths?.[0] || item['Image path'] || 'images/placeholder.jpg';
-        const onSale = item.salePrice && item.salePrice < itemPrice;
+        const onSale = !isBundle && item.salePrice && item.salePrice < itemPrice;
         
         // Stock Logic
         let isOutOfStock = false;
@@ -287,12 +209,13 @@ function renderProductGrid(containerId, items, endpointType) {
         if (!isBundle) {
             // Check variants if they exist, otherwise check global stock
             if (item.variants && item.variants.length > 0) {
-                const totalVariantStock = item.variants.reduce((sum, v) => sum + v.stock, 0);
+                const totalVariantStock = item.variants.reduce((sum, v) => sum + (v.stockOnline !== undefined ? v.stockOnline : v.stock), 0);
                 isOutOfStock = totalVariantStock <= 0;
             } else {
-                isOutOfStock = item.stock <= 0;
-                if (item.stock > 0 && item.stock <= 5) {
-                    lowStockCount = item.stock;
+                const itemStockValue = item.stockOnline !== undefined ? item.stockOnline : item.stock;
+                isOutOfStock = itemStockValue <= 0;
+                if (itemStockValue > 0 && itemStockValue <= 5) {
+                    lowStockCount = itemStockValue;
                 }
             }
         }
@@ -875,7 +798,7 @@ async function loadProductDetails() {
             const errorData = await response.json();
             throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Not Found'}`);
         }
-        const [product] = await applyStorefrontSalePricing([await response.json()]);
+        const product = await response.json();
         product.isBundle = product.productType === 'Bundle';
 
         renderProduct(product);
@@ -920,11 +843,11 @@ function renderProduct(product) {
     const itemCategory = product.category;
     
 
-    let itemStock = product.stock || 0;
+    let itemStock = (product.stockOnline !== undefined ? product.stockOnline : product.stock) || 0;
 let isOutOfStock = false;
 
 if (product.variants && product.variants.length > 0) {
-    const totalVariantStock = product.variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+    const totalVariantStock = product.variants.reduce((sum, v) => sum + ((v.stockOnline !== undefined ? v.stockOnline : v.stock) || 0), 0);
     isOutOfStock = totalVariantStock <= 0;
     itemStock = totalVariantStock;
 } else {
@@ -932,15 +855,11 @@ if (product.variants && product.variants.length > 0) {
 }
     
     let displayPrice = product.price_egp || product.bundlePrice || 0;
-    let displaySalePrice = product.salePrice && product.salePrice < displayPrice ? product.salePrice : null;
     let hasVariants = false;
     
     if (product.variants && product.variants.length > 0) {
         hasVariants = true;
         displayPrice = product.variants[0].price;
-        displaySalePrice = product.variants[0].salePrice && product.variants[0].salePrice < displayPrice
-            ? product.variants[0].salePrice
-            : null;
     }
 
     const imageGalleryHTML = (product.imagePaths || []).map((path, idx) => 
@@ -984,8 +903,8 @@ if (product.variants && product.variants.length > 0) {
                 <p class="product-category-subtle">${escapeHtml(itemCategory)}</p> 
                 
                <p class="product-price-main" id="dynamic-price">
-                    ${displaySalePrice
-                        ? `<span class="price-original">${displayPrice.toFixed(2)} EGP</span> <span class="price-sale">${displaySalePrice.toFixed(2)} EGP</span> <span class="sale-badge sale-badge--inline">SALE</span>`
+                    ${!product.isBundle && product.salePrice && product.salePrice < displayPrice && !hasVariants
+                        ? `<span class="price-original">${displayPrice.toFixed(2)} EGP</span> <span class="price-sale">${product.salePrice.toFixed(2)} EGP</span> <span class="sale-badge sale-badge--inline">SALE</span>`
                         : `${displayPrice.toFixed(2)} EGP`}
                 </p>
 ${product.isBundle && product.bundleOriginalPrice > displayPrice ? `
@@ -1104,6 +1023,21 @@ ${product.isBundle && product.bundleOriginalPrice > displayPrice ? `
     
     const buyNowBtn = document.querySelector('.buy-it-now-btn');
     if (buyNowBtn) buyNowBtn.addEventListener('click', () => buyNowHandler(product));
+
+    // Simple (no variants, no bundle) product: disable up front if it's out of stock.
+    // Variant products handle this themselves inside renderVariantSelector.
+    if (!hasVariants && !product.isBundle) {
+        const simpleStock = product.stockOnline !== undefined ? product.stockOnline : product.stock;
+        if (!simpleStock || simpleStock <= 0) {
+            [addBtn, buyNowBtn].forEach(btn => {
+                if (!btn) return;
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.textContent = 'Out of Stock';
+            });
+        }
+    }
 }
 
 function renderStarsHtml(rating) {
@@ -1189,9 +1123,9 @@ function renderVariantSelector(variants) {
             <label for="variant-select" class="variant-label">${labelText}</label>
             <select id="variant-select" class="option-selector unified-dropdown">
                 ${variants.map((v, i) => {
-                    const outOfStock = (v.stock !== undefined && v.stock <= 0);
-                    const salePrice = v.salePrice && v.salePrice < v.price ? v.salePrice : '';
-                    return `<option value="${v.variantName}" data-price="${salePrice || v.price}" data-original-price="${v.price}" data-sale-price="${salePrice}" data-stock="${v.stock}"
+                    const vStock = v.stockOnline !== undefined ? v.stockOnline : v.stock;
+                    const outOfStock = (vStock !== undefined && vStock <= 0);
+                    return `<option value="${v.variantName}" data-price="${v.price}" data-stock="${vStock}"
                         ${outOfStock ? 'disabled' : ''}
                         ${!outOfStock && i === 0 ? 'selected' : ''}>
                         ${v.variantName}${outOfStock ? ' — Out of Stock' : ''}
@@ -1205,19 +1139,26 @@ function renderVariantSelector(variants) {
     const priceElement  = document.getElementById('dynamic-price');
     const qtyInput      = document.getElementById('quantity'); 
 
+    const updateActionButtonsForStock = (stock) => {
+        const addBtn = document.getElementById('add-to-cart-btn');
+        const buyBtn = document.querySelector('.buy-it-now-btn');
+        const outOfStock = !stock || stock <= 0;
+        [addBtn, buyBtn].forEach(btn => {
+            if (!btn) return;
+            btn.disabled = outOfStock;
+            btn.style.opacity = outOfStock ? '0.5' : '';
+            btn.style.cursor = outOfStock ? 'not-allowed' : '';
+            btn.textContent = outOfStock ? 'Out of Stock' : (btn.id === 'add-to-cart-btn' ? 'Add to Cart' : 'Buy it Now');
+        });
+    };
+
     if (variantSelect) {
         variantSelect.addEventListener('change', (e) => {
             const selectedOption = e.target.options[e.target.selectedIndex];
             if (!selectedOption) return;
             
             const price = selectedOption.getAttribute('data-price');
-            const originalPrice = selectedOption.getAttribute('data-original-price');
-            const salePrice = selectedOption.getAttribute('data-sale-price');
-            if (price && priceElement) {
-                priceElement.innerHTML = salePrice
-                    ? `<span class="price-original">${parseFloat(originalPrice).toFixed(2)} EGP</span> <span class="price-sale">${parseFloat(salePrice).toFixed(2)} EGP</span> <span class="sale-badge sale-badge--inline">SALE</span>`
-                    : `${parseFloat(price).toFixed(2)} EGP`;
-            }
+            if (price && priceElement) priceElement.textContent = `${parseFloat(price).toFixed(2)} EGP`;
             
             const stock = parseInt(selectedOption.getAttribute('data-stock')) || 0;
             if (qtyInput) {
@@ -1226,22 +1167,18 @@ function renderVariantSelector(variants) {
                     qtyInput.value = stock > 0 ? stock : 1;
                 }
             }
+            updateActionButtonsForStock(stock);
         });
 
         // Set initial price and stock from the first selected option
         if (variantSelect.selectedIndex >= 0 && variantSelect.options[variantSelect.selectedIndex]) {
             const initialOpt   = variantSelect.options[variantSelect.selectedIndex];
             const initialPrice = initialOpt.getAttribute('data-price');
-            const initialOriginalPrice = initialOpt.getAttribute('data-original-price');
-            const initialSalePrice = initialOpt.getAttribute('data-sale-price');
             const initialStock = initialOpt.getAttribute('data-stock');
             
-            if (initialPrice && priceElement) {
-                priceElement.innerHTML = initialSalePrice
-                    ? `<span class="price-original">${parseFloat(initialOriginalPrice).toFixed(2)} EGP</span> <span class="price-sale">${parseFloat(initialSalePrice).toFixed(2)} EGP</span> <span class="sale-badge sale-badge--inline">SALE</span>`
-                    : `${parseFloat(initialPrice).toFixed(2)} EGP`;
-            }
+            if (initialPrice && priceElement) priceElement.textContent = `${parseFloat(initialPrice).toFixed(2)} EGP`;
             if (initialStock && qtyInput) qtyInput.setAttribute('max', initialStock);
+            updateActionButtonsForStock(parseInt(initialStock) || 0);
         }
 
         // Override with first AVAILABLE (non-disabled) option's stock
@@ -1250,6 +1187,7 @@ function renderVariantSelector(variants) {
             const initStock = parseInt(firstAvailableOpt.getAttribute('data-stock')) || 0;
             if (initStock > 0) qtyInput.setAttribute('max', initStock);
         }
+        if (!firstAvailableOpt) updateActionButtonsForStock(0); // every variant is out of stock
     }
 }
 
@@ -1344,6 +1282,19 @@ function buyNowHandler(product) {
         variant = vSelect.value;
     }
 
+    // Hard stock guard — re-check the real numbers right now, don't just trust button state
+    const currentStock = vSelect
+        ? (parseInt(vSelect.options[vSelect.selectedIndex]?.getAttribute('data-stock')) || 0)
+        : (product.isBundle ? Infinity : (product.stockOnline !== undefined ? product.stockOnline : product.stock));
+    if (!product.isBundle && (!currentStock || currentStock <= 0)) {
+        showBrandedModal({ title: 'Out of Stock', message: 'Sorry, this item just sold out. Please check back soon or pick a different option.', type: 'error' });
+        return;
+    }
+    if (!product.isBundle && qty > currentStock) {
+        showBrandedModal({ title: 'Not Enough Stock', message: `Only ${currentStock} left in stock — please lower the quantity.`, type: 'error' });
+        return;
+    }
+
     const cartItem = {
         _id: product._id,
         name: product.isBundle ? product.bundleName : product.name_en,
@@ -1374,6 +1325,19 @@ function addToCartHandler(product) {
         const opt = vSelect.options[vSelect.selectedIndex];
         price = parseFloat(opt.getAttribute('data-price'));
         variant = vSelect.value;
+    }
+
+    // Hard stock guard — re-check the real numbers right now, don't just trust button state
+    const currentStock = vSelect
+        ? (parseInt(vSelect.options[vSelect.selectedIndex]?.getAttribute('data-stock')) || 0)
+        : (product.isBundle ? Infinity : (product.stockOnline !== undefined ? product.stockOnline : product.stock));
+    if (!product.isBundle && (!currentStock || currentStock <= 0)) {
+        showBrandedModal({ title: 'Out of Stock', message: 'Sorry, this item just sold out. Please check back soon or pick a different option.', type: 'error' });
+        return;
+    }
+    if (!product.isBundle && qty > currentStock) {
+        showBrandedModal({ title: 'Not Enough Stock', message: `Only ${currentStock} left in stock — please lower the quantity.`, type: 'error' });
+        return;
     }
 
     const cartItem = {
@@ -2372,9 +2336,8 @@ async function checkAndApplyAutomaticDiscounts() {
 
         const data = await response.json();
 
-        const cartOnlyDiscounts = (data.applied || []).filter(discount => !isDisplayableStorefrontDiscount(discount));
-        if (cartOnlyDiscounts.length > 0) {
-            const best = cartOnlyDiscounts[0];
+        if (data.applied && data.applied.length > 0) {
+            const best = data.applied[0];
             appliedDiscount = {
                 ...best,
                 discountAmount: best.discountAmount
