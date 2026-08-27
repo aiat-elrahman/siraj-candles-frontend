@@ -1243,9 +1243,26 @@ function renderBundleItems(product) {
     }
     
     const itemsHtml = product.bundleItems.map((item, i) => {
-        const scents = Array.isArray(item.allowedScents) 
-            ? item.allowedScents 
-            : (item.allowedScents || '').split(',');
+        const linkedProduct = item.linkedProductId && typeof item.linkedProductId === 'object' ? item.linkedProductId : null;
+
+        // Prefer real inventory data from the linked product's variants; fall back to the
+        // freeform allowedScents text only if there's no linked product to check stock against.
+        let scentOptionsHtml;
+        if (linkedProduct && linkedProduct.variants && linkedProduct.variants.length > 0) {
+            scentOptionsHtml = linkedProduct.variants.map(v => {
+                const vStock = v.stockOnline !== undefined ? v.stockOnline : v.stock;
+                const outOfStock = (vStock !== undefined && vStock <= 0);
+                return `<option value="${v.variantName}" data-stock="${vStock}" ${outOfStock ? 'disabled' : ''}>
+                    ${escapeHtml(v.variantName)}${outOfStock ? ' — Out of Stock' : ''}
+                </option>`;
+            }).join('');
+        } else {
+            const scents = Array.isArray(item.allowedScents) 
+                ? item.allowedScents 
+                : (item.allowedScents || '').split(',');
+            scentOptionsHtml = scents.map(s => `<option value="${s.trim()}">${escapeHtml(s.trim())}</option>`).join('');
+        }
+
         return `
             <div class="bundle-selector-group">
                 <label for="bundle-item-${i}">
@@ -1253,7 +1270,7 @@ function renderBundleItems(product) {
                 </label>
                 <select id="bundle-item-${i}" class="option-selector unified-dropdown bundle-item-select" required>
                     <option value="">-- Select a scent --</option>
-                    ${scents.map(s => `<option value="${s.trim()}">${escapeHtml(s.trim())}</option>`).join('')}
+                    ${scentOptionsHtml}
                 </select>
             </div>
         `;
