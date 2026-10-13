@@ -47,14 +47,35 @@ const postTrackingEvent = (type, payload = {}) => {
 };
 
 window.SirajTracking = {
-  trackMeta(eventName, payload = {}) {
+  // `options` carries { eventID } so the browser event and the server-side (Conversions API)
+  // copy of the same event can be merged by Meta instead of counted twice.
+  trackMeta(eventName, payload = {}, options) {
+    const args = options ? ['track', eventName, payload, options] : ['track', eventName, payload];
     if (typeof window.fbq === 'function') {
-      window.fbq('track', eventName, payload);
+      window.fbq(...args);
     } else {
         // Queue events if pixel hasn't loaded yet
         window._fbqQueue = window._fbqQueue || [];
-        window._fbqQueue.push(['track', eventName, payload]);
+        window._fbqQueue.push(args);
     }
+  },
+
+  // Browser identifiers Meta uses to match a purchase to the ad click. Sent with the order
+  // so the server can include them in the Conversions API event.
+  getMetaContext() {
+    const cookie = (name) => {
+      const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+      return m ? decodeURIComponent(m[1]) : '';
+    };
+    let fbc = cookie('_fbc');
+    if (!fbc) {
+      let fbclid = new URLSearchParams(window.location.search).get('fbclid') || '';
+      if (!fbclid) {
+        try { fbclid = (JSON.parse(sessionStorage.getItem('sirajUtm') || '{}')).fbclid || ''; } catch (e) {}
+      }
+      if (fbclid) fbc = `fb.1.${Date.now()}.${fbclid}`;
+    }
+    return { fbp: cookie('_fbp'), fbc, sourceUrl: window.location.href };
   },
 
   trackGoogle(eventName, payload = {}) {
@@ -184,7 +205,8 @@ window.SirajTracking = {
       num_items: items.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
     };
 
-    this.trackMeta('Purchase', payload);
+    // eventID = order id: the server sends the same id with its Conversions API copy.
+    this.trackMeta('Purchase', payload, order.orderId ? { eventID: String(order.orderId) } : undefined);
     this.trackGoogle('purchase', {
       transaction_id: order.orderId || '',
       value: payload.value,
