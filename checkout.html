@@ -13,7 +13,7 @@
 </head>
 <body data-page="checkout">
 
-    <div class="announcement-ribbon"><p>🎉 Free delivery on orders over 2000 EGP. </p></div>
+    <div class="announcement-ribbon" id="announcement-ribbon"></div>
 
     <nav class="navbar">
         <div class="container">
@@ -92,17 +92,8 @@
                     <label for="notes">Order Notes (Optional)</label>
                     <textarea id="notes" name="notes" placeholder="Notes about your order, e.g. special delivery instructions."></textarea>
 
-                    <h2 class="section-title">Payment Method</h2>
-                    <div class="payment-options">
-                        <label>
-                            <input type="radio" name="payment-method" value="COD" checked>
-                            Cash On Delivery (COD)
-                        </label>
-                        <label>
-                            <input type="radio" name="payment-method" value="Online" disabled>
-                            Online Payment (Coming Soon)
-                        </label>
-                    </div>
+                    <!-- Filled from Admin > Store Settings (deposit, InstaPay number, policy text). -->
+                    <div id="payment-policy-container"></div>
 
                     <button type="submit" id="place-order-btn" class="checkout-btn">Place Order</button>
                 </form>
