@@ -37,6 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'stores':
             setupStoresPage(); 
             break;
+            case 'policy':
+            setupPolicyPage();
+            break;
         default:
             break;
     }
@@ -1038,6 +1041,19 @@ ${product.isBundle && product.bundleOriginalPrice > displayPrice ? `
             });
         }
     }
+
+    // Bundle-only listing (exists purely to be linked into a bundle) — not for direct purchase.
+    // Should rarely be reachable since it's excluded from all browsing/search, but this blocks
+    // it outright if someone finds the direct URL anyway.
+    if (product.hideFromShop) {
+        [addBtn, buyNowBtn].forEach(btn => {
+            if (!btn) return;
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            btn.textContent = 'Not Available for Direct Purchase';
+        });
+    }
 }
 
 function renderStarsHtml(rating) {
@@ -1918,6 +1934,8 @@ async function setupCheckoutPage() {
         return;
     }
     
+    await loadPaymentSettings();
+    renderPaymentPolicy();
     renderCheckoutSummary(summaryContainer);
     renderCheckoutCartItems();
     
@@ -2025,6 +2043,105 @@ function updateCheckoutTotals() {
     }
  
     if (totalEl) totalEl.textContent = total.toFixed(2) + ' EGP';
+    updateDepositPreview(total);
+}
+
+// ====================================
+// PAYMENT POLICY (deposit + balance) — every word and number comes from
+// Admin > Store Settings > Payment. Nothing here is hardcoded.
+// ====================================
+let paymentSettings = null;
+let lastCheckoutTotal = 0;
+
+async function loadPaymentSettings() {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/site-settings`);
+        if (!res.ok) throw new Error('settings unavailable');
+        const st = await res.json();
+        paymentSettings = st.payment || null;
+    } catch (e) {
+        console.error('Could not load payment settings', e);
+        paymentSettings = null;
+    }
+}
+
+function computeDeposit(total) {
+    const p = paymentSettings;
+    if (!p || !p.depositEnabled) return null;
+    const raw = p.depositType === 'fixed' ? Number(p.depositValue) : (total * Number(p.depositValue)) / 100;
+    const amount = Math.min(total, Math.max(0, Math.ceil(raw || 0)));
+    return { amount, balance: total - amount };
+}
+
+// Lets the admin write {{depositAmount}}, {{balanceAmount}}, {{total}}, {{instapayNumber}}, {{instapayName}}
+// inside the policy / success text.
+function fillPaymentTokens(text, total, deposit) {
+    const p = paymentSettings || {};
+    const d = deposit || computeDeposit(total) || { amount: 0, balance: total };
+    return String(text || '')
+        .replace(/\{\{\s*depositAmount\s*\}\}/g, `${d.amount.toFixed(0)} EGP`)
+        .replace(/\{\{\s*balanceAmount\s*\}\}/g, `${d.balance.toFixed(0)} EGP`)
+        .replace(/\{\{\s*total\s*\}\}/g, `${Number(total).toFixed(2)} EGP`)
+        .replace(/\{\{\s*instapayNumber\s*\}\}/g, p.instapayNumber || '')
+        .replace(/\{\{\s*instapayName\s*\}\}/g, p.instapayAccountName || '');
+}
+
+function paragraphsHtml(text) {
+    return escapeHtml(text)
+        .split(/\n\s*\n/)
+        .filter(t => t.trim())
+        .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+        .join('');
+}
+
+function renderPaymentPolicy() {
+    const container = document.getElementById('payment-policy-container');
+    if (!container) return;
+    const p = paymentSettings;
+    if (!p || !p.depositEnabled) { container.innerHTML = ''; return; }
+
+    container.innerHTML = `
+        <h2 class="section-title">${escapeHtml(p.policyHeading || 'How payment works')}</h2>
+        <div class="payment-policy">
+            <div id="payment-policy-live"></div>
+            ${p.instapayNumber ? `
+            <div class="pp-instapay">
+                <div>
+                    <span class="pp-label">InstaPay</span>
+                    <strong class="pp-number" id="pp-number">${escapeHtml(p.instapayNumber)}</strong>
+                    ${p.instapayAccountName ? `<span class="pp-account">${escapeHtml(p.instapayAccountName)}</span>` : ''}
+                </div>
+                <button type="button" class="pp-copy" id="pp-copy-btn">Copy number</button>
+            </div>` : ''}
+            <label class="pp-ack">
+                <input type="checkbox" id="payment-ack">
+                <span>${escapeHtml(p.acknowledgeLabel || 'I have read and agree to the payment and shipping terms')}</span>
+            </label>
+        </div>`;
+
+    const copyBtn = document.getElementById('pp-copy-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            try { await navigator.clipboard.writeText(p.instapayNumber); copyBtn.textContent = 'Copied ✓'; }
+            catch (e) { copyBtn.textContent = 'Select & copy the number'; }
+            setTimeout(() => { copyBtn.textContent = 'Copy number'; }, 2000);
+        });
+    }
+    updateDepositPreview(lastCheckoutTotal || getCartTotal());
+}
+
+function updateDepositPreview(total) {
+    lastCheckoutTotal = total;
+    const live = document.getElementById('payment-policy-live');
+    const p = paymentSettings;
+    if (!live || !p || !p.depositEnabled) return;
+    const d = computeDeposit(total);
+    live.innerHTML = `
+        ${d ? `<div class="pp-amounts">
+            <div><span>Deposit to pay now</span><strong>${d.amount.toFixed(0)} EGP</strong></div>
+            <div><span>Balance before dispatch</span><strong>${d.balance.toFixed(0)} EGP</strong></div>
+        </div>` : ''}
+        <div class="pp-text">${paragraphsHtml(fillPaymentTokens(p.policyText, total, d))}</div>`;
 }
 
 function renderCheckoutCartItems() {
@@ -2085,6 +2202,15 @@ async function processCheckout(e) {
     const formData = new FormData(checkoutForm);
     const cartSubtotal = getCartTotal();
     
+    if (paymentSettings && paymentSettings.depositEnabled) {
+        const ack = document.getElementById('payment-ack');
+        if (ack && !ack.checked) {
+            showBrandedModal({ title: 'One more step', message: 'Please confirm that you have read the payment and shipping terms before placing your order.' });
+            ack.focus();
+            return;
+        }
+    }
+
     if (!formData.get('city')) {
         showBrandedModal({ title: 'Almost there!', message: 'Please select your city to continue.' });
         return;
@@ -2139,7 +2265,8 @@ async function processCheckout(e) {
         shippingFee: finalShippingFee,           
         discountAmount: finalDiscountAmount,     
         discountCode: usedDiscountCode,          
-        paymentMethod: formData.get('payment-method'),
+        paymentMethod: 'Online', // cash on delivery was removed; payment is deposit + balance by transfer
+        tracking: window.SirajTracking?.getMetaContext?.() || {},
     };
     
     const submitBtn = document.getElementById('place-order-btn');
@@ -2174,6 +2301,7 @@ async function processCheckout(e) {
 
             // Show a simple order-success screen (no WhatsApp — that's now admin-side only,
             // since the customer-facing WhatsApp flow was what misdirected messages before)
+            orderData.deposit = result.deposit || computeDeposit(finalTotalAmount);
             await showOrderSuccessScreen(result.orderId, orderData);
             window.location.href = 'index.html'; 
         } else {
@@ -2189,6 +2317,28 @@ async function processCheckout(e) {
 }
 
 // ── Order success screen (no WhatsApp here — confirmation is sent by the admin) ──
+// Payment instructions on the order-confirmed screen. Deposit, number and wording all come
+// from Admin > Store Settings; if deposits are switched off it falls back to the plain message.
+function buildSuccessPaymentHtml(orderData) {
+    const p = paymentSettings;
+    const total = Number(orderData.totalAmount || 0);
+    const d = orderData.deposit;
+    const plain = `<p style="color:#374151; font-size:13px; margin:0 0 22px; line-height:1.6;">هنتواصل معاكي قريب على واتساب لتأكيد الطلب وتفاصيل الدفع 🤍</p>`;
+    if (!p || !p.depositEnabled || !d) return plain;
+
+    const message = p.successMessage
+        ? `<div style="color:#374151; font-size:13px; line-height:1.6; margin:0 0 16px;">${paragraphsHtml(fillPaymentTokens(p.successMessage, total, d))}</div>`
+        : plain;
+    return `
+        <div style="background:#FFF0F6; border:1px solid #D8B4D8; border-radius:12px; padding:14px; margin:0 0 16px; text-align:center;">
+            <div style="font-size:12px; color:#6B4A6E; letter-spacing:.08em; text-transform:uppercase;">Deposit to confirm your order</div>
+            <div style="font-size:26px; font-weight:800; color:#BE185D; margin:4px 0;">${Number(d.amount).toFixed(0)} EGP</div>
+            ${p.instapayNumber ? `<div style="font-size:13px; color:#1E1023;">InstaPay: <strong>${escapeHtml(p.instapayNumber)}</strong>${p.instapayAccountName ? ` — ${escapeHtml(p.instapayAccountName)}` : ''}</div>` : ''}
+            <div style="font-size:12px; color:#6B4A6E; margin-top:6px;">Balance: ${Number(d.balance).toFixed(0)} EGP after we send you the shipping label photo</div>
+        </div>
+        ${message}`;
+}
+
 async function showOrderSuccessScreen(orderId, orderData) {
     return new Promise((resolve) => {
         try {
@@ -2218,9 +2368,7 @@ async function showOrderSuccessScreen(orderId, orderData) {
                     <p style="color:#6B4A6E; font-size:13px; margin:0 0 20px;">
                         Total: <strong>${orderData.totalAmount?.toFixed(2)} EGP</strong>
                     </p>
-                    <p style="color:#374151; font-size:13px; margin:0 0 22px; line-height:1.6;">
-                        هنتواصل معاكي قريب على واتساب لتأكيد الطلب وتفاصيل الدفع 🤍
-                    </p>
+                    ${buildSuccessPaymentHtml(orderData)}
 
                     <button onclick="document.getElementById('siraj-order-overlay').remove();" style="
                         display:block; width:100%; padding:14px;
@@ -2236,7 +2384,7 @@ async function showOrderSuccessScreen(orderId, orderData) {
             overlay.id = 'siraj-order-overlay';
             document.body.appendChild(overlay);
 
-            const autoResolve = setTimeout(resolve, 15000);
+            const autoResolve = setTimeout(resolve, 600000); // long enough to copy the InstaPay number
             const observer = new MutationObserver(() => {
                 if (!document.getElementById('siraj-order-overlay')) {
                     clearTimeout(autoResolve);
@@ -3034,6 +3182,45 @@ async function setupStoresPage() {
 
     } catch (e) {
         container.innerHTML = `<p class="error-message" style="text-align:center;">Could not load store locations. Please try again later.</p>`;
+        console.error(e);
+    }
+}
+
+// ── Generic policy/info page (FAQ, Shipping, Returns, Terms, Privacy) ──────
+async function setupPolicyPage() {
+    const container = document.getElementById('policy-page-container');
+    if (!container) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const slug = urlParams.get('slug');
+
+    if (!slug) {
+        container.innerHTML = `<p class="error-message" style="text-align:center;">No page specified.</p>`;
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/pages/${encodeURIComponent(slug)}`);
+        if (!res.ok) throw new Error('Page not found');
+        const page = await res.json();
+
+        document.title = `${page.title} | Siraj Candles`;
+        const bodyHtml = escapeHtml(page.body || '')
+            .split(/\n\s*\n/)
+            .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+            .join('');
+
+        container.innerHTML = `
+            <h1 class="page-title">${escapeHtml(page.title)}</h1>
+            ${page.summary ? `<p class="policy-summary">${escapeHtml(page.summary)}</p>` : ''}
+            <div class="policy-body">${bodyHtml}</div>
+        `;
+    } catch (e) {
+        container.innerHTML = `
+            <div style="text-align:center; padding: 3rem 1rem;">
+                <p class="error-message">This page couldn't be found.</p>
+                <a href="index.html" class="shop-now-btn" style="margin-top:1rem; display:inline-block;">Back to Home</a>
+            </div>`;
         console.error(e);
     }
 }
