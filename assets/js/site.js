@@ -512,9 +512,8 @@ async function loadHeroSettings() {
 
     } catch (error) {
         console.error('Failed to load hero settings:', error);
-        heroSection.style.backgroundImage = "url('https://res.cloudinary.com/dvr195vfw/image/upload/v1776209850/Gemini_Generated_Image__3_bylucb.png')";
-        heroSection.style.backgroundSize = 'cover';
-        heroSection.style.backgroundPosition = 'center';
+        // No hardcoded fallback photo: the hero keeps the plain brand gradient from theme.css
+        // until slides are configured in Admin > Homepage and the server can be reached.
     }
 }
 
