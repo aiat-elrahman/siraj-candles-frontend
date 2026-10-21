@@ -1072,7 +1072,9 @@ body.mobile-menu-open::before {
 
 /* ── HERO SECTION — elevated ────────────────────────────────────── */
 .hero-section {
-    background-image: url('https://res.cloudinary.com/dvr195vfw/image/upload/v1765150425/Your_paragraph_text_1_ck0hsl.png');
+    /* No photo is hardcoded here: the real hero images come from Admin > Homepage > Hero carousel.
+       Until they arrive (or if none are set) this plain brand gradient shows instead. */
+    background-image: linear-gradient(135deg, #1E1023 0%, #6B4A6E 100%);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
